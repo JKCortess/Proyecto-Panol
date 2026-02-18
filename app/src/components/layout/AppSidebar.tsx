@@ -1,0 +1,328 @@
+﻿"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+    LayoutDashboard,
+    Package,
+    Users,
+    LogOut,
+    ClipboardList,
+    Shield,
+    FileText,
+    ListTodo,
+    ArrowLeftRight,
+    ShoppingCart,
+    ChevronDown,
+    ChevronLeft,
+    ChevronRight,
+    Settings,
+    Compass,
+    PanelLeftClose,
+    PanelLeft,
+} from "lucide-react";
+import { type User } from "@supabase/supabase-js";
+import { signOut } from "@/app/auth/actions";
+import { cn } from "@/lib/utils";
+import { type UserProfile, type RolePermission } from "@/app/profile/actions";
+import { AvatarDisplay } from "@/components/profile/AvatarSelector";
+import { ThemeToggle } from "./ThemeToggle";
+
+// Map page_key to route and menu info
+import { ALL_MENU_ITEMS } from "@/constants/navigation";
+
+const allMenuItems = ALL_MENU_ITEMS;
+
+interface AppSidebarProps {
+    user: User | null;
+    profile: UserProfile | null;
+    permissions: RolePermission[];
+}
+
+export function AppSidebar({ user, profile, permissions }: AppSidebarProps) {
+    const pathname = usePathname();
+    const [navMenuOpen, setNavMenuOpen] = useState(true);
+    const [adminMenuOpen, setAdminMenuOpen] = useState(true);
+    const [collapsed, setCollapsed] = useState(false);
+
+    // Persist collapsed state
+    useEffect(() => {
+        const stored = localStorage.getItem("sidebar-collapsed");
+        if (stored === "true") setCollapsed(true);
+    }, []);
+
+    useEffect(() => {
+        localStorage.setItem("sidebar-collapsed", String(collapsed));
+    }, [collapsed]);
+
+    const handleSignOut = async () => {
+        await signOut();
+    };
+
+    const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+    const isAdmin = profile?.role === 'Administrador';
+
+    // Build the visible menu items separated by group
+    const visibleNavItems = allMenuItems
+        .filter((item) => item.group === "navigation")
+        .filter((item) => {
+            if (isAdmin) return true;
+            const perm = permissions.find(p => p.page_key === item.key);
+            if (!perm) return true;
+            return perm.allowed;
+        });
+
+    const visibleAdminItems = allMenuItems
+        .filter((item) => item.group === "admin")
+        .filter((item) => {
+            if (isAdmin) return true;
+            const perm = permissions.find(p => p.page_key === item.key);
+            if (!perm) return false; // admin items hidden by default for non-admins
+            return perm.allowed;
+        });
+
+    const hasAdminItems = visibleAdminItems.length > 0;
+    // Check if any admin route is active (to auto-expand)
+    const isAdminRouteActive = visibleAdminItems.some(item => pathname === item.href);
+    const isNavRouteActive = visibleNavItems.some(item => pathname === item.href);
+
+    const renderMenuLink = (item: typeof allMenuItems[0]) => {
+        const isActive = pathname === item.href;
+        const Icon = item.icon;
+        return (
+            <li key={item.href}>
+                <Link
+                    href={item.href}
+                    title={collapsed ? item.label : undefined}
+                    className={cn(
+                        "flex items-center gap-3 rounded-xl text-sm font-medium transition-all duration-200",
+                        collapsed ? "justify-center px-2 py-2.5" : "px-3 py-2.5",
+                        isActive
+                            ? "bg-blue-600 text-white shadow-lg"
+                            : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80"
+                    )}
+                >
+                    <Icon className={cn("w-5 h-5 shrink-0", isActive ? "text-white" : "text-slate-500 dark:text-slate-400")} />
+                    {!collapsed && item.label}
+                </Link>
+            </li>
+        );
+    };
+
+    // Section header component
+    const SectionHeader = ({
+        icon: Icon,
+        label,
+        isOpen,
+        onToggle,
+        colorClass,
+    }: {
+        icon: React.ComponentType<{ className?: string }>;
+        label: string;
+        isOpen: boolean;
+        onToggle: () => void;
+        colorClass: string;
+    }) => {
+        if (collapsed) {
+            return (
+                <div className="flex justify-center py-2 mb-2">
+                    <div className={cn("w-8 h-[2px] rounded-full", colorClass === "blue" ? "bg-blue-500/40" : "bg-amber-500/40")} />
+                </div>
+            );
+        }
+
+        return (
+            <button
+                onClick={onToggle}
+                className={cn(
+                    "flex items-center justify-between w-full mb-3 px-2 py-1.5 rounded-lg transition-all duration-200 group/section",
+                    "hover:bg-slate-100/50 dark:hover:bg-slate-800/50"
+                )}
+            >
+                <span className="flex items-center gap-2">
+                    <span className={cn(
+                        "flex items-center justify-center w-5 h-5 rounded-md",
+                        colorClass === "blue"
+                            ? "bg-blue-500/15 dark:bg-blue-500/20"
+                            : "bg-amber-500/15 dark:bg-amber-500/20"
+                    )}>
+                        <Icon className={cn(
+                            "w-3 h-3",
+                            colorClass === "blue"
+                                ? "text-blue-600 dark:text-blue-400"
+                                : "text-amber-600 dark:text-amber-400"
+                        )} />
+                    </span>
+                    <span className={cn(
+                        "text-[11px] font-semibold uppercase tracking-wider",
+                        colorClass === "blue"
+                            ? "text-blue-600/80 dark:text-blue-400/80"
+                            : "text-amber-600/80 dark:text-amber-400/80"
+                    )}>
+                        {label}
+                    </span>
+                </span>
+                <ChevronDown
+                    className={cn(
+                        "w-3.5 h-3.5 transition-transform duration-200",
+                        colorClass === "blue"
+                            ? "text-blue-500/50 dark:text-blue-400/50"
+                            : "text-amber-500/50 dark:text-amber-400/50",
+                        isOpen ? "rotate-0" : "-rotate-90"
+                    )}
+                />
+            </button>
+        );
+    };
+
+    return (
+        <aside
+            className={cn(
+                "border-r border-slate-200 dark:border-slate-800 flex-col hidden md:flex h-full backdrop-blur-2xl transition-all duration-300 relative",
+                collapsed ? "w-[72px]" : "w-64"
+            )}
+        >
+            {/* Collapse Toggle Button */}
+            <button
+                onClick={() => setCollapsed(!collapsed)}
+                className={cn(
+                    "absolute -right-3 top-7 z-50 w-6 h-6 rounded-full",
+                    "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700",
+                    "flex items-center justify-center shadow-md",
+                    "hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-300 dark:hover:border-blue-600",
+                    "transition-all duration-200 group/toggle"
+                )}
+                title={collapsed ? "Expandir menú" : "Colapsar menú"}
+            >
+                {collapsed ? (
+                    <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover/toggle:text-blue-500 transition-colors" />
+                ) : (
+                    <ChevronLeft className="w-3.5 h-3.5 text-slate-400 group-hover/toggle:text-blue-500 transition-colors" />
+                )}
+            </button>
+
+            {/* Logo Area */}
+            <div className={cn("flex items-center gap-3 transition-all duration-300", collapsed ? "p-4 justify-center" : "p-6")}>
+                <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shrink-0">
+                    <Package className="w-5 h-5 text-white" />
+                </div>
+                {!collapsed && (
+                    <div className="flex flex-col overflow-hidden">
+                        <span className="text-lg font-bold text-slate-900 dark:text-white tracking-tight leading-tight truncate">Gestión de Pañol</span>
+                        <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 tracking-wider uppercase">Dole Molina</span>
+                    </div>
+                )}
+            </div>
+
+            {/* Navigation */}
+            <nav className={cn("flex-1 space-y-5 py-4 overflow-y-auto", collapsed ? "px-2" : "px-4")}>
+                {/* General Navigation */}
+                <div>
+                    <SectionHeader
+                        icon={Compass}
+                        label="Navegación"
+                        isOpen={navMenuOpen || isNavRouteActive}
+                        onToggle={() => setNavMenuOpen(!navMenuOpen)}
+                        colorClass="blue"
+                    />
+                    <div
+                        className={cn(
+                            "overflow-hidden transition-all duration-200",
+                            (navMenuOpen || isNavRouteActive || collapsed) ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+                        )}
+                    >
+                        <ul className="space-y-1">
+                            {visibleNavItems.map(renderMenuLink)}
+                        </ul>
+                    </div>
+                </div>
+
+                {/* Admin Section */}
+                {hasAdminItems && (
+                    <div>
+                        <SectionHeader
+                            icon={Shield}
+                            label="Administración"
+                            isOpen={adminMenuOpen || isAdminRouteActive}
+                            onToggle={() => setAdminMenuOpen(!adminMenuOpen)}
+                            colorClass="amber"
+                        />
+                        <div
+                            className={cn(
+                                "overflow-hidden transition-all duration-200",
+                                (adminMenuOpen || isAdminRouteActive || collapsed) ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+                            )}
+                        >
+                            <ul className="space-y-1">
+                                {visibleAdminItems.map(renderMenuLink)}
+                            </ul>
+                        </div>
+                    </div>
+                )}
+            </nav>
+
+            {/* User Profile - Clickable to go to Mi Perfil */}
+            <div className={cn("p-4 border-t border-slate-200 dark:border-slate-800", collapsed && "p-2")}>
+                {collapsed ? (
+                    <div className="flex flex-col items-center gap-2">
+                        <Link href="/profile" title={displayName}>
+                            <AvatarDisplay
+                                avatarId={profile?.avatar_id || null}
+                                userName={displayName}
+                                size="md"
+                                className="shadow-sm ring-1 ring-slate-100 dark:ring-slate-600"
+                            />
+                        </Link>
+                        <button
+                            onClick={handleSignOut}
+                            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-xl transition-colors group/logout"
+                            title="Cerrar Sesión"
+                        >
+                            <LogOut className="w-4 h-4 text-slate-400 group-hover/logout:text-red-500 dark:text-slate-500 dark:group-hover/logout:text-red-400 transition-colors" />
+                        </button>
+                    </div>
+                ) : (
+                    <div className="flex items-center gap-2 p-2.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:shadow-md">
+                        <Link
+                            href="/profile"
+                            className="flex items-center gap-3 flex-1 min-w-0 group"
+                        >
+                            <AvatarDisplay
+                                avatarId={profile?.avatar_id || null}
+                                userName={displayName}
+                                size="md"
+                                className="shadow-sm ring-1 ring-slate-100 dark:ring-slate-600"
+                            />
+                            <div className="flex-1 overflow-hidden min-w-0">
+                                <p className="text-sm font-bold text-slate-800 dark:text-white truncate tracking-tight transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                                    {displayName}
+                                </p>
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                    {isAdmin ? (
+                                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-500/20 px-2 py-0.5 rounded-full">
+                                            <Shield className="w-2.5 h-2.5" />
+                                            Admin
+                                        </span>
+                                    ) : (
+                                        <span className="inline-flex items-center text-[10px] font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-700/50 px-2 py-0.5 rounded-full">
+                                            Operador
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        </Link>
+                        <div className="h-8 w-[1px] bg-slate-200 dark:bg-slate-700 mx-1" />
+                        <button
+                            onClick={handleSignOut}
+                            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-xl transition-colors shrink-0 group/logout"
+                            title="Cerrar Sesión"
+                        >
+                            <LogOut className="w-4 h-4 text-slate-400 group-hover/logout:text-red-500 dark:text-slate-500 dark:group-hover/logout:text-red-400 transition-colors" />
+                        </button>
+                    </div>
+                )}
+            </div>
+        </aside>
+    );
+}
