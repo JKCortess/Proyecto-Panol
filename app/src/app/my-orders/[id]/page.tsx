@@ -103,6 +103,9 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
                                         <span style={{ color: 'var(--brand)' }}>#</span> {req.request_code}
                                     </h1>
                                     <StatusChip status={req.status} size="md" />
+                                    {req.status === 'Pendiente' && (
+                                        <CancelRequestButton requestId={req.id} requestCode={req.request_code} />
+                                    )}
                                 </div>
                                 <p className="flex items-center gap-2 text-sm" style={{ color: 'var(--muted)' }}>
                                     <Calendar className="w-4 h-4 shrink-0" style={{ color: 'var(--brand)' }} />
@@ -140,10 +143,6 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
                                         </p>
                                     </div>
                                 </div>
-
-                                {req.status === 'Pendiente' && (
-                                    <CancelRequestButton requestId={req.id} requestCode={req.request_code} />
-                                )}
                             </div>
                         </div>
                     </div>

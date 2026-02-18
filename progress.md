@@ -7,6 +7,19 @@
 
 ## Log de Cambios (Reciente)
 
+### [2026-02-18] - 🔧 Fix: Caché se invalida en cada carga de página + Botón "Actualizar Datos" se re-activa
+- **Problema 1**: Al modificar registros manualmente en Google Sheets, la app seguía mostrando datos desactualizados incluso al recargar la página. El caché in-memory de 60 segundos persistía entre requests del servidor, sirviendo datos viejos.
+- **Problema 2**: El botón "Actualizar Datos" funcionaba una sola vez y luego se bloqueaba permanentemente. El cooldown de 10 segundos nunca expiraba visualmente porque no había un mecanismo de re-render que actualizara el estado `isInCooldown`.
+- **Causa raíz (Problema 1)**: La función `getInventory()` en `data.ts` verificaba el caché in-memory antes de hacer fetch a Google Sheets. Aunque la página tenía `force-dynamic`, el proceso Node.js mantenía el caché válido entre requests HTTP consecutivos.
+- **Causa raíz (Problema 2)**: `isInCooldown` se calculaba como `Date.now() - lastRefresh < COOLDOWN_MS` una sola vez durante el render. No existía ningún `useEffect` con timer que forzara un re-render cuando los 10 segundos expiraran, por lo que el botón quedaba deshabilitado indefinidamente hasta una navegación completa.
+- **Correcciones aplicadas**:
+    1. ✅ **`inventory/page.tsx`**: Se importó `invalidateInventoryCache` y se llama **antes** de `getInventory()` en cada carga de página. Esto garantiza que cada visita/recarga obtiene datos frescos directamente de Google Sheets.
+    2. ✅ **`InventoryActionToolbar.tsx`**: Nuevo estado `cooldownRemaining` con `useEffect` + `setInterval` que cuenta hacia atrás cada segundo. Cuando el timer llega a 0, `setCooldownRemaining(0)` fuerza un re-render y `isInCooldown` se evalúa como `false`, re-habilitando el botón automáticamente.
+- **Archivos Modificados**:
+    - `src/app/inventory/page.tsx`: Import de `invalidateInventoryCache`, llamada antes de `getInventory()`.
+    - `src/components/inventory/InventoryActionToolbar.tsx`: Nuevo estado `cooldownRemaining`, `useEffect` con `setInterval` para countdown, `isInCooldown` basado en `cooldownRemaining > 0`.
+- **Resultado**: Los cambios manuales en Google Sheets se reflejan inmediatamente al recargar la página. El botón "Actualizar Datos" se re-habilita automáticamente después de 10 segundos.
+
 ### [2026-02-18] - 🔐 Config: Login OAuth usa SIEMPRE origin dinámico (`window.location.origin`)
 - **Objetivo**: Asegurar que el login con Google (Supabase OAuth) use siempre la URL dinámica del navegador como `redirectTo`, de forma que funcione correctamente tanto desde `localhost:3000` como desde la IP de red local (`192.168.x.x:3000`) o el dominio de producción.
 - **Configuración Verificada**:

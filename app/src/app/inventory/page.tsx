@@ -1,5 +1,5 @@
 ﻿
-import { getInventory, groupItemsByIdentity } from "@/lib/data";
+import { getInventory, groupItemsByIdentity, invalidateInventoryCache } from "@/lib/data";
 
 // Force dynamic rendering — never serve stale cached pages.
 // Google Sheets is the source of truth; every navigation should show fresh data.
@@ -36,6 +36,9 @@ interface SearchParamsProps {
 export default async function InventoryPage({ searchParams }: { searchParams: Promise<SearchParamsProps> }) {
     const params = await searchParams;
     const query = params.q || "";
+
+    // Always invalidate cache on page load so manual Google Sheets edits are reflected
+    invalidateInventoryCache();
 
     // Fetch inventory data and check admin status in parallel
     const [allItems, profile] = await Promise.all([

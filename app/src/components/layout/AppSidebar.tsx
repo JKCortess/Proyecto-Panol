@@ -84,11 +84,11 @@ export function AppSidebar({ user, profile, permissions }: AppSidebarProps) {
 
     const hasAdminItems = visibleAdminItems.length > 0;
     // Check if any admin route is active (to auto-expand)
-    const isAdminRouteActive = visibleAdminItems.some(item => pathname === item.href);
-    const isNavRouteActive = visibleNavItems.some(item => pathname === item.href);
+    const isAdminRouteActive = visibleAdminItems.some(item => item.href === '/' ? pathname === '/' : pathname.startsWith(item.href));
+    const isNavRouteActive = visibleNavItems.some(item => item.href === '/' ? pathname === '/' : pathname.startsWith(item.href));
 
     const renderMenuLink = (item: typeof allMenuItems[0]) => {
-        const isActive = pathname === item.href;
+        const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
         const Icon = item.icon;
         return (
             <li key={item.href}>

@@ -38,6 +38,7 @@ export function InventoryActionToolbar({ totalItems, isAdmin }: InventoryActionT
     // Refresh button state
     const [refreshState, setRefreshState] = useState<RefreshState>('idle');
     const [lastRefresh, setLastRefresh] = useState<number>(0);
+    const [cooldownRemaining, setCooldownRemaining] = useState<number>(0);
 
     const currentView = searchParams.get("view") || "deck";
     const currentSort = searchParams.get("sort") || "name_asc";
@@ -71,6 +72,31 @@ export function InventoryActionToolbar({ totalItems, isAdmin }: InventoryActionT
         }
     }, [refreshState]);
 
+    // Cooldown timer — count down and re-enable button when cooldown expires
+    useEffect(() => {
+        if (lastRefresh === 0) return;
+
+        const remaining = COOLDOWN_MS - (Date.now() - lastRefresh);
+        if (remaining <= 0) {
+            setCooldownRemaining(0);
+            return;
+        }
+
+        setCooldownRemaining(remaining);
+
+        const interval = setInterval(() => {
+            const newRemaining = COOLDOWN_MS - (Date.now() - lastRefresh);
+            if (newRemaining <= 0) {
+                setCooldownRemaining(0);
+                clearInterval(interval);
+            } else {
+                setCooldownRemaining(newRemaining);
+            }
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [lastRefresh]);
+
     const handleForceRefresh = useCallback(async () => {
         // Cooldown check
         const now = Date.now();
@@ -101,7 +127,7 @@ export function InventoryActionToolbar({ totalItems, isAdmin }: InventoryActionT
 
     const selectedSortLabel = SORT_OPTIONS.find(o => o.value === currentSort)?.label || "Ordenar por";
 
-    const isInCooldown = Date.now() - lastRefresh < COOLDOWN_MS;
+    const isInCooldown = cooldownRemaining > 0;
     const isRefreshDisabled = refreshState === 'loading' || isInCooldown;
 
     return (
