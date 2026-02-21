@@ -7,6 +7,12 @@
 
 ## Log de Cambios (Reciente)
 
+### [2026-02-21] - [x] **Ejecución Local**: Iniciar servidor de desarrollo en localhost:3000
+- **Tarea**: El usuario solicitó ejecutar el proyecto localmente.
+- **Acción**: Se ejecutó `npm run dev` en la carpeta `app/`.
+- **Estado**: Servidor activo y escuchando en `http://localhost:3000`.
+- **SOP**: Creado `architecture/run_locally.md` para referencia futura.
+
 ### [2026-02-18] - 🔧 Fix: Toggle de Tema instantáneo + Consistencia de colores en Modo Claro
 - **Problema 1**: El cambio de modo oscuro a claro (y viceversa) tardaba varios segundos en reflejarse, y el botón quedaba bloqueado sin permitir otros clics hasta que la UI se actualizara.
 - **Causa raíz**: `ThemeToggle.tsx` usaba `useSyncExternalStore` con `subscribeTheme` que escuchaba `storage` events y `prefers-color-scheme`. El evento `storage` **no se dispara en la misma pestaña** (solo cross-tab), por lo que el componente nunca se re-renderizaba tras el click. El re-render dependía de un trigger externo aleatorio.
@@ -599,3 +605,5 @@
 ## Notas Técnicas
 - **Realtime vs Polling**: El sistema prefiere Realtime (WebSockets), pero degrada elegantemente a Polling (HTTP requests periódicos) para garantizar funcionalidad.
 - **Permisos**: La tabla `material_requests` debe tener "Replication" activada en Supabase para que el modo Realtime funcione al 100%.
+
+- Actualizaci�n de variables de entorno en Vercel y re-despliegue.
