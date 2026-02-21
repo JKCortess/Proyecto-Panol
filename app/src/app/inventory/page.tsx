@@ -306,14 +306,6 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
                             return (
                                 <div key={`${item.nombre}-${item.marca}-${item.categoria}-${index}`} className={`group relative bg-slate-900 rounded-xl overflow-hidden border transition-all duration-300 hover:shadow-2xl hover:scale-[1.01] ui-card ${isCritical ? 'border-red-500/50 shadow-red-900/10' : 'border-slate-800 hover:border-slate-700'}`}>
 
-                                    {/* Status Badge */}
-                                    <div className="absolute top-3 right-3 z-10">
-                                        {isCritical ? (
-                                            <div className="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.6)] animate-pulse"></div>
-                                        ) : (
-                                            <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)]"></div>
-                                        )}
-                                    </div>
 
                                     {isCritical && (
                                         <div className="absolute top-0 left-1/2 -translate-x-1/2 transform bg-red-600 text-white text-[10px] font-bold px-3 py-0.5 rounded-b-lg shadow-lg shadow-red-900/50 z-10 flex items-center gap-1 border-b border-x border-red-400/30">

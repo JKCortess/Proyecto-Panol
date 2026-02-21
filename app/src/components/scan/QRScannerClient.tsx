@@ -116,10 +116,16 @@ export function QRScannerClient() {
 
         setCameraError(null);
 
-        // Small delay to ensure the container DOM element is ready
-        await new Promise(r => setTimeout(r, 100));
+        // Show the container first so html5-qrcode can find it
+        setScannerActive(true);
 
-        if (!videoContainerRef.current) return;
+        // Wait for React to flush the render (container becomes display:block)
+        await new Promise(r => setTimeout(r, 200));
+
+        if (!videoContainerRef.current) {
+            setScannerActive(false);
+            return;
+        }
 
         try {
             const { Html5Qrcode } = await import('html5-qrcode');
@@ -127,8 +133,6 @@ export function QRScannerClient() {
             // Create instance using the container ID
             const qrScanner = new Html5Qrcode('qr-video-container');
             html5QrcodeRef.current = qrScanner;
-
-            setScannerActive(true);
 
             await qrScanner.start(
                 { facingMode: 'environment' },
@@ -269,17 +273,15 @@ export function QRScannerClient() {
                         ) : null}
                     </div>
                     <div className="p-4">
-                        {/* This div is the actual video container — html5-qrcode renders into it */}
-                        <div
-                            ref={videoContainerRef}
-                            id="qr-video-container"
-                            className={cn(
-                                "rounded-xl overflow-hidden mx-auto max-w-sm",
-                                !scannerActive && "min-h-[200px] flex items-center justify-center bg-slate-900/50 border-2 border-dashed border-slate-700"
-                            )}
-                            style={scannerActive ? { minHeight: '280px' } : undefined}
-                        >
-                            {!scannerActive && !cameraError && (
+                        {/* Placeholder shown when scanner is NOT active — rendered OUTSIDE the scanner container */}
+                        {!scannerActive && !cameraError && (
+                            <div
+                                onClick={isSecureContext ? startScanner : undefined}
+                                className={cn(
+                                    "rounded-xl overflow-hidden mx-auto max-w-sm min-h-[200px] flex items-center justify-center bg-slate-900/50 border-2 border-dashed border-slate-700",
+                                    isSecureContext && "cursor-pointer hover:bg-slate-800/50 hover:border-blue-500/40 transition-all"
+                                )}
+                            >
                                 <div className="text-center p-6">
                                     {!isSecureContext ? (
                                         <>
@@ -289,13 +291,20 @@ export function QRScannerClient() {
                                         </>
                                     ) : (
                                         <>
-                                            <Camera className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-                                            <p className="text-slate-500 text-sm">Presiona &quot;Activar cámara&quot; para escanear</p>
+                                            <Camera className="w-12 h-12 text-blue-500/40 mx-auto mb-3" />
+                                            <p className="text-slate-400 text-sm">Presiona aquí o &quot;Activar cámara&quot; para escanear</p>
                                         </>
                                     )}
                                 </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
+                        {/* This div is exclusively for html5-qrcode — React must NOT render children here */}
+                        <div
+                            ref={videoContainerRef}
+                            id="qr-video-container"
+                            className="rounded-xl overflow-hidden mx-auto max-w-sm"
+                            style={{ minHeight: scannerActive ? '280px' : '0px', display: scannerActive ? 'block' : 'none' }}
+                        />
 
                         {cameraError && (
                             <div className="mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-start gap-3">
@@ -339,7 +348,7 @@ export function QRScannerClient() {
                             <button
                                 type="submit"
                                 disabled={!code.trim() || loading}
-                                className="h-12 px-6 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-semibold text-sm transition-colors flex items-center gap-2"
+                                className="h-12 px-6 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-400 text-white font-semibold text-sm transition-colors flex items-center gap-2"
                             >
                                 {loading ? (
                                     <Loader2 className="w-4 h-4 animate-spin" />

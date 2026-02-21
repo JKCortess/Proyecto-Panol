@@ -16,8 +16,8 @@ export default async function NewRequestPage() {
 
     return (
         <div className="container mx-auto max-w-4xl py-10 px-4">
-            <h1 className="text-3xl font-bold text-white mb-2">Carrito de Solicitud</h1>
-            <p className="text-slate-400 mb-8">
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Carrito de Solicitud</h1>
+            <p className="text-slate-500 dark:text-slate-400 mb-8">
                 Complete el formulario para solicitar insumos o componentes del pañol.
             </p>
 

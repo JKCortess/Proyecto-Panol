@@ -7,6 +7,24 @@
 
 ## Log de Cambios (Reciente)
 
+### [2026-02-18] - 🔧 Fix: Toggle de Tema instantáneo + Consistencia de colores en Modo Claro
+- **Problema 1**: El cambio de modo oscuro a claro (y viceversa) tardaba varios segundos en reflejarse, y el botón quedaba bloqueado sin permitir otros clics hasta que la UI se actualizara.
+- **Causa raíz**: `ThemeToggle.tsx` usaba `useSyncExternalStore` con `subscribeTheme` que escuchaba `storage` events y `prefers-color-scheme`. El evento `storage` **no se dispara en la misma pestaña** (solo cross-tab), por lo que el componente nunca se re-renderizaba tras el click. El re-render dependía de un trigger externo aleatorio.
+- **Solución**: Reescrito `ThemeToggle.tsx` usando `useState` + `useEffect`. Al hacer click, `setTheme(nextTheme)` actualiza el estado de React de forma **síncrona e inmediata**, junto con `applyTheme()` y `localStorage.setItem()`. También se añadió un listener `storage` para sincronización cross-tab y `prefers-color-scheme` para cambios del sistema.
+- **Problema 2**: En modo claro, múltiples elementos del dashboard mostraban fondos gris oscuro y texto ilegible (blanco sobre blanco).
+- **Causa raíz**: Las CSS overrides de light mode cubrían `bg-slate-900/50`, `bg-slate-900/60`, `bg-slate-900/80` pero **NO** `bg-slate-900/70`, que era usado en todas las tarjetas KPI del dashboard. Además, textos con clases hardcoded `text-white`, `text-slate-200`, `text-slate-300` no tenían variante `dark:`.
+- **Correcciones aplicadas**:
+    1. ✅ **`ThemeToggle.tsx`**: Reescrito con `useState`/`useEffect` para toggle instantáneo. Botón ahora tiene estilos light/dark adecuados.
+    2. ✅ **`globals.css`**: Añadido `bg-slate-900/70` a las CSS overrides globales Y a las light-mode overrides. Añadidos overrides para: cyan accents, rose accents, progress bar tracks, sidebar gradient, headings `text-white`, `bg-slate-50`, `bg-slate-100`, `bg-white`.
+    3. ✅ **`page.tsx` (Dashboard)**: ~12 textos hardcoded como `text-slate-200`, `text-slate-300`, `text-white` convertidos a `text-slate-700 dark:text-slate-300` (o equivalente). Progress bars `bg-slate-800` → `bg-slate-200 dark:bg-slate-800`.
+    4. ✅ **`requests/new/page.tsx` (Carrito)**: `text-white` → `text-slate-900 dark:text-white`. `text-slate-400` → `text-slate-500 dark:text-slate-400`.
+- **Archivos Modificados**:
+    - `src/components/layout/ThemeToggle.tsx`: Reescritura completa.
+    - `src/app/globals.css`: Nuevas CSS rules para light mode.
+    - `src/app/page.tsx`: ~12 cambios de colores hardcoded a variantes dark/light.
+    - `src/app/requests/new/page.tsx`: Fix heading y descripción.
+- **Resultado**: Toggle de tema **instantáneo** (0 delay). KPI cards con fondo blanco en light mode. Textos legibles en ambos modos.
+
 ### [2026-02-18] - 🔧 Fix: Caché se invalida en cada carga de página + Botón "Actualizar Datos" se re-activa
 - **Problema 1**: Al modificar registros manualmente en Google Sheets, la app seguía mostrando datos desactualizados incluso al recargar la página. El caché in-memory de 60 segundos persistía entre requests del servidor, sirviendo datos viejos.
 - **Problema 2**: El botón "Actualizar Datos" funcionaba una sola vez y luego se bloqueaba permanentemente. El cooldown de 10 segundos nunca expiraba visualmente porque no había un mecanismo de re-render que actualizara el estado `isInCooldown`.

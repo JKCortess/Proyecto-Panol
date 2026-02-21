@@ -232,8 +232,10 @@ td {
 /* iOS-style global surfaces without rewriting all components */
 .bg-slate-950,
 .bg-slate-900,
+.bg-slate-900\/40,
 .bg-slate-900\/50,
 .bg-slate-900\/60,
+.bg-slate-900\/70,
 .bg-slate-900\/80,
 .bg-slate-800,
 .bg-slate-800\/50,
@@ -265,8 +267,10 @@ td {
 /* Improve readability in light mode */
 :root.theme-light .bg-slate-950,
 :root.theme-light .bg-slate-900,
+:root.theme-light .bg-slate-900\/40,
 :root.theme-light .bg-slate-900\/50,
 :root.theme-light .bg-slate-900\/60,
+:root.theme-light .bg-slate-900\/70,
 :root.theme-light .bg-slate-900\/80,
 :root.theme-light .bg-slate-800,
 :root.theme-light .bg-slate-800\/50,
@@ -390,6 +394,14 @@ td {
   background-color: rgba(59, 130, 246, 0.16) !important;
 }
 
+:root.theme-light .border-blue-800\/30 {
+  border-color: rgba(59, 130, 246, 0.25) !important;
+}
+
+:root.theme-light .border-amber-800\/30 {
+  border-color: rgba(245, 158, 11, 0.25) !important;
+}
+
 /* Tables in light mode */
 :root.theme-light table {
   background: transparent;
@@ -397,8 +409,10 @@ td {
 
 :root.theme-light thead,
 :root.theme-light .bg-slate-950\/30,
+:root.theme-light .bg-slate-950\/40,
 :root.theme-light .bg-slate-950\/50,
-:root.theme-light .bg-slate-950\/60 {
+:root.theme-light .bg-slate-950\/60,
+:root.theme-light .bg-slate-950\/70 {
   background-color: rgba(226, 232, 240, 0.7) !important;
 }
 
@@ -413,6 +427,137 @@ td {
 :root.theme-light ::placeholder {
   color: #64748b;
   opacity: 1;
+}
+
+/* Cyan accents in light mode */
+:root.theme-light .text-cyan-400 {
+  color: #0891b2 !important;
+}
+
+:root.theme-light .bg-cyan-500\/10 {
+  background-color: rgba(6, 182, 212, 0.15) !important;
+}
+
+:root.theme-light .border-cyan-500\/20 {
+  border-color: rgba(6, 182, 212, 0.3) !important;
+}
+
+/* Rose accents in light mode */
+:root.theme-light .text-rose-400 {
+  color: #e11d48 !important;
+}
+
+:root.theme-light .bg-rose-500\/10 {
+  background-color: rgba(244, 63, 94, 0.15) !important;
+}
+
+:root.theme-light .border-rose-500\/20 {
+  border-color: rgba(244, 63, 94, 0.3) !important;
+}
+
+/* Table dividers and semi-transparent borders in light mode */
+:root.theme-light .divide-slate-800> :not([hidden])~ :not([hidden]) {
+  border-color: #e2e8f0 !important;
+}
+
+:root.theme-light .border-slate-800\/50 {
+  border-color: rgba(203, 213, 225, 0.5) !important;
+}
+
+/* Progress bar tracks in light mode */
+:root.theme-light .bg-slate-800.rounded-full,
+:root.theme-light .h-1.bg-slate-800,
+:root.theme-light .h-1\.5.bg-slate-800 {
+  background-color: #e2e8f0 !important;
+}
+
+/* Sidebar in light mode */
+:root.theme-light aside {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.98) 100%) !important;
+  border-color: rgba(100, 116, 139, 0.2) !important;
+}
+
+/* Content text-white overrides in light mode – covers all elements EXCEPT inside colored action UI */
+:root.theme-light h1.text-white,
+:root.theme-light h2.text-white,
+:root.theme-light h3.text-white,
+:root.theme-light h4.text-white,
+:root.theme-light p.text-white,
+:root.theme-light span.text-white,
+:root.theme-light div.text-white,
+:root.theme-light label.text-white {
+  color: #0b1220 !important;
+}
+
+/* Very light text colors used in dark-themed panels – need darker equivalents in light mode */
+:root.theme-light .text-blue-100 {
+  color: #1e40af !important;
+}
+
+:root.theme-light .text-amber-100 {
+  color: #92400e !important;
+}
+
+:root.theme-light .text-red-100 {
+  color: #991b1b !important;
+}
+
+:root.theme-light .text-emerald-100 {
+  color: #065f46 !important;
+}
+
+/* Form inputs that use bg-slate-950 – lighten in light mode */
+:root.theme-light input.bg-slate-950,
+:root.theme-light textarea.bg-slate-950,
+:root.theme-light select.bg-slate-950,
+:root.theme-light .bg-slate-950 input,
+:root.theme-light .bg-slate-950 textarea,
+:root.theme-light .bg-slate-950 select {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* Light tinted panels (blue/amber) in light mode */
+:root.theme-light .bg-blue-900\/10 {
+  background-color: rgba(59, 130, 246, 0.08) !important;
+}
+
+:root.theme-light .bg-amber-900\/10 {
+  background-color: rgba(245, 158, 11, 0.08) !important;
+}
+
+/* hover:text-white – prevent white text on hover in light mode */
+:root.theme-light .hover\:text-white:hover {
+  color: #0f172a !important;
+}
+
+/* hover:bg-slate-800 – light equivalent in light mode */
+:root.theme-light .hover\:bg-slate-800:hover,
+:root.theme-light .hover\:bg-slate-800\/50:hover,
+:root.theme-light .hover\:bg-slate-800\/60:hover,
+:root.theme-light .hover\:bg-slate-800\/80:hover {
+  background-color: rgba(226, 232, 240, 0.6) !important;
+}
+
+/* bg-slate-700 used for active tabs */
+:root.theme-light .bg-slate-700 {
+  background-color: #475569 !important;
+}
+
+/* Ensure bg-slate-50 looks correct in light mode (slightly off-white) */
+:root.theme-light .bg-slate-50 {
+  background-color: #f8fafc !important;
+}
+
+/* Ensure bg-slate-100 looks correct in light mode */
+:root.theme-light .bg-slate-100 {
+  background-color: #f1f5f9 !important;
+}
+
+/* Fix bg-white in light mode to have proper shadow/separation */
+:root.theme-light .bg-white {
+  background-color: #ffffff !important;
 }
 
 .bg-blue-600 {
