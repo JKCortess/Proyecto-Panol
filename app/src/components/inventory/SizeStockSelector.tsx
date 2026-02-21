@@ -34,7 +34,7 @@ export function SizeStockSelector({ variants, totalStock, maxRop }: SizeStockSel
                         className={`text-[11px] font-mono font-semibold px-2 py-1 rounded-md border transition-all duration-200 cursor-pointer select-none
                             ${selectedIndex === null
                                 ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-900/30'
-                                : 'bg-slate-800/60 text-slate-400 border-slate-700 hover:border-slate-600 hover:text-slate-300'
+                                : 'bg-slate-100 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-700 dark:hover:text-slate-300'
                             }`}
                     >
                         Todas
@@ -52,7 +52,7 @@ export function SizeStockSelector({ variants, totalStock, maxRop }: SizeStockSel
                                         ? variantCritical
                                             ? 'bg-red-600 text-white border-red-500 shadow-md shadow-red-900/30'
                                             : 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-900/30'
-                                        : 'bg-slate-800/60 text-slate-400 border-slate-700 hover:border-slate-600 hover:text-slate-300'
+                                        : 'bg-slate-100 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-700 dark:hover:text-slate-300'
                                     }`}
                             >
                                 {v.talla}
@@ -64,17 +64,17 @@ export function SizeStockSelector({ variants, totalStock, maxRop }: SizeStockSel
 
             {/* Stock display row — shows stock for current selection */}
             <div className="grid grid-cols-2 gap-3">
-                <div className={`p-2 rounded-lg border ${isCritical ? 'bg-red-950/20 border-red-900/30' : 'bg-slate-950 border-slate-800'}`}>
-                    <p className={`text-[10px] uppercase font-bold mb-0.5 ${isCritical ? 'text-red-400' : 'text-emerald-500'}`}>
+                <div className={`p-2 rounded-lg border ${isCritical ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/30' : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800'}`}>
+                    <p className={`text-[10px] uppercase font-bold mb-0.5 ${isCritical ? 'text-red-500 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-500'}`}>
                         {selectedIndex !== null ? `Stock ${variants[selectedIndex].talla}` : 'Stock Total'}
                     </p>
-                    <p className={`text-2xl font-bold font-mono leading-none transition-all duration-200 ${isCritical ? 'text-red-500' : 'text-emerald-400'}`}>
+                    <p className={`text-2xl font-bold font-mono leading-none transition-all duration-200 ${isCritical ? 'text-red-600 dark:text-red-500' : 'text-emerald-600 dark:text-emerald-400'}`}>
                         {currentStock}
                     </p>
                 </div>
-                <div className="p-2 rounded-lg bg-slate-950 border border-slate-800">
+                <div className="p-2 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
                     <p className="text-[10px] uppercase font-bold text-slate-500 mb-0.5">Min (ROP)</p>
-                    <p className="text-2xl font-bold font-mono text-slate-300 leading-none">{currentRop}</p>
+                    <p className="text-2xl font-bold font-mono text-slate-700 dark:text-slate-300 leading-none">{currentRop}</p>
                 </div>
             </div>
 
@@ -85,11 +85,11 @@ export function SizeStockSelector({ variants, totalStock, maxRop }: SizeStockSel
                         const vCritical = v.rop > 0 && v.stock <= v.rop;
                         return (
                             <div key={v.talla} className={`flex items-center gap-1.5 text-[10px] font-mono px-2 py-1 rounded-md border ${vCritical
-                                    ? 'bg-red-950/20 border-red-900/30 text-red-400'
-                                    : 'bg-slate-800/40 border-slate-700/50 text-slate-400'
+                                ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/30 text-red-500 dark:text-red-400'
+                                : 'bg-white dark:bg-slate-800/40 border-slate-200 dark:border-slate-700/50 text-slate-500 dark:text-slate-400'
                                 }`}>
-                                <span className="font-bold text-slate-300">{v.talla}:</span>
-                                <span className={`font-bold ${vCritical ? 'text-red-400' : 'text-emerald-400'}`}>{v.stock}</span>
+                                <span className="font-bold text-slate-700 dark:text-slate-300">{v.talla}:</span>
+                                <span className={`font-bold ${vCritical ? 'text-red-500 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}`}>{v.stock}</span>
                             </div>
                         );
                     })}

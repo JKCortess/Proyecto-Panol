@@ -607,3 +607,19 @@
 - **Permisos**: La tabla `material_requests` debe tener "Replication" activada en Supabase para que el modo Realtime funcione al 100%.
 
 - Actualizaci�n de variables de entorno en Vercel y re-despliegue.
+
+## 2026-02-21: Fotografías en QR Scanner + Botón Ver Detalle en Inventario
+### Cambios realizados:
+1. **Fotos de productos en resultado del escáner QR** (src/app/requests/actions.ts + src/components/scan/QRScannerClient.tsx):
+   - Se agregó el campo `foto` al enriquecimiento de ítems en `lookupRequestByCode()`
+   - Se actualizó el tipo `EnrichedItem` para incluir `foto: string | null`
+   - Cada ítem ahora muestra su fotografía (thumbnail 56x56px) junto a los detalles
+   - Si no hay foto disponible, se muestra un ícono de Package como fallback
+   - Se agregó enlace "Ver en inventario" (abre nueva pestaña filtrada por SKU)
+
+2. **Botón "Ver detalle" en Inventario** (src/app/inventory/page.tsx):
+   - Se agregó botón "Ver detalle" con ícono ExternalLink en cada tarjeta del deck view
+   - Abre la página de inventario filtrada por el SKU del artículo en una nueva pestaña
+   - Diseño consistente con el estilo existente (blue-500 theme)
+
+### Estado:  Completado

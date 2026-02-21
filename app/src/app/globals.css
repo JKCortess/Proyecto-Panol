@@ -413,7 +413,7 @@ td {
 :root.theme-light .bg-slate-950\/50,
 :root.theme-light .bg-slate-950\/60,
 :root.theme-light .bg-slate-950\/70 {
-  background-color: rgba(226, 232, 240, 0.7) !important;
+  background-color: rgba(255, 255, 255, 0.95) !important;
 }
 
 :root.theme-light th {

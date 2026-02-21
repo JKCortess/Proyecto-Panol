@@ -11,7 +11,7 @@ import { InventoryControls } from "@/components/inventory/InventoryControls";
 import { InventoryActionToolbar } from "@/components/inventory/InventoryActionToolbar";
 import { ImageCarousel } from "@/components/inventory/ImageCarousel";
 // SizeStockSelector no longer needed — stock display is now integrated into InventoryCardActions
-import { Search, AlertCircle, Package, FileSpreadsheet, MapPin, DollarSign, Ruler } from "lucide-react";
+import { Search, AlertCircle, Package, FileSpreadsheet, MapPin, DollarSign, Ruler, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { getUserProfile } from "@/app/profile/actions";
@@ -388,6 +388,17 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
                                                 </span>
                                             )}
                                         </div>
+
+                                        {/* View Detail Button */}
+                                        <a
+                                            href={`/inventory?q=${encodeURIComponent(item.sku)}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center justify-center gap-1.5 w-full px-3 py-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold hover:bg-blue-500/20 hover:border-blue-400/30 transition-all"
+                                        >
+                                            <ExternalLink className="w-3.5 h-3.5" />
+                                            Ver detalle
+                                        </a>
 
                                         {/* Actions */}
                                         <div className="pt-1">

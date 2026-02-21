@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.3.0 - 2026-02-21
+
+### ✨ Funcionalidades
+- Agregadas fotografías de productos en el listado de ítems al escanear QR desde el móvil
+- Agregado enlace "Ver en inventario" en cada ítem del resultado del escáner QR (abre nueva pestaña)
+- Agregado botón "Ver detalle" en cada tarjeta del inventario (deck view) que abre una nueva pestaña filtrada por SKU
+
+### 🔧 Mantenimiento
+- Enriquecido el campo `foto` en `lookupRequestByCode()` desde los datos de inventario
+- Actualizado tipo `EnrichedItem` en QRScannerClient para incluir campo `foto`
+- Agregado archivo `architecture/run_locally.md` con instrucciones de ejecución local
+
 ## v0.2.0 - 2026-02-21
 
 ### ✨ Funcionalidades

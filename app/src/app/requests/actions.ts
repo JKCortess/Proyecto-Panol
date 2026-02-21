@@ -1080,6 +1080,7 @@ export async function lookupRequestByCode(code: string) {
             estante_nivel: inv?.estante_nivel ?? null,
             nombre_inventario: inv?.nombre ?? null,
             categoria: inv?.categoria ?? null,
+            foto: inv?.foto ?? null,
         };
     });
 

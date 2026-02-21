@@ -4,8 +4,9 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import {
     ScanLine, Search, Package, MapPin, Layers, CheckCircle2,
     XCircle, Clock, AlertTriangle, ArrowLeft, Loader2, Keyboard,
-    Camera, Truck, Hash, CameraOff
+    Camera, Truck, Hash, CameraOff, ExternalLink
 } from 'lucide-react';
+import Image from 'next/image';
 import { lookupRequestByCode, deliverRequest } from '@/app/requests/actions';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -23,6 +24,7 @@ type EnrichedItem = {
     estante_nivel: string | null;
     nombre_inventario: string | null;
     categoria: string | null;
+    foto: string | null;
 };
 
 type RequestResult = {
@@ -441,6 +443,14 @@ export function QRScannerClient() {
                         {result.enriched_items.map((item, i) => (
                             <div key={i} className="p-4 hover:bg-slate-900/40 transition-colors">
                                 <div className="flex flex-col md:flex-row md:items-start gap-3">
+                                    {/* Product image */}
+                                    <div className="w-14 h-14 rounded-lg bg-slate-800 border border-slate-700 overflow-hidden shrink-0 flex items-center justify-center">
+                                        {item.foto ? (
+                                            <Image src={item.foto} alt={item.nombre_inventario || item.detail} width={56} height={56} className="object-cover w-full h-full" unoptimized />
+                                        ) : (
+                                            <Package className="w-6 h-6 text-slate-600" />
+                                        )}
+                                    </div>
                                     {/* Item info */}
                                     <div className="flex-1 min-w-0">
                                         {item.sku && (
@@ -468,6 +478,18 @@ export function QRScannerClient() {
                                                 </span>
                                             )}
                                         </div>
+                                        {/* View in inventory link */}
+                                        {item.sku && (
+                                            <a
+                                                href={`/inventory?q=${encodeURIComponent(item.sku)}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold hover:bg-blue-500/20 hover:border-blue-400/30 transition-colors w-fit"
+                                            >
+                                                <ExternalLink className="w-3 h-3" />
+                                                Ver en inventario
+                                            </a>
+                                        )}
                                     </div>
 
                                     {/* Qty + Location + Stock */}
