@@ -119,8 +119,8 @@ export function InventoryCardActions({ sku, nombre, valor, imagen, marca, talla,
                                 onClick={() => setSelectedIndex(null)}
                                 className={`text-[11px] font-mono font-semibold px-2 py-1 rounded-md border transition-all duration-200 cursor-pointer select-none
                                     ${selectedIndex === null
-                                        ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-900/30'
-                                        : 'bg-slate-800/60 text-slate-400 border-slate-700 hover:border-slate-600 hover:text-slate-300'
+                                        ? 'bg-slate-600 text-white border-slate-500 shadow-md shadow-slate-900/30'
+                                        : 'bg-slate-100 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-700 dark:hover:text-slate-300'
                                     }`}
                             >
                                 Todas
@@ -136,12 +136,12 @@ export function InventoryCardActions({ sku, nombre, valor, imagen, marca, talla,
                                         onClick={() => setSelectedIndex(i)}
                                         className={`text-[11px] font-mono font-semibold px-2 py-1 rounded-md border transition-all duration-200 cursor-pointer select-none
                                             ${variantEmpty && !isSelected
-                                                ? 'bg-slate-900/40 text-slate-600 border-slate-800 line-through'
+                                                ? 'bg-slate-100 dark:bg-slate-900/40 text-slate-400 dark:text-slate-600 border-slate-300 dark:border-slate-800 line-through'
                                                 : isSelected
                                                     ? variantCritical
                                                         ? 'bg-red-600 text-white border-red-500 shadow-md shadow-red-900/30'
-                                                        : 'bg-purple-600 text-white border-purple-500 shadow-md shadow-purple-900/30'
-                                                    : 'bg-slate-800/60 text-slate-400 border-slate-700 hover:border-slate-600 hover:text-slate-300'
+                                                        : 'bg-slate-600 text-white border-slate-500 shadow-md shadow-slate-900/30'
+                                                    : 'bg-slate-100 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-700 dark:hover:text-slate-300'
                                             }`}
                                     >
                                         {v.talla}
@@ -153,17 +153,17 @@ export function InventoryCardActions({ sku, nombre, valor, imagen, marca, talla,
 
                     {/* Stock display */}
                     <div className="grid grid-cols-2 gap-3">
-                        <div className={`p-2 rounded-lg border ${isCritical ? 'bg-red-950/20 border-red-900/30' : 'bg-slate-950 border-slate-800'}`}>
-                            <p className={`text-[10px] uppercase font-bold mb-0.5 ${isCritical ? 'text-red-400' : 'text-emerald-500'}`}>
+                        <div className={`p-2 rounded-lg border ${isCritical ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/30' : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800'}`}>
+                            <p className={`text-[10px] uppercase font-bold mb-0.5 ${isCritical ? 'text-red-500 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-500'}`}>
                                 {selectedIndex !== null ? `Stock ${variants![selectedIndex].talla}` : 'Stock Total'}
                             </p>
-                            <p className={`text-2xl font-bold font-mono leading-none transition-all duration-200 ${isCritical ? 'text-red-500' : 'text-emerald-400'}`}>
+                            <p className={`text-2xl font-bold font-mono leading-none transition-all duration-200 ${isCritical ? 'text-red-600 dark:text-red-500' : 'text-emerald-600 dark:text-emerald-400'}`}>
                                 {currentStock}
                             </p>
                         </div>
-                        <div className="p-2 rounded-lg bg-slate-950 border border-slate-800">
+                        <div className="p-2 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
                             <p className="text-[10px] uppercase font-bold text-slate-500 mb-0.5">Min (ROP)</p>
-                            <p className="text-2xl font-bold font-mono text-slate-300 leading-none">{currentRop}</p>
+                            <p className="text-2xl font-bold font-mono text-slate-700 dark:text-slate-300 leading-none">{currentRop}</p>
                         </div>
                     </div>
 
@@ -174,11 +174,11 @@ export function InventoryCardActions({ sku, nombre, valor, imagen, marca, talla,
                                 const vCritical = v.rop > 0 && v.stock <= v.rop;
                                 return (
                                     <div key={`${v.talla}-${i}`} className={`flex items-center gap-1.5 text-[10px] font-mono px-2 py-1 rounded-md border ${vCritical
-                                        ? 'bg-red-950/20 border-red-900/30 text-red-400'
-                                        : 'bg-slate-800/40 border-slate-700/50 text-slate-400'
+                                        ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/30 text-red-500 dark:text-red-400'
+                                        : 'bg-transparent border-slate-200 dark:border-slate-700/50 text-slate-500 dark:text-slate-400'
                                         }`}>
-                                        <span className="font-bold text-slate-300">{v.talla}:</span>
-                                        <span className={`font-bold ${vCritical ? 'text-red-400' : 'text-emerald-400'}`}>{v.stock}</span>
+                                        <span className="font-bold text-slate-700 dark:text-slate-300">{v.talla}:</span>
+                                        <span className={`font-bold ${vCritical ? 'text-red-500 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}`}>{v.stock}</span>
                                     </div>
                                 );
                             })}
@@ -193,7 +193,7 @@ export function InventoryCardActions({ sku, nombre, valor, imagen, marca, talla,
                 <button
                     onClick={decrement}
                     disabled={quantity <= 1 || isOutOfStock}
-                    className="w-9 h-9 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all text-lg font-bold select-none"
+                    className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all text-lg font-bold select-none"
                     title="Reducir cantidad"
                 >
                     −
@@ -201,12 +201,12 @@ export function InventoryCardActions({ sku, nombre, valor, imagen, marca, talla,
 
                 {/* Quantity Display */}
                 <div className={`flex-1 h-9 rounded-lg border flex items-center justify-center transition-all ${isOutOfStock
-                    ? 'bg-red-950/20 border-red-900/40'
+                    ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/40'
                     : isAtMax
-                        ? 'bg-amber-950/20 border-amber-700/40'
-                        : 'bg-slate-950 border-slate-700'
+                        ? 'bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-700/40'
+                        : 'bg-white dark:bg-slate-950 border-slate-300 dark:border-slate-700'
                     }`}>
-                    <span className={`text-lg font-bold font-mono ${isOutOfStock ? 'text-red-400' : isAtMax ? 'text-amber-400' : 'text-slate-200'
+                    <span className={`text-lg font-bold font-mono ${isOutOfStock ? 'text-red-500 dark:text-red-400' : isAtMax ? 'text-amber-500 dark:text-amber-400' : 'text-slate-800 dark:text-slate-200'
                         }`}>
                         {isOutOfStock ? 0 : quantity}
                     </span>
@@ -218,8 +218,8 @@ export function InventoryCardActions({ sku, nombre, valor, imagen, marca, talla,
                     disabled={isAtMax || isOutOfStock}
                     className={`w-9 h-9 rounded-lg border flex items-center justify-center text-white transition-all shadow-lg active:scale-95 select-none
                         ${isAtMax || isOutOfStock
-                            ? 'bg-slate-700 border-slate-600 opacity-40 cursor-not-allowed shadow-none'
-                            : 'bg-blue-600 hover:bg-blue-500 border-blue-500 shadow-blue-900/30'
+                            ? 'bg-slate-400 dark:bg-slate-700 border-slate-300 dark:border-slate-600 opacity-40 cursor-not-allowed shadow-none'
+                            : 'bg-slate-700 hover:bg-slate-600 dark:bg-slate-600 dark:hover:bg-slate-500 border-slate-600 dark:border-slate-500 shadow-slate-900/30'
                         }`}
                     title={isAtMax ? "Stock máximo alcanzado" : isOutOfStock ? "Sin stock" : "Aumentar cantidad"}
                 >
@@ -249,8 +249,8 @@ export function InventoryCardActions({ sku, nombre, valor, imagen, marca, talla,
                 disabled={isDisabled}
                 className={`w-full h-10 rounded-lg text-white font-medium text-sm flex items-center justify-center gap-2 shadow-lg active:scale-[0.98] transition-all
                     ${isDisabled
-                        ? 'bg-slate-700 cursor-not-allowed opacity-60 shadow-none'
-                        : 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 shadow-blue-900/20'
+                        ? 'bg-slate-400 dark:bg-slate-700 cursor-not-allowed opacity-60 shadow-none'
+                        : 'bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 dark:from-slate-600 dark:to-slate-500 dark:hover:from-slate-500 dark:hover:to-slate-400 shadow-slate-900/20'
                     }`}
                 title={needsSelection ? "Selecciona una talla primero" : isOutOfStock ? "Sin stock" : "Agregar al Pedido"}
             >
@@ -260,7 +260,7 @@ export function InventoryCardActions({ sku, nombre, valor, imagen, marca, talla,
 
             {/* In-cart indicator */}
             {inCartQty > 0 && (
-                <p className="text-center text-[11px] text-blue-400 font-medium animate-in fade-in">
+                <p className="text-center text-[11px] text-slate-500 dark:text-slate-400 font-medium animate-in fade-in">
                     🛒 {inCartQty} en el carrito{effectiveTalla ? ` (${effectiveTalla})` : ''}
                 </p>
             )}

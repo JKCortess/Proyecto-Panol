@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.4.0 - 2026-02-22
+
+### ✨ Funcionalidades
+- Nuevo módulo **Asistente IA** con chat inteligente, historial de conversaciones, y sincronización de inventario
+- Agregada API de IA (`/api/ai/chat`, `/api/ai/config`, `/api/ai/conversations`, `/api/ai/sync-inventory`)
+- Agregado panel de configuración de IA en administración (`AIConfigPanel`)
+- Nuevo ícono y entrada de navegación "Asistente IA" en el sidebar
+
+### 🐛 Correcciones
+- Corregidos colores de modo claro en componentes de inventario (`SizeStockSelector`, `InventoryControls`, `InventoryCardActions`, `InventoryActionToolbar`)
+- Corregidos estilos de modo claro en panel de administración (`AdminUserTable`, `WebhookConfigPanel`, página admin)
+- Corregido color de fondo en badges de cantidad por talla en inventario
+- Corregidos estilos del formulario de perfil (`ProfileForm`) y selector de avatar (`AvatarSelector`) para modo claro
+- Corregido componente `FilterCombobox` con estilos consistentes claro/oscuro
+
+### 🔧 Mantenimiento
+- Ampliados estilos globales CSS (`globals.css`) con nuevas utilidades para modo claro/oscuro
+- Refactorizada página de inventario con simplificación de estilos
+- Actualizado `progress.md` con registro de actividades recientes
+- Agregada imagen de asset "El Maestro" (`el-maestro.png`)
+
 ## v0.3.0 - 2026-02-21
 
 ### ✨ Funcionalidades

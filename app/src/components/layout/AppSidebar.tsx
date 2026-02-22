@@ -110,7 +110,6 @@ export function AppSidebar({ user, profile, permissions }: AppSidebarProps) {
         );
     };
 
-    // Section header component
     const SectionHeader = ({
         icon: Icon,
         label,
@@ -127,7 +126,7 @@ export function AppSidebar({ user, profile, permissions }: AppSidebarProps) {
         if (collapsed) {
             return (
                 <div className="flex justify-center py-2 mb-2">
-                    <div className={cn("w-8 h-[2px] rounded-full", colorClass === "blue" ? "bg-blue-500/40" : "bg-amber-500/40")} />
+                    <div className={cn("w-8 h-[2px] rounded-full", colorClass === "blue" ? "bg-slate-500/40 dark:bg-slate-500/30" : "bg-amber-500/40")} />
                 </div>
             );
         }
@@ -144,20 +143,20 @@ export function AppSidebar({ user, profile, permissions }: AppSidebarProps) {
                     <span className={cn(
                         "flex items-center justify-center w-5 h-5 rounded-md",
                         colorClass === "blue"
-                            ? "bg-blue-500/15 dark:bg-blue-500/20"
+                            ? "bg-slate-200/80 dark:bg-slate-600/30"
                             : "bg-amber-500/15 dark:bg-amber-500/20"
                     )}>
                         <Icon className={cn(
                             "w-3 h-3",
                             colorClass === "blue"
-                                ? "text-blue-600 dark:text-blue-400"
+                                ? "text-slate-600 dark:text-slate-400"
                                 : "text-amber-600 dark:text-amber-400"
                         )} />
                     </span>
                     <span className={cn(
                         "text-[11px] font-semibold uppercase tracking-wider",
                         colorClass === "blue"
-                            ? "text-blue-600/80 dark:text-blue-400/80"
+                            ? "text-slate-600/80 dark:text-slate-400/80"
                             : "text-amber-600/80 dark:text-amber-400/80"
                     )}>
                         {label}
@@ -167,7 +166,7 @@ export function AppSidebar({ user, profile, permissions }: AppSidebarProps) {
                     className={cn(
                         "w-3.5 h-3.5 transition-transform duration-200",
                         colorClass === "blue"
-                            ? "text-blue-500/50 dark:text-blue-400/50"
+                            ? "text-slate-500/50 dark:text-slate-400/50"
                             : "text-amber-500/50 dark:text-amber-400/50",
                         isOpen ? "rotate-0" : "-rotate-90"
                     )}
@@ -190,15 +189,15 @@ export function AppSidebar({ user, profile, permissions }: AppSidebarProps) {
                     "absolute -right-3 top-7 z-50 w-6 h-6 rounded-full",
                     "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700",
                     "flex items-center justify-center shadow-md",
-                    "hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-300 dark:hover:border-blue-600",
+                    "hover:bg-slate-100 dark:hover:bg-slate-700/40 hover:border-slate-300 dark:hover:border-slate-600",
                     "transition-all duration-200 group/toggle"
                 )}
                 title={collapsed ? "Expandir menú" : "Colapsar menú"}
             >
                 {collapsed ? (
-                    <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover/toggle:text-blue-500 transition-colors" />
+                    <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover/toggle:text-slate-200 transition-colors" />
                 ) : (
-                    <ChevronLeft className="w-3.5 h-3.5 text-slate-400 group-hover/toggle:text-blue-500 transition-colors" />
+                    <ChevronLeft className="w-3.5 h-3.5 text-slate-400 group-hover/toggle:text-slate-200 transition-colors" />
                 )}
             </button>
 
@@ -295,12 +294,12 @@ export function AppSidebar({ user, profile, permissions }: AppSidebarProps) {
                                 className="shadow-sm ring-1 ring-slate-100 dark:ring-slate-600"
                             />
                             <div className="flex-1 overflow-hidden min-w-0">
-                                <p className="text-sm font-bold text-slate-800 dark:text-white truncate tracking-tight transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                                <p className="text-sm font-bold text-slate-800 dark:text-white truncate tracking-tight transition-colors group-hover:text-slate-600 dark:group-hover:text-slate-300">
                                     {displayName}
                                 </p>
                                 <div className="flex items-center gap-1.5 mt-0.5">
                                     {isAdmin ? (
-                                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-500/20 px-2 py-0.5 rounded-full">
+                                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-600/30 px-2 py-0.5 rounded-full">
                                             <Shield className="w-2.5 h-2.5" />
                                             Admin
                                         </span>

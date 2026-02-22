@@ -250,9 +250,9 @@ export function InventoryControls({ categories, brands, estantes, clasificacione
                         </span>
                     )}
                     {currentCategory.length > 0 && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-400 text-xs font-medium border border-blue-500/20">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-500/10 text-slate-400 text-xs font-medium border border-slate-500/20">
                             {currentCategory.join(", ")}
-                            <button onClick={() => updateFilter("category", [])} className="hover:text-blue-200"><X className="w-3 h-3" /></button>
+                            <button onClick={() => updateFilter("category", [])} className="hover:text-slate-200"><X className="w-3 h-3" /></button>
                         </span>
                     )}
                     {currentBrand.length > 0 && (
@@ -280,21 +280,21 @@ export function InventoryControls({ categories, brands, estantes, clasificacione
                         </span>
                     )}
                     {currentFilterSku && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-500/10 text-sky-400 text-xs font-medium border border-sky-500/20">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-500/10 text-slate-400 text-xs font-medium border border-slate-500/20">
                             SKU: {currentFilterSku}
-                            <button onClick={() => updateTextFilter("filterSku", "")} className="hover:text-sky-200"><X className="w-3 h-3" /></button>
+                            <button onClick={() => updateTextFilter("filterSku", "")} className="hover:text-slate-200"><X className="w-3 h-3" /></button>
                         </span>
                     )}
                     {currentFilterNombre && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-violet-500/10 text-violet-400 text-xs font-medium border border-violet-500/20">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-500/10 text-slate-400 text-xs font-medium border border-slate-500/20">
                             Nombre: {currentFilterNombre}
-                            <button onClick={() => updateTextFilter("filterNombre", "")} className="hover:text-violet-200"><X className="w-3 h-3" /></button>
+                            <button onClick={() => updateTextFilter("filterNombre", "")} className="hover:text-slate-200"><X className="w-3 h-3" /></button>
                         </span>
                     )}
                     {currentTalla.length > 0 && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-xs font-medium border border-indigo-500/20">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-500/10 text-slate-400 text-xs font-medium border border-slate-500/20">
                             Talla: {currentTalla.join(", ")}
-                            <button onClick={() => updateFilter("talla", [])} className="hover:text-indigo-200"><X className="w-3 h-3" /></button>
+                            <button onClick={() => updateFilter("talla", [])} className="hover:text-slate-200"><X className="w-3 h-3" /></button>
                         </span>
                     )}
                 </div>

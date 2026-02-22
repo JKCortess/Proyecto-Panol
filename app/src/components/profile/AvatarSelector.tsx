@@ -84,7 +84,7 @@ export function AvatarDisplay({
     return (
         <div
             className={cn(
-                'rounded-full flex items-center justify-center bg-gradient-to-br from-blue-600 to-indigo-700 shrink-0 font-bold text-white',
+                'rounded-full flex items-center justify-center bg-gradient-to-br from-slate-500 to-slate-700 shrink-0 font-bold text-white',
                 sizeClasses[size],
                 className
             )}

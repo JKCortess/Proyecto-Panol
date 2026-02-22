@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { AdminUserTable } from "./AdminUserTable";
 import { AdminPermissionsPanel } from "./AdminPermissionsPanel";
 import { WebhookConfigPanel } from "./WebhookConfigPanel";
+import { AIConfigPanel } from "./AIConfigPanel";
 import { getWebhookConfig } from "./webhook-actions";
 
 export default async function AdminPage() {
@@ -46,7 +47,7 @@ export default async function AdminPage() {
                     <IndustrialCard className="p-6">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-slate-500 dark:text-slate-400 font-medium text-sm uppercase tracking-wider">Total Usuarios</h3>
-                            <Users className="w-5 h-5 text-blue-500" />
+                            <Users className="w-5 h-5 text-slate-400" />
                         </div>
                         <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1 font-mono">{profiles.length}</div>
                         <p className="text-xs text-slate-500">Usuarios registrados en el sistema</p>
@@ -73,6 +74,9 @@ export default async function AdminPage() {
 
                 {/* Webhook Configuration */}
                 <WebhookConfigPanel config={webhookConfig} />
+
+                {/* AI Assistant Configuration */}
+                <AIConfigPanel />
 
                 {/* Permissions Panel */}
                 <AdminPermissionsPanel permissions={operadorPermissions} />

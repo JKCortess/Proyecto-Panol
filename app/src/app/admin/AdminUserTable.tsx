@@ -32,7 +32,7 @@ export function AdminUserTable({ profiles }: AdminUserTableProps) {
         <IndustrialCard className="p-0 overflow-hidden border-slate-800 bg-slate-900 shadow-2xl">
             <div className="p-5 border-b border-slate-800 bg-slate-950/30 flex justify-between items-center">
                 <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                    <div className="w-2 h-2 rounded-full bg-slate-500"></div>
                     <h3 className="font-bold text-slate-200 tracking-wide uppercase text-sm">Usuarios del Sistema</h3>
                 </div>
                 <span className="text-xs text-slate-500 font-mono">{profiles.length} registros</span>
@@ -64,7 +64,7 @@ export function AdminUserTable({ profiles }: AdminUserTableProps) {
                                         </span>
                                     </div>
                                 </td>
-                                <td className="px-6 py-4 text-blue-400 font-mono text-xs">
+                                <td className="px-6 py-4 text-slate-400 font-mono text-xs">
                                     {profile.email}
                                 </td>
                                 <td className="px-6 py-4 text-slate-400">
@@ -98,7 +98,7 @@ export function AdminUserTable({ profiles }: AdminUserTableProps) {
                                     ) : editingId === profile.id ? (
                                         <div className="flex items-center gap-2 justify-center">
                                             {isPending ? (
-                                                <Loader2 className="w-4 h-4 text-blue-400 animate-spin" />
+                                                <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />
                                             ) : (
                                                 <>
                                                     <button

@@ -70,12 +70,12 @@ export function ProfileForm({ profile, userEmail }: ProfileFormProps) {
         <form onSubmit={handleSubmit} className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
             {/* Welcome Banner for new users */}
             {isNewProfile && (
-                <div className="p-5 bg-gradient-to-r from-blue-600/10 to-indigo-600/10 border border-blue-500/20 rounded-xl flex items-start gap-4">
-                    <div className="p-2 bg-blue-500/20 rounded-lg shrink-0">
-                        <Sparkles className="w-5 h-5 text-blue-400" />
+                <div className="p-5 bg-gradient-to-r from-slate-600/10 to-slate-500/10 border border-slate-500/20 rounded-xl flex items-start gap-4">
+                    <div className="p-2 bg-slate-500/20 rounded-lg shrink-0">
+                        <Sparkles className="w-5 h-5 text-slate-400" />
                     </div>
                     <div>
-                        <h3 className="text-blue-700 dark:text-blue-300 font-semibold mb-1">¡Bienvenido a Gestión de Pañol!</h3>
+                        <h3 className="text-slate-700 dark:text-slate-300 font-semibold mb-1">¡Bienvenido a Gestión de Pañol!</h3>
                         <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                             Completa tu perfil para agilizar tus solicitudes de materiales.
                             Tu nombre y área se usarán automáticamente en los formularios.
@@ -124,8 +124,8 @@ export function ProfileForm({ profile, userEmail }: ProfileFormProps) {
             {/* Personal Data */}
             <div className="bg-white dark:bg-slate-900/50 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-none">
                 <div className="flex items-center gap-3 mb-5">
-                    <div className="p-2 bg-blue-500/10 rounded-lg">
-                        <User className="w-5 h-5 text-blue-500" />
+                    <div className="p-2 bg-slate-100 dark:bg-slate-700/50 rounded-lg">
+                        <User className="w-5 h-5 text-slate-500 dark:text-slate-400" />
                     </div>
                     <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Datos Personales</h3>
                 </div>
@@ -139,7 +139,7 @@ export function ProfileForm({ profile, userEmail }: ProfileFormProps) {
                             value={fullName}
                             onChange={(e) => setFullName(e.target.value)}
                             placeholder="Ej: Juan Pérez Leiva"
-                            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg py-2.5 px-3 text-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 placeholder:text-slate-400 dark:placeholder:text-slate-600"
+                            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg py-2.5 px-3 text-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400/50 focus:border-slate-500 placeholder:text-slate-400 dark:placeholder:text-slate-600"
                             required
                         />
                     </div>
@@ -154,7 +154,7 @@ export function ProfileForm({ profile, userEmail }: ProfileFormProps) {
                                 value={telefono}
                                 onChange={(e) => setTelefono(e.target.value)}
                                 placeholder="+56 9 1234 5678"
-                                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg py-2.5 input-with-icon pr-3 text-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 placeholder:text-slate-400 dark:placeholder:text-slate-600"
+                                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg py-2.5 input-with-icon pr-3 text-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400/50 focus:border-slate-500 placeholder:text-slate-400 dark:placeholder:text-slate-600"
                             />
                         </div>
                     </div>
@@ -164,8 +164,8 @@ export function ProfileForm({ profile, userEmail }: ProfileFormProps) {
             {/* Work Data */}
             <div className="bg-white dark:bg-slate-900/50 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-none">
                 <div className="flex items-center gap-3 mb-5">
-                    <div className="p-2 bg-indigo-500/10 rounded-lg">
-                        <Building2 className="w-5 h-5 text-indigo-500" />
+                    <div className="p-2 bg-slate-100 dark:bg-slate-700/50 rounded-lg">
+                        <Building2 className="w-5 h-5 text-slate-500 dark:text-slate-400" />
                     </div>
                     <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Datos Laborales</h3>
                 </div>
@@ -180,7 +180,7 @@ export function ProfileForm({ profile, userEmail }: ProfileFormProps) {
                             <select
                                 value={area}
                                 onChange={(e) => setArea(e.target.value)}
-                                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg py-2.5 input-with-icon pr-3 text-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 appearance-none"
+                                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg py-2.5 input-with-icon pr-3 text-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400/50 focus:border-slate-500 appearance-none"
                                 required
                             >
                                 {AREAS.map((a) => (
@@ -200,7 +200,7 @@ export function ProfileForm({ profile, userEmail }: ProfileFormProps) {
                                 value={cargo}
                                 onChange={(e) => setCargo(e.target.value)}
                                 placeholder="Ej: Técnico Electromecánico"
-                                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg py-2.5 input-with-icon pr-3 text-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 placeholder:text-slate-400 dark:placeholder:text-slate-600"
+                                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg py-2.5 input-with-icon pr-3 text-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400/50 focus:border-slate-500 placeholder:text-slate-400 dark:placeholder:text-slate-600"
                             />
                         </div>
                     </div>
@@ -249,7 +249,7 @@ export function ProfileForm({ profile, userEmail }: ProfileFormProps) {
                     className={cn(
                         "flex items-center gap-2 px-8 py-3 rounded-xl font-bold text-sm shadow-lg transition-all transform active:scale-95 disabled:cursor-not-allowed",
                         hasChanges
-                            ? "bg-blue-600 hover:bg-blue-500 text-white shadow-blue-900/20"
+                            ? "bg-slate-700 hover:bg-slate-600 text-white shadow-slate-900/20"
                             : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500"
                     )}
                 >

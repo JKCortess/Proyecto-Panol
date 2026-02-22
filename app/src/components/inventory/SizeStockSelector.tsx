@@ -33,7 +33,7 @@ export function SizeStockSelector({ variants, totalStock, maxRop }: SizeStockSel
                         onClick={() => setSelectedIndex(null)}
                         className={`text-[11px] font-mono font-semibold px-2 py-1 rounded-md border transition-all duration-200 cursor-pointer select-none
                             ${selectedIndex === null
-                                ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-900/30'
+                                ? 'bg-slate-600 text-white border-slate-500 shadow-md shadow-slate-900/30'
                                 : 'bg-slate-100 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-700 dark:hover:text-slate-300'
                             }`}
                     >
@@ -51,7 +51,7 @@ export function SizeStockSelector({ variants, totalStock, maxRop }: SizeStockSel
                                     ${isSelected
                                         ? variantCritical
                                             ? 'bg-red-600 text-white border-red-500 shadow-md shadow-red-900/30'
-                                            : 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-900/30'
+                                            : 'bg-slate-600 text-white border-slate-500 shadow-md shadow-slate-900/30'
                                         : 'bg-slate-100 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-700 dark:hover:text-slate-300'
                                     }`}
                             >
@@ -86,7 +86,7 @@ export function SizeStockSelector({ variants, totalStock, maxRop }: SizeStockSel
                         return (
                             <div key={v.talla} className={`flex items-center gap-1.5 text-[10px] font-mono px-2 py-1 rounded-md border ${vCritical
                                 ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/30 text-red-500 dark:text-red-400'
-                                : 'bg-white dark:bg-slate-800/40 border-slate-200 dark:border-slate-700/50 text-slate-500 dark:text-slate-400'
+                                : 'bg-white dark:bg-transparent border-slate-200 dark:border-slate-700/50 text-slate-500 dark:text-slate-400'
                                 }`}>
                                 <span className="font-bold text-slate-700 dark:text-slate-300">{v.talla}:</span>
                                 <span className={`font-bold ${vCritical ? 'text-red-500 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}`}>{v.stock}</span>

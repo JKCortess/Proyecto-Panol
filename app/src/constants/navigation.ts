@@ -10,6 +10,7 @@ import {
     ShoppingCart,
     Settings,
     ScanLine,
+    Bot,
 } from "lucide-react";
 
 export type MenuGroup = "navigation" | "admin";
@@ -28,6 +29,7 @@ export const ALL_MENU_ITEMS: MenuItem[] = [
     { key: "inventory", label: "Inventario", href: "/inventory", icon: Package, group: "navigation" },
     { key: "requests_new", label: "Carrito", href: "/requests/new", icon: ShoppingCart, group: "navigation" },
     { key: "my_orders", label: "Mis Solicitudes", href: "/my-orders", icon: FileText, group: "navigation" },
+    { key: "ai_assistant", label: "Asistente IA", href: "/assistant", icon: Bot, group: "navigation" },
 
     // --- Administración (solo admins) ---
     { key: "scan_qr", label: "Escanear QR", href: "/scan", icon: ScanLine, group: "admin" },

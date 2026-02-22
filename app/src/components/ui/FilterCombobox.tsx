@@ -89,7 +89,7 @@ export function FilterCombobox({
                 className={cn(
                     "flex items-center justify-between w-full px-3 py-2.5 text-sm bg-white dark:bg-slate-900 border rounded-lg shadow-sm transition-all duration-200 group",
                     open
-                        ? "border-blue-500 ring-2 ring-blue-500/20 text-slate-900 dark:text-slate-200"
+                        ? "border-slate-500 ring-2 ring-slate-500/20 text-slate-900 dark:text-slate-200"
                         : "border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200",
                     value.length > 0 ? "bg-slate-100 dark:bg-slate-800/80 text-slate-900 dark:text-slate-200 border-slate-300 dark:border-slate-700" : ""
                 )}
@@ -107,7 +107,7 @@ export function FilterCombobox({
                             <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500" />
                             <input
                                 ref={inputRef}
-                                className="w-full pl-9 pr-3 py-2 text-xs bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 transition-all font-medium"
+                                className="w-full pl-9 pr-3 py-2 text-xs bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-slate-500/50 focus:ring-1 focus:ring-slate-500/20 transition-all font-medium"
                                 placeholder={`Buscar...`}
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
@@ -140,13 +140,13 @@ export function FilterCombobox({
                                         className={cn(
                                             "flex items-center w-full px-2 py-2 text-xs font-medium rounded-lg cursor-pointer transition-all group",
                                             isSelected
-                                                ? "bg-blue-50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20"
+                                                ? "bg-slate-100 dark:bg-slate-700/40 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600"
                                                 : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white border border-transparent"
                                         )}
                                     >
                                         <div className={cn(
                                             "mr-2 h-4 w-4 rounded flex items-center justify-center transition-colors border",
-                                            isSelected ? "bg-blue-500 border-blue-500 text-white" : "bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 group-hover:border-slate-400 dark:group-hover:border-slate-600"
+                                            isSelected ? "bg-slate-600 border-slate-600 text-white" : "bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 group-hover:border-slate-400 dark:group-hover:border-slate-600"
                                         )}>
                                             {isSelected && <Check className="h-3 w-3" />}
                                         </div>
