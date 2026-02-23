@@ -37,23 +37,15 @@ const tooltipStyle = {
 };
 
 /* ── Custom Label for Donut ── */
-const renderCustomLabel = ({
-    cx,
-    cy,
-    midAngle,
-    innerRadius,
-    outerRadius,
-    value,
-    name,
-}: {
-    cx: number;
-    cy: number;
-    midAngle: number;
-    innerRadius: number;
-    outerRadius: number;
-    value: number;
-    name: string;
-}) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const renderCustomLabel = (props: any) => {
+    const cx = Number(props.cx) || 0;
+    const cy = Number(props.cy) || 0;
+    const midAngle = Number(props.midAngle) || 0;
+    const innerRadius = Number(props.innerRadius) || 0;
+    const outerRadius = Number(props.outerRadius) || 0;
+    const value = Number(props.value) || 0;
+    const name = String(props.name || "");
     const RADIAN = Math.PI / 180;
     const radius = innerRadius + (outerRadius - innerRadius) * 1.4;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
