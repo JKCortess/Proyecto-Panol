@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.5.1 - 2026-02-23
+
+### 🐛 Correcciones
+- Corregido desfase de clave de permisos: `orders` → `my_orders` sincronizado entre DB, middleware y navegación
+- Corregido middleware de rutas: ahora protege las 9 rutas (antes solo 4), evitando acceso directo por URL a páginas restringidas
+- Corregido redirect loop: usuarios con dashboard bloqueado son redirigidos a `/inventory` en vez de `/` 
+- Corregido match de ruta raíz `/` en middleware (antes matcheaba todas las rutas)
+
+### ✨ Funcionalidades
+- Agregadas entradas de permisos para "Escanear QR" y "Administrar Solicitudes" en panel admin (ahora 9/9 páginas controlables)
+
+### 🔧 Mantenimiento
+- Eliminado legacy mapping `orders` en `AdminPermissionsPanel.tsx`
+- Actualizado `progress.md` con registro de cambios
+
 ## v0.5.0 - 2026-02-23
 
 ### ✨ Funcionalidades

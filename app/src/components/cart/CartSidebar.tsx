@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useCart } from "@/context/cart-context";
 import { ShoppingBasket, X, Trash2, CheckCircle, Package, DollarSign, Minus, Plus, Ruler, Tag } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
 
 // Helper to format CLP values
@@ -12,10 +12,18 @@ const formatCLP = (value: number) => {
     return `$${value.toLocaleString("es-CL")}`;
 };
 
+// Admin route prefixes where the cart FAB should be hidden
+const ADMIN_ROUTES = ["/scan", "/requests/pending", "/stock", "/admin"];
+
 export function CartSidebar() {
     const { items, isOpen, setIsOpen, removeFromCart, updateQuantity, totalItems, totalValue, hasMounted } = useCart();
     const router = useRouter();
+    const pathname = usePathname();
     const [pendingDeleteKey, setPendingDeleteKey] = useState<string | null>(null);
+
+    // Hide the cart entirely on admin routes
+    const isAdminRoute = ADMIN_ROUTES.some((route) => pathname.startsWith(route));
+    if (isAdminRoute) return null;
 
     const handleCheckout = () => {
         setIsOpen(false);

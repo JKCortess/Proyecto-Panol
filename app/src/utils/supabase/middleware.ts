@@ -3,11 +3,17 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 // Map routes to their permission page_key
 const routePermissionMap: Record<string, string> = {
-    '/admin': 'admin',
-
+    // Navigation pages
+    '/': 'dashboard',
     '/inventory': 'inventory',
-    '/requests': 'requests_new',
-    '/orders': 'orders',
+    '/requests/new': 'requests_new',
+    '/my-orders': 'my_orders',
+    '/assistant': 'ai_assistant',
+    // Admin pages
+    '/scan': 'scan_qr',
+    '/requests/pending': 'requests_pending',
+    '/stock': 'stock',
+    '/admin': 'admin',
 };
 
 export async function updateSession(request: NextRequest) {
@@ -63,10 +69,11 @@ export async function updateSession(request: NextRequest) {
     if (user) {
         const pathname = request.nextUrl.pathname;
 
-        // Find matching route
-        const matchedRoute = Object.keys(routePermissionMap).find(route =>
-            pathname === route || pathname.startsWith(route + '/')
-        );
+        // Find matching route (exact match for '/', prefix match for others)
+        const matchedRoute = Object.keys(routePermissionMap).find(route => {
+            if (route === '/') return pathname === '/';
+            return pathname === route || pathname.startsWith(route + '/');
+        });
 
         if (matchedRoute) {
             const pageKey = routePermissionMap[matchedRoute];
@@ -89,9 +96,9 @@ export async function updateSession(request: NextRequest) {
                     .single();
 
                 if (permission && !permission.allowed) {
-                    // Redirect to dashboard if access denied
+                    // Redirect to inventory (always accessible) if access denied
                     const url = request.nextUrl.clone()
-                    url.pathname = '/'
+                    url.pathname = '/inventory'
                     return NextResponse.redirect(url)
                 }
             }

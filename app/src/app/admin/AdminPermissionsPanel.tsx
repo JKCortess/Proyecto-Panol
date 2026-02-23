@@ -28,8 +28,6 @@ const navigationMap = ALL_MENU_ITEMS.reduce((acc, item) => {
 // Permission config to match sidebar exactly
 const permissionConfig: Record<string, { label: string; icon: React.ComponentType<{ className?: string }> }> = {
     ...navigationMap,
-    // Legacy mappings
-    orders: { label: "Mis Solicitudes", icon: FileText },
 };
 
 interface AdminPermissionsPanelProps {

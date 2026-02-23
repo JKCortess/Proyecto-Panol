@@ -556,9 +556,9 @@ export function QRScannerClient() {
                     </div>
                 )}
 
-                {/* Bottom Deliver CTA (mobile sticky) */}
+                {/* Bottom Deliver CTA (mobile) */}
                 {canDeliver && (
-                    <div className="md:hidden fixed bottom-20 left-0 right-0 p-4 bg-slate-950/90 backdrop-blur-xl border-t border-slate-800 z-30">
+                    <div className="md:hidden pb-4">
                         <button
                             onClick={handleDeliver}
                             disabled={delivering}

@@ -7,6 +7,12 @@
 
 ## Log de Cambios (Reciente)
 
+### [2026-02-23] - 📱 Fix: Barra "Entregar solicitud" tapaba contenido en móvil (QR Scanner)
+- **Problema**: Al escanear un QR desde el celular, la barra sticky "Entregar solicitud 257665" se superponía sobre el detalle de ítems, impidiendo ver toda la información (ubicación, stock, etc.).
+- **Causa raíz**: El botón de entrega móvil usaba `fixed bottom-20` con `backdrop-blur`, creando un overlay fijo que tapaba el contenido inferior de la página.
+- **Corrección**: Cambiado de posicionamiento `fixed` a un elemento normal dentro del flujo del documento (`pb-4`). Ahora el botón de entrega aparece al final del contenido al hacer scroll, sin superponerse.
+- **Archivo Modificado**: `src/components/scan/QRScannerClient.tsx` — div del CTA móvil de `fixed bottom-20 left-0 right-0 p-4 bg-slate-950/90 backdrop-blur-xl border-t border-slate-800 z-30` → `pb-4`.
+
 ### [2026-02-22] - 📱 Feature: QR Storage en Supabase + Webhook Enhancement
 - **Objetivo**: Migrar la generación de QR de base64 inline a una imagen pública almacenada en Supabase Storage, enriquecer el webhook de n8n con campos independientes, y limpiar la imagen al entregar.
 - **Supabase Storage**:
