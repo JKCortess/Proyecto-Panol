@@ -224,21 +224,14 @@ export default function AssistantClient({
         [loadMessages]
     );
 
-    const createNewConversation = async () => {
-        try {
-            const res = await fetch("/api/ai/conversations", { method: "POST" });
-            const data = await res.json();
-            if (data.conversation) {
-                setConversations((prev) => [data.conversation, ...prev]);
-                setActiveConversation(data.conversation.id);
-                setMessages([]);
-                setError(null);
-                setStreamingContent("");
-                setSidebarOpen(false);
-            }
-        } catch {
-            setError("Error al crear conversación");
-        }
+    const createNewConversation = () => {
+        // Lazy creation: only reset local state here.
+        // The actual DB record is created in sendMessage() when the first message is sent.
+        setActiveConversation(null);
+        setMessages([]);
+        setError(null);
+        setStreamingContent("");
+        setSidebarOpen(false);
     };
 
     const deleteConversation = (id: string, e: React.MouseEvent) => {

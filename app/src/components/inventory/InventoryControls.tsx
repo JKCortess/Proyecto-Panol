@@ -298,81 +298,81 @@ export function InventoryControls({ categories, brands, estantes, clasificacione
                         <SlidersHorizontal className="w-3 h-3 mr-1" /> Filtros activos:
                     </span>
                     {currentStatus.length > 0 && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 text-xs font-medium border border-amber-500/20">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 text-xs font-medium border border-amber-200 dark:border-amber-500/20">
                             {currentStatus.map(s => statusOptions.find(o => o.value === s)?.label || s).join(", ")}
-                            <button onClick={() => updateFilter("status", [])} className="hover:text-amber-200"><X className="w-3 h-3" /></button>
+                            <button onClick={() => updateFilter("status", [])} className="hover:text-amber-900 dark:hover:text-amber-200"><X className="w-3 h-3" /></button>
                         </span>
                     )}
                     {currentCategory.length > 0 && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-500/10 text-slate-400 text-xs font-medium border border-slate-500/20">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-500/10 text-slate-700 dark:text-slate-400 text-xs font-medium border border-slate-200 dark:border-slate-500/20">
                             {currentCategory.join(", ")}
-                            <button onClick={() => updateFilter("category", [])} className="hover:text-slate-200"><X className="w-3 h-3" /></button>
+                            <button onClick={() => updateFilter("category", [])} className="hover:text-slate-900 dark:hover:text-slate-200"><X className="w-3 h-3" /></button>
                         </span>
                     )}
                     {currentBrand.length > 0 && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-500/10 text-purple-400 text-xs font-medium border border-purple-500/20">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-100 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 text-xs font-medium border border-purple-200 dark:border-purple-500/20">
                             {currentBrand.join(", ")}
-                            <button onClick={() => updateFilter("brand", [])} className="hover:text-purple-200"><X className="w-3 h-3" /></button>
+                            <button onClick={() => updateFilter("brand", [])} className="hover:text-purple-900 dark:hover:text-purple-200"><X className="w-3 h-3" /></button>
                         </span>
                     )}
                     {currentEstante.length > 0 && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-medium border border-emerald-500/20">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs font-medium border border-emerald-200 dark:border-emerald-500/20">
                             Estante: {currentEstante.join(", ")}
-                            <button onClick={() => updateFilter("estante", [])} className="hover:text-emerald-200"><X className="w-3 h-3" /></button>
+                            <button onClick={() => updateFilter("estante", [])} className="hover:text-emerald-900 dark:hover:text-emerald-200"><X className="w-3 h-3" /></button>
                         </span>
                     )}
                     {currentNivel.length > 0 && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-400 text-xs font-medium border border-cyan-500/20">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-cyan-100 dark:bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 text-xs font-medium border border-cyan-200 dark:border-cyan-500/20">
                             Nivel: {currentNivel.join(", ")}
-                            <button onClick={() => updateFilter("nivel", [])} className="hover:text-cyan-200"><X className="w-3 h-3" /></button>
+                            <button onClick={() => updateFilter("nivel", [])} className="hover:text-cyan-900 dark:hover:text-cyan-200"><X className="w-3 h-3" /></button>
                         </span>
                     )}
                     {currentClasificacion.length > 0 && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-pink-500/10 text-pink-400 text-xs font-medium border border-pink-500/20">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-pink-100 dark:bg-pink-500/10 text-pink-700 dark:text-pink-400 text-xs font-medium border border-pink-200 dark:border-pink-500/20">
                             {currentClasificacion.join(", ")}
-                            <button onClick={() => updateFilter("clasificacion", [])} className="hover:text-pink-200"><X className="w-3 h-3" /></button>
+                            <button onClick={() => updateFilter("clasificacion", [])} className="hover:text-pink-900 dark:hover:text-pink-200"><X className="w-3 h-3" /></button>
                         </span>
                     )}
                     {currentTipoComponente.length > 0 && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-xs font-medium border border-indigo-500/20">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-100 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 text-xs font-medium border border-indigo-200 dark:border-indigo-500/20">
                             {currentTipoComponente.join(", ")}
-                            <button onClick={() => updateFilter("tipoComponente", [])} className="hover:text-indigo-200"><X className="w-3 h-3" /></button>
+                            <button onClick={() => updateFilter("tipoComponente", [])} className="hover:text-indigo-900 dark:hover:text-indigo-200"><X className="w-3 h-3" /></button>
                         </span>
                     )}
                     {currentFilterSku && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-500/10 text-slate-400 text-xs font-medium border border-slate-500/20">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-500/10 text-slate-700 dark:text-slate-400 text-xs font-medium border border-slate-200 dark:border-slate-500/20">
                             SKU: {currentFilterSku}
-                            <button onClick={() => updateTextFilter("filterSku", "")} className="hover:text-slate-200"><X className="w-3 h-3" /></button>
+                            <button onClick={() => updateTextFilter("filterSku", "")} className="hover:text-slate-900 dark:hover:text-slate-200"><X className="w-3 h-3" /></button>
                         </span>
                     )}
                     {currentFilterNombre && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-500/10 text-slate-400 text-xs font-medium border border-slate-500/20">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-500/10 text-slate-700 dark:text-slate-400 text-xs font-medium border border-slate-200 dark:border-slate-500/20">
                             Nombre: {currentFilterNombre}
-                            <button onClick={() => updateTextFilter("filterNombre", "")} className="hover:text-slate-200"><X className="w-3 h-3" /></button>
+                            <button onClick={() => updateTextFilter("filterNombre", "")} className="hover:text-slate-900 dark:hover:text-slate-200"><X className="w-3 h-3" /></button>
                         </span>
                     )}
                     {currentFilterModelo && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-500/10 text-slate-400 text-xs font-medium border border-slate-500/20">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-500/10 text-slate-700 dark:text-slate-400 text-xs font-medium border border-slate-200 dark:border-slate-500/20">
                             Modelo: {currentFilterModelo}
-                            <button onClick={() => updateTextFilter("filterModelo", "")} className="hover:text-slate-200"><X className="w-3 h-3" /></button>
+                            <button onClick={() => updateTextFilter("filterModelo", "")} className="hover:text-slate-900 dark:hover:text-slate-200"><X className="w-3 h-3" /></button>
                         </span>
                     )}
                     {currentFilterPotencia && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-500/10 text-slate-400 text-xs font-medium border border-slate-500/20">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-500/10 text-slate-700 dark:text-slate-400 text-xs font-medium border border-slate-200 dark:border-slate-500/20">
                             Potencia: {currentFilterPotencia}
-                            <button onClick={() => updateTextFilter("filterPotencia", "")} className="hover:text-slate-200"><X className="w-3 h-3" /></button>
+                            <button onClick={() => updateTextFilter("filterPotencia", "")} className="hover:text-slate-900 dark:hover:text-slate-200"><X className="w-3 h-3" /></button>
                         </span>
                     )}
                     {currentTalla.length > 0 && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-500/10 text-slate-400 text-xs font-medium border border-slate-500/20">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-500/10 text-slate-700 dark:text-slate-400 text-xs font-medium border border-slate-200 dark:border-slate-500/20">
                             Talla: {currentTalla.join(", ")}
-                            <button onClick={() => updateFilter("talla", [])} className="hover:text-slate-200"><X className="w-3 h-3" /></button>
+                            <button onClick={() => updateFilter("talla", [])} className="hover:text-slate-900 dark:hover:text-slate-200"><X className="w-3 h-3" /></button>
                         </span>
                     )}
                     {currentProveedor.length > 0 && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-teal-500/10 text-teal-400 text-xs font-medium border border-teal-500/20">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-teal-100 dark:bg-teal-500/10 text-teal-700 dark:text-teal-400 text-xs font-medium border border-teal-200 dark:border-teal-500/20">
                             {currentProveedor.join(", ")}
-                            <button onClick={() => updateFilter("proveedor", [])} className="hover:text-teal-200"><X className="w-3 h-3" /></button>
+                            <button onClick={() => updateFilter("proveedor", [])} className="hover:text-teal-900 dark:hover:text-teal-200"><X className="w-3 h-3" /></button>
                         </span>
                     )}
                 </div>

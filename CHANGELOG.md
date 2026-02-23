@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.5.3 - 2026-02-23
+
+### 🐛 Correcciones
+- **Imágenes del asistente IA**: Corregido bug donde las imágenes de productos no se mostraban en el chat del Maestro en Vercel — el middleware de autenticación interceptaba `/api/image-proxy` con 401/307
+- Mejorados estilos del dashboard para modo claro (gradientes, fondos, colores de texto)
+- Mejorado estilo visual de filtros seleccionados en inventario (modo claro/oscuro)
+- Filtrado de conversaciones fantasma: solo se registran conversaciones con mensajes reales
+
 ## v0.5.2 - 2026-02-23
 
 ### ✨ Funcionalidades

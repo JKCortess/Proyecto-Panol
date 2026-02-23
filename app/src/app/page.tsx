@@ -320,12 +320,12 @@ export default async function Dashboard({
   return (
     <div className="p-5 md:p-8 space-y-6 md:space-y-8 min-h-full">
       {/* ── HEADER ── */}
-      <header className="relative z-30 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 rounded-2xl bg-gradient-to-br from-slate-900/80 via-slate-900/60 to-slate-800/40 border border-slate-700/50 backdrop-blur-xl p-5 md:p-6 shadow-2xl">
+      <header className="relative z-30 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 rounded-2xl ui-card p-5 md:p-6 shadow-2xl">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+          <h1 className="text-3xl font-bold tracking-tight" style={{ color: 'var(--foreground)' }}>
             Panel de Control
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">
+          <p className="mt-1" style={{ color: 'var(--muted)' }}>
             Resumen operativo del pañol en tiempo real
           </p>
           <div className="mt-2">
@@ -334,11 +334,11 @@ export default async function Dashboard({
         </div>
         <div className="flex items-center gap-4 w-full md:w-auto">
           <div className="relative flex-1 md:w-64">
-            <Search className="icon-left icon-left-sm text-slate-500" />
+            <Search className="icon-left icon-left-sm" style={{ color: 'var(--muted)' }} />
             <input
               type="text"
               placeholder="Buscar SKU, Nombre..."
-              className="w-full bg-slate-900 border-slate-800 rounded-lg input-with-icon py-2.5 text-sm focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all placeholder:text-slate-600"
+              className="w-full rounded-lg input-with-icon py-2.5 text-sm focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
             />
           </div>
           <NotificationBell initialPendingCount={pendingCount} isAdmin={isAdmin} />
@@ -349,9 +349,9 @@ export default async function Dashboard({
       <form
         action="/"
         method="GET"
-        className="rounded-2xl border border-slate-700/50 bg-slate-900/50 backdrop-blur p-4 flex flex-col md:flex-row md:items-end gap-3"
+        className="rounded-2xl ui-card p-4 flex flex-col md:flex-row md:items-end gap-3"
       >
-        <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300 text-sm font-medium">
+        <div className="flex items-center gap-2 text-sm font-medium" style={{ color: 'var(--foreground)' }}>
           <CalendarDays className="w-4 h-4 text-blue-400" />
           Filtro por fecha
         </div>
@@ -369,7 +369,7 @@ export default async function Dashboard({
           {hasDateFilter && (
             <Link
               href="/"
-              className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm transition-colors"
+              className="inline-flex items-center gap-1 px-3 py-2 rounded-lg ui-btn-secondary text-sm transition-colors"
             >
               <FilterX className="w-3.5 h-3.5" />
               Limpiar
@@ -383,7 +383,7 @@ export default async function Dashboard({
           ═══════════════════════════════════════ */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Items */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-blue-950/50 to-slate-900/70 border border-blue-500/20 rounded-2xl p-5 shadow-lg group hover:border-blue-500/40 transition-all">
+        <div className="relative overflow-hidden ui-card rounded-2xl p-5 shadow-lg group hover:border-blue-500/40 transition-all" style={{ borderColor: 'rgba(59,130,246,0.2)' }}>
           <div className="absolute top-0 right-0 w-20 h-20 bg-blue-500/5 rounded-full -translate-y-6 translate-x-6" />
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-xl bg-blue-500/15 border border-blue-500/25 flex items-center justify-center shrink-0">
@@ -393,7 +393,7 @@ export default async function Dashboard({
               <p className="text-[10px] uppercase font-bold text-blue-400/70 tracking-wider mb-0.5">
                 Total Ítems
               </p>
-              <p className="text-2xl font-bold font-mono text-white leading-none">
+              <p className="text-2xl font-bold font-mono leading-none" style={{ color: 'var(--foreground)' }}>
                 {totalItems}
               </p>
             </div>
@@ -401,7 +401,7 @@ export default async function Dashboard({
         </div>
 
         {/* Stock Total */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-cyan-950/50 to-slate-900/70 border border-cyan-500/20 rounded-2xl p-5 shadow-lg group hover:border-cyan-500/40 transition-all">
+        <div className="relative overflow-hidden ui-card rounded-2xl p-5 shadow-lg group hover:border-cyan-500/40 transition-all" style={{ borderColor: 'rgba(6,182,212,0.2)' }}>
           <div className="absolute top-0 right-0 w-20 h-20 bg-cyan-500/5 rounded-full -translate-y-6 translate-x-6" />
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-xl bg-cyan-500/15 border border-cyan-500/25 flex items-center justify-center shrink-0">
@@ -421,7 +421,8 @@ export default async function Dashboard({
         {/* Stock Crítico */}
         <Link
           href="/inventory?status=critical"
-          className="relative overflow-hidden bg-gradient-to-br from-red-950/50 to-slate-900/70 border border-red-500/20 rounded-2xl p-5 shadow-lg group hover:border-red-500/40 hover:shadow-red-500/10 transition-all"
+          className="relative overflow-hidden ui-card rounded-2xl p-5 shadow-lg group hover:border-red-500/40 hover:shadow-red-500/10 transition-all"
+          style={{ borderColor: 'rgba(239,68,68,0.2)' }}
         >
           <div className="absolute top-0 right-0 w-20 h-20 bg-red-500/5 rounded-full -translate-y-6 translate-x-6" />
           <div className="flex items-center gap-3">
@@ -443,7 +444,7 @@ export default async function Dashboard({
         </Link>
 
         {/* Valor Inventario */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-emerald-950/50 to-slate-900/70 border border-emerald-500/20 rounded-2xl p-5 shadow-lg group hover:border-emerald-500/40 transition-all">
+        <div className="relative overflow-hidden ui-card rounded-2xl p-5 shadow-lg group hover:border-emerald-500/40 transition-all" style={{ borderColor: 'rgba(16,185,129,0.2)' }}>
           <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-500/5 rounded-full -translate-y-6 translate-x-6" />
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-xl bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center shrink-0">
@@ -466,7 +467,7 @@ export default async function Dashboard({
           ═══════════════════════════════════════ */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Pendientes */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-amber-950/40 to-slate-900/70 border border-amber-500/20 rounded-2xl p-5 shadow-lg hover:border-amber-500/40 transition-all">
+        <div className="relative overflow-hidden ui-card rounded-2xl p-5 shadow-lg hover:border-amber-500/40 transition-all" style={{ borderColor: 'rgba(245,158,11,0.2)' }}>
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center shrink-0">
               <Hourglass className="w-5 h-5 text-amber-400" />
@@ -483,7 +484,7 @@ export default async function Dashboard({
         </div>
 
         {/* Aceptadas */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-emerald-950/40 to-slate-900/70 border border-emerald-500/20 rounded-2xl p-5 shadow-lg hover:border-emerald-500/40 transition-all">
+        <div className="relative overflow-hidden ui-card rounded-2xl p-5 shadow-lg hover:border-emerald-500/40 transition-all" style={{ borderColor: 'rgba(16,185,129,0.2)' }}>
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-xl bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center shrink-0">
               <CircleCheckBig className="w-5 h-5 text-emerald-400" />
@@ -500,7 +501,7 @@ export default async function Dashboard({
         </div>
 
         {/* Entregadas */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-blue-950/40 to-slate-900/70 border border-blue-500/20 rounded-2xl p-5 shadow-lg hover:border-blue-500/40 transition-all">
+        <div className="relative overflow-hidden ui-card rounded-2xl p-5 shadow-lg hover:border-blue-500/40 transition-all" style={{ borderColor: 'rgba(59,130,246,0.2)' }}>
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-xl bg-blue-500/15 border border-blue-500/25 flex items-center justify-center shrink-0">
               <PackageOpen className="w-5 h-5 text-blue-400" />
@@ -517,7 +518,7 @@ export default async function Dashboard({
         </div>
 
         {/* Canceladas */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-rose-950/40 to-slate-900/70 border border-rose-500/20 rounded-2xl p-5 shadow-lg hover:border-rose-500/40 transition-all">
+        <div className="relative overflow-hidden ui-card rounded-2xl p-5 shadow-lg hover:border-rose-500/40 transition-all" style={{ borderColor: 'rgba(244,63,94,0.2)' }}>
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-xl bg-rose-500/15 border border-rose-500/25 flex items-center justify-center shrink-0">
               <Ban className="w-5 h-5 text-rose-400" />
@@ -539,14 +540,14 @@ export default async function Dashboard({
           ═══════════════════════════════════════ */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Chart 1: Status Distribution Donut */}
-        <div className="rounded-2xl border border-slate-700/50 bg-gradient-to-br from-slate-900/90 to-slate-800/50 backdrop-blur-xl shadow-xl overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-700/50 flex items-center gap-3">
+        <div className="rounded-2xl ui-card shadow-xl overflow-hidden">
+          <div className="px-5 py-4 border-b flex items-center gap-3" style={{ borderColor: 'var(--border)' }}>
             <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
               <PieChartIcon className="w-4 h-4 text-amber-400" />
             </div>
             <div>
-              <h3 className="font-semibold text-sm text-white">Estado de Solicitudes</h3>
-              <p className="text-[11px] text-slate-500">Distribución actual por estado</p>
+              <h3 className="font-semibold text-sm" style={{ color: 'var(--foreground)' }}>Estado de Solicitudes</h3>
+              <p className="text-[11px]" style={{ color: 'var(--muted)' }}>Distribución actual por estado</p>
             </div>
           </div>
           <div className="p-4">
@@ -562,14 +563,14 @@ export default async function Dashboard({
         </div>
 
         {/* Chart 2: Inventory by Category */}
-        <div className="rounded-2xl border border-slate-700/50 bg-gradient-to-br from-slate-900/90 to-slate-800/50 backdrop-blur-xl shadow-xl overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-700/50 flex items-center gap-3">
+        <div className="rounded-2xl ui-card shadow-xl overflow-hidden">
+          <div className="px-5 py-4 border-b flex items-center gap-3" style={{ borderColor: 'var(--border)' }}>
             <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
               <BarChart3 className="w-4 h-4 text-indigo-400" />
             </div>
             <div>
-              <h3 className="font-semibold text-sm text-white">Inventario por Categoría</h3>
-              <p className="text-[11px] text-slate-500">Cantidad de ítems por categoría</p>
+              <h3 className="font-semibold text-sm" style={{ color: 'var(--foreground)' }}>Inventario por Categoría</h3>
+              <p className="text-[11px]" style={{ color: 'var(--muted)' }}>Cantidad de ítems por categoría</p>
             </div>
           </div>
           <div className="p-4">
@@ -585,14 +586,14 @@ export default async function Dashboard({
         </div>
 
         {/* Chart 3: Stock Movements */}
-        <div className="rounded-2xl border border-slate-700/50 bg-gradient-to-br from-slate-900/90 to-slate-800/50 backdrop-blur-xl shadow-xl overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-700/50 flex items-center gap-3">
+        <div className="rounded-2xl ui-card shadow-xl overflow-hidden">
+          <div className="px-5 py-4 border-b flex items-center gap-3" style={{ borderColor: 'var(--border)' }}>
             <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
               <Activity className="w-4 h-4 text-emerald-400" />
             </div>
             <div>
-              <h3 className="font-semibold text-sm text-white">Movimientos de Stock</h3>
-              <p className="text-[11px] text-slate-500">Entradas vs Salidas (unidades)</p>
+              <h3 className="font-semibold text-sm" style={{ color: 'var(--foreground)' }}>Movimientos de Stock</h3>
+              <p className="text-[11px]" style={{ color: 'var(--muted)' }}>Entradas vs Salidas (unidades)</p>
             </div>
           </div>
           <div className="p-4">
@@ -601,14 +602,14 @@ export default async function Dashboard({
         </div>
 
         {/* Chart 4: Timeline */}
-        <div className="rounded-2xl border border-slate-700/50 bg-gradient-to-br from-slate-900/90 to-slate-800/50 backdrop-blur-xl shadow-xl overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-700/50 flex items-center gap-3">
+        <div className="rounded-2xl ui-card shadow-xl overflow-hidden">
+          <div className="px-5 py-4 border-b flex items-center gap-3" style={{ borderColor: 'var(--border)' }}>
             <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
               <TrendingUp className="w-4 h-4 text-blue-400" />
             </div>
             <div>
-              <h3 className="font-semibold text-sm text-white">Actividad en el Tiempo</h3>
-              <p className="text-[11px] text-slate-500">Solicitudes por día y estado</p>
+              <h3 className="font-semibold text-sm" style={{ color: 'var(--foreground)' }}>Actividad en el Tiempo</h3>
+              <p className="text-[11px]" style={{ color: 'var(--muted)' }}>Solicitudes por día y estado</p>
             </div>
           </div>
           <div className="p-4">
@@ -629,24 +630,24 @@ export default async function Dashboard({
           ═══════════════════════════════════════ */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Risk Panel */}
-        <div className="rounded-2xl border border-slate-700/50 bg-gradient-to-br from-slate-900/90 to-slate-800/50 backdrop-blur-xl shadow-xl p-5">
+        <div className="rounded-2xl ui-card shadow-xl p-5">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-9 h-9 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
               <ShieldAlert className="w-4.5 h-4.5 text-amber-400" />
             </div>
-            <h3 className="font-bold text-sm uppercase tracking-wide text-slate-300">
+            <h3 className="font-bold text-sm uppercase tracking-wide" style={{ color: 'var(--foreground)' }}>
               Riesgo Operativo
             </h3>
           </div>
           <p className={`text-lg font-semibold ${riskColor}`}>{riskLabel}</p>
           <div className="mt-3 space-y-2">
-            <p className="text-sm text-slate-400 flex items-center gap-2">
+            <p className="text-sm flex items-center gap-2" style={{ color: 'var(--muted)' }}>
               <Hourglass className="w-3.5 h-3.5 text-amber-500/60" />
               <span>
                 <strong className="text-amber-400">{pendingOver48h}</strong> solicitud(es) pendiente(s) por más de 48h
               </span>
             </p>
-            <p className="text-sm text-slate-400 flex items-center gap-2">
+            <p className="text-sm flex items-center gap-2" style={{ color: 'var(--muted)' }}>
               <TriangleAlert className="w-3.5 h-3.5 text-red-500/60" />
               <span>
                 <strong className="text-red-400">{criticalCount}</strong> SKU(s) en nivel crítico
@@ -670,12 +671,12 @@ export default async function Dashboard({
         </div>
 
         {/* Area Breakdown */}
-        <div className="rounded-2xl border border-slate-700/50 bg-gradient-to-br from-slate-900/90 to-slate-800/50 backdrop-blur-xl shadow-xl p-5">
+        <div className="rounded-2xl ui-card shadow-xl p-5">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-9 h-9 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
               <ClipboardList className="w-4.5 h-4.5 text-purple-400" />
             </div>
-            <h3 className="font-bold text-sm uppercase tracking-wide text-slate-300">
+            <h3 className="font-bold text-sm uppercase tracking-wide" style={{ color: 'var(--foreground)' }}>
               Carga por Área
             </h3>
           </div>
@@ -687,10 +688,10 @@ export default async function Dashboard({
                 return (
                   <div key={area}>
                     <div className="flex items-center justify-between text-sm mb-1.5">
-                      <span className="text-slate-400 truncate pr-3">{area}</span>
-                      <span className="font-mono font-bold text-white">{count}</span>
+                      <span className="truncate pr-3" style={{ color: 'var(--muted)' }}>{area}</span>
+                      <span className="font-mono font-bold" style={{ color: 'var(--foreground)' }}>{count}</span>
                     </div>
-                    <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                    <div className="h-2 rounded-full overflow-hidden" style={{ background: 'var(--surface-hover)' }}>
                       <div
                         className="h-full bg-gradient-to-r from-purple-500 to-violet-400 rounded-full transition-all duration-700"
                         style={{ width: `${percent}%` }}
@@ -711,8 +712,8 @@ export default async function Dashboard({
           ═══════════════════════════════════════ */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 auto-rows-fr">
         {/* Critical Items — 2 cols */}
-        <div className="lg:col-span-2 rounded-2xl border border-slate-700/50 bg-gradient-to-br from-slate-900/90 to-slate-800/50 backdrop-blur-xl shadow-xl flex flex-col h-full overflow-hidden">
-          <div className="p-5 border-b border-slate-700/50 flex justify-between items-center">
+        <div className="lg:col-span-2 rounded-2xl ui-card shadow-xl flex flex-col h-full overflow-hidden">
+          <div className="p-5 border-b flex justify-between items-center" style={{ borderColor: 'var(--border)' }}>
             <div className="flex items-center gap-3">
               <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
               <h3 className="font-bold text-red-400 tracking-wide uppercase text-sm">
@@ -721,7 +722,8 @@ export default async function Dashboard({
             </div>
             <Link
               href="/inventory?status=critical"
-              className="text-xs font-mono text-slate-500 hover:text-white transition-colors flex items-center gap-1 bg-slate-800 px-2 py-1 rounded border border-slate-700"
+              className="text-xs font-mono transition-colors flex items-center gap-1 ui-btn-secondary px-2 py-1 rounded"
+              style={{ color: 'var(--muted)' }}
             >
               Ver Todos <ArrowUpRight className="w-3 h-3" />
             </Link>
@@ -741,9 +743,9 @@ export default async function Dashboard({
                   }) => (
                     <div
                       key={item.sku}
-                      className="bg-slate-950/60 border border-slate-700/50 p-3 rounded-xl flex items-center gap-3 hover:border-slate-600 transition-colors group"
+                      className="p-3 rounded-xl flex items-center gap-3 hover:border-slate-600 transition-colors group" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
                     >
-                      <div className="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center shrink-0 border border-slate-700 overflow-hidden">
+                      <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 overflow-hidden" style={{ background: 'var(--surface-hover)', border: '1px solid var(--border)' }}>
                         {item.image_url ? (
                           <Image
                             src={item.image_url}
@@ -759,7 +761,7 @@ export default async function Dashboard({
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start">
-                          <h4 className="font-medium text-slate-200 text-sm truncate pr-2">
+                          <h4 className="font-medium text-sm truncate pr-2" style={{ color: 'var(--foreground)' }}>
                             {item.name}
                           </h4>
                           <span className="text-xs font-bold text-red-400 shrink-0">
@@ -780,7 +782,7 @@ export default async function Dashboard({
                           )}
                         </div>
                         <div className="flex items-center gap-2 mt-1.5">
-                          <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                          <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--surface-hover)' }}>
                             <div
                               className="h-full bg-gradient-to-r from-red-500 to-red-400 rounded-full"
                               style={{
@@ -809,17 +811,17 @@ export default async function Dashboard({
         </div>
 
         {/* Recent Movements — 1 col */}
-        <div className="rounded-2xl border border-slate-700/50 bg-gradient-to-br from-slate-900/90 to-slate-800/50 backdrop-blur-xl shadow-xl flex flex-col h-full overflow-hidden">
-          <div className="p-5 border-b border-slate-700/50 flex justify-between items-center">
-            <h3 className="font-bold text-slate-200 text-sm">Movimientos Recientes</h3>
-            <Clock className="w-4 h-4 text-slate-500" />
+        <div className="rounded-2xl ui-card shadow-xl flex flex-col h-full overflow-hidden">
+          <div className="p-5 border-b flex justify-between items-center" style={{ borderColor: 'var(--border)' }}>
+            <h3 className="font-bold text-sm" style={{ color: 'var(--foreground)' }}>Movimientos Recientes</h3>
+            <Clock className="w-4 h-4" style={{ color: 'var(--muted)' }} />
           </div>
           <div className="flex-1 overflow-y-auto p-2 space-y-1">
             {recentMovements.length > 0 ? (
               recentMovements.map((move, i) => (
                 <div
                   key={i}
-                  className="flex items-center justify-between p-3 hover:bg-slate-800/50 rounded-lg transition-colors group border border-transparent hover:border-slate-700"
+                  className="flex items-center justify-between p-3 rounded-lg transition-colors group border border-transparent" style={{ ['--tw-bg-opacity' as string]: 1 }}
                 >
                   <div className="flex items-center gap-3 overflow-hidden">
                     <div
@@ -835,15 +837,15 @@ export default async function Dashboard({
                       )}
                     </div>
                     <div className="min-w-0">
-                      <div className="text-sm font-medium text-slate-300 truncate">
+                      <div className="text-sm font-medium truncate" style={{ color: 'var(--foreground)' }}>
                         {move.user}
                       </div>
-                      <div className="text-xs text-slate-500 truncate">
+                      <div className="text-xs truncate" style={{ color: 'var(--muted)' }}>
                         {move.id} · {move.time}
                       </div>
                     </div>
                   </div>
-                  <div className="font-mono font-bold text-sm text-slate-500">
+                  <div className="font-mono font-bold text-sm" style={{ color: 'var(--muted)' }}>
                     {move.quantity} ítems
                   </div>
                 </div>
@@ -855,10 +857,10 @@ export default async function Dashboard({
               </div>
             )}
           </div>
-          <div className="p-3 border-t border-slate-700/50 text-center">
+          <div className="p-3 border-t text-center" style={{ borderColor: 'var(--border)' }}>
             <Link
               href="/my-orders"
-              className="text-xs text-blue-400 hover:text-white transition-colors font-mono"
+              className="text-xs text-blue-400 transition-colors font-mono hover:opacity-70"
             >
               VER TODA LA ACTIVIDAD
             </Link>
@@ -870,27 +872,27 @@ export default async function Dashboard({
           ADMIN AUDIT (Admin only)
           ═══════════════════════════════════════ */}
       {isAdmin && (
-        <div className="rounded-2xl border border-slate-700/50 bg-gradient-to-br from-slate-900/90 to-slate-800/50 backdrop-blur-xl shadow-xl overflow-hidden">
-          <div className="p-5 border-b border-slate-700/50 flex items-center justify-between">
+        <div className="rounded-2xl ui-card shadow-xl overflow-hidden">
+          <div className="p-5 border-b flex items-center justify-between" style={{ borderColor: 'var(--border)' }}>
             <div className="flex items-center gap-2">
               <User className="w-4 h-4 text-blue-400" />
-              <h3 className="font-bold text-slate-200 text-sm uppercase tracking-wide">
+              <h3 className="font-bold text-sm uppercase tracking-wide" style={{ color: 'var(--foreground)' }}>
                 Auditoría Administrativa Reciente
               </h3>
             </div>
             <Link
               href="/requests/pending"
-              className="text-xs text-blue-400 hover:text-white flex items-center gap-1 transition-colors"
+              className="text-xs text-blue-400 hover:opacity-70 flex items-center gap-1 transition-colors"
             >
               Ver gestión <ArrowUpRight className="w-3 h-3" />
             </Link>
           </div>
-          <div className="divide-y divide-slate-700/50">
+          <div className="divide-y" style={{ ['--tw-divide-opacity' as string]: 1, borderColor: 'var(--border)' }}>
             {adminMovementList.length > 0 ? (
               adminMovementList.map((m) => (
                 <div
                   key={m.id}
-                  className="px-5 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-2 hover:bg-slate-800/30 transition-colors"
+                  className="px-5 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-2 transition-colors" style={{ ['--tw-bg-opacity' as string]: 1 }}
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <span
@@ -912,7 +914,7 @@ export default async function Dashboard({
                       )}
                     </span>
                     <div className="min-w-0">
-                      <p className="text-sm text-slate-200 truncate">
+                      <p className="text-sm truncate" style={{ color: 'var(--foreground)' }}>
                         <span className="font-mono">{m.requestCode}</span> · {m.previous} →{" "}
                         {m.action}
                       </p>

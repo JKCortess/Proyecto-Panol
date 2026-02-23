@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
     PieChart,
     Pie,
@@ -22,23 +23,45 @@ export type CategoryData = { name: string; items: number; stock: number };
 export type MovementData = { name: string; cantidad: number; color: string };
 export type TimelineData = { date: string; Pendiente: number; Entregada: number; Cancelada: number; Aceptada: number };
 
-/* ── Shared tooltip style ── */
-const tooltipStyle = {
-    contentStyle: {
-        background: "rgba(15, 23, 42, 0.95)",
-        border: "1px solid rgba(148, 163, 184, 0.2)",
-        borderRadius: "12px",
-        color: "#e2e8f0",
-        fontSize: "13px",
-        padding: "10px 14px",
-        boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
-    },
-    itemStyle: { color: "#e2e8f0" },
-};
+/* ── Theme-aware chart tokens hook ── */
+function useChartTheme() {
+    const [tokens, setTokens] = useState({
+        tooltipBg: "rgba(15, 23, 42, 0.95)",
+        tooltipBorder: "rgba(148, 163, 184, 0.2)",
+        tooltipText: "#e2e8f0",
+        axis: "#94a3b8",
+        axisSecondary: "#64748b",
+        grid: "rgba(148,163,184,0.08)",
+        centerText: "#ffffff",
+    });
+
+    useEffect(() => {
+        const update = () => {
+            const isLight = document.documentElement.classList.contains("theme-light");
+            setTokens({
+                tooltipBg: isLight ? "rgba(255, 255, 255, 0.97)" : "rgba(15, 23, 42, 0.95)",
+                tooltipBorder: isLight ? "rgba(100, 116, 139, 0.25)" : "rgba(148, 163, 184, 0.2)",
+                tooltipText: isLight ? "#1e293b" : "#e2e8f0",
+                axis: isLight ? "#475569" : "#94a3b8",
+                axisSecondary: isLight ? "#64748b" : "#64748b",
+                grid: isLight ? "rgba(100,116,139,0.12)" : "rgba(148,163,184,0.08)",
+                centerText: isLight ? "#1d1d1f" : "#ffffff",
+            });
+        };
+        update();
+
+        // Observe class changes on <html> to detect theme toggle
+        const observer = new MutationObserver(update);
+        observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+        return () => observer.disconnect();
+    }, []);
+
+    return tokens;
+}
 
 /* ── Custom Label for Donut ── */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const renderCustomLabel = (props: any) => {
+const makeLabelRenderer = (axisColor: string) => (props: any) => {
     const cx = Number(props.cx) || 0;
     const cy = Number(props.cy) || 0;
     const midAngle = Number(props.midAngle) || 0;
@@ -52,7 +75,7 @@ const renderCustomLabel = (props: any) => {
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
     if (value === 0) return null;
     return (
-        <text x={x} y={y} fill="#94a3b8" textAnchor={x > cx ? "start" : "end"} dominantBaseline="central" fontSize={12}>
+        <text x={x} y={y} fill={axisColor} textAnchor={x > cx ? "start" : "end"} dominantBaseline="central" fontSize={12}>
             {name} ({value})
         </text>
     );
@@ -63,6 +86,19 @@ const renderCustomLabel = (props: any) => {
    ═══════════════════════════════ */
 export function StatusDonut({ data }: { data: StatusData[] }) {
     const total = data.reduce((s, d) => s + d.value, 0);
+    const t = useChartTheme();
+    const tooltipStyle = {
+        contentStyle: {
+            background: t.tooltipBg,
+            border: `1px solid ${t.tooltipBorder}`,
+            borderRadius: "12px",
+            color: t.tooltipText,
+            fontSize: "13px",
+            padding: "10px 14px",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+        },
+        itemStyle: { color: t.tooltipText },
+    };
     return (
         <div className="relative w-full h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -75,7 +111,7 @@ export function StatusDonut({ data }: { data: StatusData[] }) {
                         outerRadius={95}
                         paddingAngle={3}
                         dataKey="value"
-                        label={renderCustomLabel}
+                        label={makeLabelRenderer(t.axis)}
                         animationBegin={0}
                         animationDuration={800}
                         stroke="none"
@@ -89,8 +125,8 @@ export function StatusDonut({ data }: { data: StatusData[] }) {
             </ResponsiveContainer>
             {/* Center label */}
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-3xl font-bold text-white font-mono">{total}</span>
-                <span className="text-[11px] text-slate-500 uppercase tracking-wider">Total</span>
+                <span className="text-3xl font-bold font-mono" style={{ color: t.centerText }}>{total}</span>
+                <span className="text-[11px] uppercase tracking-wider" style={{ color: t.axis }}>Total</span>
             </div>
         </div>
     );
@@ -100,17 +136,30 @@ export function StatusDonut({ data }: { data: StatusData[] }) {
    2. CATEGORY BAR CHART
    ═══════════════════════════════ */
 export function CategoryBarChart({ data }: { data: CategoryData[] }) {
+    const t = useChartTheme();
+    const tooltipStyle = {
+        contentStyle: {
+            background: t.tooltipBg,
+            border: `1px solid ${t.tooltipBorder}`,
+            borderRadius: "12px",
+            color: t.tooltipText,
+            fontSize: "13px",
+            padding: "10px 14px",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+        },
+        itemStyle: { color: t.tooltipText },
+    };
     return (
         <div className="w-full h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.08)" horizontal={false} />
-                    <XAxis type="number" tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke={t.grid} horizontal={false} />
+                    <XAxis type="number" tick={{ fill: t.axisSecondary, fontSize: 11 }} axisLine={false} tickLine={false} />
                     <YAxis
                         type="category"
                         dataKey="name"
                         width={110}
-                        tick={{ fill: "#94a3b8", fontSize: 12 }}
+                        tick={{ fill: t.axis, fontSize: 12 }}
                         axisLine={false}
                         tickLine={false}
                     />
@@ -132,13 +181,26 @@ export function CategoryBarChart({ data }: { data: CategoryData[] }) {
    3. STOCK MOVEMENT BAR CHART
    ═══════════════════════════════ */
 export function MovementBarChart({ data }: { data: MovementData[] }) {
+    const t = useChartTheme();
+    const tooltipStyle = {
+        contentStyle: {
+            background: t.tooltipBg,
+            border: `1px solid ${t.tooltipBorder}`,
+            borderRadius: "12px",
+            color: t.tooltipText,
+            fontSize: "13px",
+            padding: "10px 14px",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+        },
+        itemStyle: { color: t.tooltipText },
+    };
     return (
         <div className="w-full h-[280px] flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data} margin={{ top: 20, right: 30, left: 10, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.08)" />
-                    <XAxis dataKey="name" tick={{ fill: "#94a3b8", fontSize: 12 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke={t.grid} />
+                    <XAxis dataKey="name" tick={{ fill: t.axis, fontSize: 12 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: t.axisSecondary, fontSize: 11 }} axisLine={false} tickLine={false} />
                     <Tooltip {...tooltipStyle} />
                     <Bar dataKey="cantidad" name="Movimientos" radius={[8, 8, 0, 0]} animationDuration={800} barSize={50}>
                         {data.map((entry, i) => (
@@ -155,6 +217,19 @@ export function MovementBarChart({ data }: { data: MovementData[] }) {
    4. TIMELINE AREA CHART
    ═══════════════════════════════ */
 export function TimelineAreaChart({ data }: { data: TimelineData[] }) {
+    const t = useChartTheme();
+    const tooltipStyle = {
+        contentStyle: {
+            background: t.tooltipBg,
+            border: `1px solid ${t.tooltipBorder}`,
+            borderRadius: "12px",
+            color: t.tooltipText,
+            fontSize: "13px",
+            padding: "10px 14px",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+        },
+        itemStyle: { color: t.tooltipText },
+    };
     return (
         <div className="w-full h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -177,11 +252,11 @@ export function TimelineAreaChart({ data }: { data: TimelineData[] }) {
                             <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                         </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.08)" />
-                    <XAxis dataKey="date" tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke={t.grid} />
+                    <XAxis dataKey="date" tick={{ fill: t.axisSecondary, fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: t.axisSecondary, fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
                     <Tooltip {...tooltipStyle} />
-                    <Legend iconType="circle" wrapperStyle={{ fontSize: "12px", color: "#94a3b8" }} />
+                    <Legend iconType="circle" wrapperStyle={{ fontSize: "12px", color: t.axis }} />
                     <Area type="monotone" dataKey="Pendiente" stroke="#f59e0b" fill="url(#gradPendiente)" strokeWidth={2} dot={false} />
                     <Area type="monotone" dataKey="Entregada" stroke="#3b82f6" fill="url(#gradEntregada)" strokeWidth={2} dot={false} />
                     <Area type="monotone" dataKey="Aceptada" stroke="#10b981" fill="url(#gradAceptada)" strokeWidth={2} dot={false} />
