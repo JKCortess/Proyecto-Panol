@@ -96,7 +96,7 @@ export default async function Dashboard({
     { data: categoryBreakdown },
     { data: criticalItemsRaw },
   ] = await Promise.all([
-    supabase.rpc("get_inventory_stats").maybeSingle() as Promise<{
+    supabase.rpc("get_inventory_stats").maybeSingle() as unknown as Promise<{
       data: { total_items: number; total_stock: number; critical_count: number; total_value: number } | null;
     }>,
     // Fallback: direct query for categories
@@ -824,8 +824,8 @@ export default async function Dashboard({
                   <div className="flex items-center gap-3 overflow-hidden">
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border ${move.status === "Pendiente"
-                          ? "bg-amber-500/10 text-amber-500 border-amber-500/30"
-                          : "bg-blue-500/10 text-blue-500 border-blue-500/30"
+                        ? "bg-amber-500/10 text-amber-500 border-amber-500/30"
+                        : "bg-blue-500/10 text-blue-500 border-blue-500/30"
                         }`}
                     >
                       {move.status === "Pendiente" ? (
@@ -895,12 +895,12 @@ export default async function Dashboard({
                   <div className="flex items-center gap-3 min-w-0">
                     <span
                       className={`w-7 h-7 rounded-full flex items-center justify-center border ${m.previous === "Eliminada" && m.action === "Pendiente"
-                          ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
-                          : m.action === "Entregada"
-                            ? "bg-blue-500/10 border-blue-500/30 text-blue-400"
-                            : m.action === "Eliminada"
-                              ? "bg-rose-500/10 border-rose-500/30 text-rose-400"
-                              : "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
+                        ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
+                        : m.action === "Entregada"
+                          ? "bg-blue-500/10 border-blue-500/30 text-blue-400"
+                          : m.action === "Eliminada"
+                            ? "bg-rose-500/10 border-rose-500/30 text-rose-400"
+                            : "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
                         }`}
                     >
                       {m.action === "Entregada" ? (
