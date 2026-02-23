@@ -109,3 +109,57 @@ export async function PUT(req: NextRequest) {
         return NextResponse.json({ error: "Error interno" }, { status: 500 });
     }
 }
+
+/**
+ * PATCH /api/ai/config
+ * Quick model switch — any authenticated user can change the active model.
+ * This is intentionally less restrictive than PUT (admin-only) since
+ * switching models is an operational action needed when credits run out.
+ */
+export async function PATCH(req: NextRequest) {
+    try {
+        const supabase = await createClient();
+        const {
+            data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user) {
+            return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+        }
+
+        const { model } = await req.json();
+
+        if (!model || typeof model !== "string") {
+            return NextResponse.json(
+                { error: "Se requiere el nombre del modelo" },
+                { status: 400 }
+            );
+        }
+
+        const { error } = await supabase
+            .from("app_settings")
+            .update({
+                value: model,
+                updated_by: user.id,
+                updated_at: new Date().toISOString(),
+            })
+            .eq("key", "ai_model");
+
+        if (error) {
+            console.error("[AI Config] Error updating model:", error);
+            return NextResponse.json(
+                { error: "Error al cambiar el modelo" },
+                { status: 500 }
+            );
+        }
+
+        return NextResponse.json({
+            success: true,
+            model,
+            message: `Modelo cambiado a ${model}`,
+        });
+    } catch (error) {
+        console.error("[AI Config] PATCH Error:", error);
+        return NextResponse.json({ error: "Error interno" }, { status: 500 });
+    }
+}

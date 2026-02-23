@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
     LayoutDashboard,
@@ -15,8 +16,6 @@ import {
     ArrowLeftRight,
     ShoppingCart,
     ChevronDown,
-    ChevronLeft,
-    ChevronRight,
     Settings,
     Compass,
     PanelLeftClose,
@@ -99,7 +98,7 @@ export function AppSidebar({ user, profile, permissions }: AppSidebarProps) {
                         "flex items-center gap-3 rounded-xl text-sm font-medium transition-all duration-200",
                         collapsed ? "justify-center px-2 py-2.5" : "px-3 py-2.5",
                         isActive
-                            ? "bg-blue-600 text-white shadow-lg"
+                            ? "bg-[var(--brand)] text-white shadow-lg"
                             : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80"
                     )}
                 >
@@ -135,29 +134,32 @@ export function AppSidebar({ user, profile, permissions }: AppSidebarProps) {
             <button
                 onClick={onToggle}
                 className={cn(
-                    "flex items-center justify-between w-full mb-3 px-2 py-1.5 rounded-lg transition-all duration-200 group/section",
-                    "hover:bg-slate-100/50 dark:hover:bg-slate-800/50"
+                    "flex items-center justify-between w-full mb-3 px-2 py-2 rounded-lg transition-all duration-200 group/section",
+                    "hover:bg-slate-100/50 dark:hover:bg-slate-800/50",
+                    colorClass === "blue"
+                        ? "border-l-2 border-slate-400 dark:border-slate-500"
+                        : "border-l-2 border-amber-500 dark:border-amber-400"
                 )}
             >
-                <span className="flex items-center gap-2">
+                <span className="flex items-center gap-2.5">
                     <span className={cn(
-                        "flex items-center justify-center w-5 h-5 rounded-md",
+                        "flex items-center justify-center w-6 h-6 rounded-md",
                         colorClass === "blue"
                             ? "bg-slate-200/80 dark:bg-slate-600/30"
                             : "bg-amber-500/15 dark:bg-amber-500/20"
                     )}>
                         <Icon className={cn(
-                            "w-3 h-3",
+                            "w-3.5 h-3.5",
                             colorClass === "blue"
                                 ? "text-slate-600 dark:text-slate-400"
                                 : "text-amber-600 dark:text-amber-400"
                         )} />
                     </span>
                     <span className={cn(
-                        "text-[11px] font-semibold uppercase tracking-wider",
+                        "text-xs font-bold uppercase tracking-widest",
                         colorClass === "blue"
-                            ? "text-slate-600/80 dark:text-slate-400/80"
-                            : "text-amber-600/80 dark:text-amber-400/80"
+                            ? "text-slate-700 dark:text-slate-300"
+                            : "text-amber-700 dark:text-amber-300"
                     )}>
                         {label}
                     </span>
@@ -195,16 +197,16 @@ export function AppSidebar({ user, profile, permissions }: AppSidebarProps) {
                 title={collapsed ? "Expandir menú" : "Colapsar menú"}
             >
                 {collapsed ? (
-                    <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover/toggle:text-slate-200 transition-colors" />
+                    <PanelLeft className="w-3.5 h-3.5 text-slate-400 group-hover/toggle:text-slate-200 transition-colors" />
                 ) : (
-                    <ChevronLeft className="w-3.5 h-3.5 text-slate-400 group-hover/toggle:text-slate-200 transition-colors" />
+                    <PanelLeftClose className="w-3.5 h-3.5 text-slate-400 group-hover/toggle:text-slate-200 transition-colors" />
                 )}
             </button>
 
             {/* Logo Area */}
             <div className={cn("flex items-center gap-3 transition-all duration-300", collapsed ? "p-4 justify-center" : "p-6")}>
-                <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shrink-0">
-                    <Package className="w-5 h-5 text-white" />
+                <div className="w-[54px] h-[54px] rounded-xl bg-white dark:bg-white flex items-center justify-center shadow-lg shrink-0 overflow-hidden">
+                    <Image src="/logo-dole.png" alt="Dole" width={48} height={48} className="object-contain" />
                 </div>
                 {!collapsed && (
                     <div className="flex flex-col overflow-hidden">
@@ -260,6 +262,17 @@ export function AppSidebar({ user, profile, permissions }: AppSidebarProps) {
                     </div>
                 )}
             </nav>
+
+            {/* Theme Toggle */}
+            <div className={cn("px-4 pb-2", collapsed && "px-2")}>
+                <ThemeToggle
+                    variant={collapsed ? "icon" : "default"}
+                    className={cn(
+                        "w-full justify-center",
+                        collapsed && "p-2 rounded-xl"
+                    )}
+                />
+            </div>
 
             {/* User Profile - Clickable to go to Mi Perfil */}
             <div className={cn("p-4 border-t border-slate-200 dark:border-slate-800", collapsed && "p-2")}>

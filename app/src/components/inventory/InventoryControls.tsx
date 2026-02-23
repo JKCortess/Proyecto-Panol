@@ -14,21 +14,27 @@ interface InventoryControlsProps {
     clasificaciones: string[];
     niveles: string[];
     tallas: string[];
+    tiposComponente: string[];
+    proveedores: string[];
 }
 
 const AVAILABLE_FILTERS = [
     { key: "status", label: "Estado (Stock)" },
     { key: "category", label: "Categoría" },
     { key: "brand", label: "Marca" },
+    { key: "tipoComponente", label: "Tipo Componente" },
     { key: "filterSku", label: "SKU" },
     { key: "filterNombre", label: "Nombre" },
+    { key: "filterModelo", label: "Modelo" },
+    { key: "filterPotencia", label: "Potencia" },
     { key: "talla", label: "Talla" },
     { key: "estante", label: "Ubicación (Estante)" },
     { key: "nivel", label: "Nivel" },
     { key: "clasificacion", label: "Clasificación" },
+    { key: "proveedor", label: "Proveedor" },
 ];
 
-export function InventoryControls({ categories, brands, estantes, clasificaciones, niveles, tallas }: InventoryControlsProps) {
+export function InventoryControls({ categories, brands, estantes, clasificaciones, niveles, tallas, tiposComponente, proveedores }: InventoryControlsProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -46,8 +52,12 @@ export function InventoryControls({ categories, brands, estantes, clasificacione
     const currentNivel = getParamArray("nivel");
     const currentClasificacion = getParamArray("clasificacion");
     const currentTalla = getParamArray("talla");
+    const currentTipoComponente = getParamArray("tipoComponente");
+    const currentProveedor = getParamArray("proveedor");
     const currentFilterSku = searchParams.get("filterSku") || "";
     const currentFilterNombre = searchParams.get("filterNombre") || "";
+    const currentFilterModelo = searchParams.get("filterModelo") || "";
+    const currentFilterPotencia = searchParams.get("filterPotencia") || "";
 
     // Determine active visible filters - logic: 
     // 1. If we have params that are NOT in default, show them.
@@ -61,12 +71,16 @@ export function InventoryControls({ categories, brands, estantes, clasificacione
     if (currentStatus.length > 0) activeParams.push("status");
     if (currentCategory.length > 0) activeParams.push("category");
     if (currentBrand.length > 0) activeParams.push("brand");
+    if (currentTipoComponente.length > 0) activeParams.push("tipoComponente");
     if (currentFilterSku) activeParams.push("filterSku");
     if (currentFilterNombre) activeParams.push("filterNombre");
+    if (currentFilterModelo) activeParams.push("filterModelo");
+    if (currentFilterPotencia) activeParams.push("filterPotencia");
     if (currentEstante.length > 0) activeParams.push("estante");
     if (currentNivel.length > 0) activeParams.push("nivel");
     if (currentClasificacion.length > 0) activeParams.push("clasificacion");
     if (currentTalla.length > 0) activeParams.push("talla");
+    if (currentProveedor.length > 0) activeParams.push("proveedor");
 
     const displayedFilters = Array.from(new Set([...visibleFilters, ...activeParams]));
 
@@ -116,6 +130,8 @@ export function InventoryControls({ categories, brands, estantes, clasificacione
     const nivelOptions: Option[] = niveles.map(n => ({ value: n, label: `Nivel ${n}` }));
     const clasificacionOptions: Option[] = clasificaciones.map(c => ({ value: c, label: c }));
     const tallaOptions: Option[] = tallas.map(t => ({ value: t, label: t }));
+    const tipoComponenteOptions: Option[] = tiposComponente.map(t => ({ value: t, label: t }));
+    const proveedorOptions: Option[] = proveedores.map(p => ({ value: p, label: p }));
 
     const handleFilterVisibilityChange = (newFilters: string[]) => {
         setVisibleFilters(newFilters);
@@ -158,6 +174,16 @@ export function InventoryControls({ categories, brands, estantes, clasificacione
                         />
                     )}
 
+                    {displayedFilters.includes("tipoComponente") && (
+                        <FilterCombobox
+                            label="Tipo Componente"
+                            options={tipoComponenteOptions}
+                            value={currentTipoComponente}
+                            onChange={(vals) => updateFilter("tipoComponente", vals)}
+                            placeholder="Todos"
+                        />
+                    )}
+
                     {displayedFilters.includes("filterSku") && (
                         <FilterTextInput
                             label="SKU"
@@ -173,6 +199,24 @@ export function InventoryControls({ categories, brands, estantes, clasificacione
                             value={currentFilterNombre}
                             onChange={(val) => updateTextFilter("filterNombre", val)}
                             placeholder="Filtrar por nombre..."
+                        />
+                    )}
+
+                    {displayedFilters.includes("filterModelo") && (
+                        <FilterTextInput
+                            label="Modelo"
+                            value={currentFilterModelo}
+                            onChange={(val) => updateTextFilter("filterModelo", val)}
+                            placeholder="Filtrar por modelo..."
+                        />
+                    )}
+
+                    {displayedFilters.includes("filterPotencia") && (
+                        <FilterTextInput
+                            label="Potencia"
+                            value={currentFilterPotencia}
+                            onChange={(val) => updateTextFilter("filterPotencia", val)}
+                            placeholder="Filtrar por potencia..."
                         />
                     )}
 
@@ -213,6 +257,16 @@ export function InventoryControls({ categories, brands, estantes, clasificacione
                             value={currentClasificacion}
                             onChange={(vals) => updateFilter("clasificacion", vals)}
                             placeholder="Todas"
+                        />
+                    )}
+
+                    {displayedFilters.includes("proveedor") && (
+                        <FilterCombobox
+                            label="Proveedor"
+                            options={proveedorOptions}
+                            value={currentProveedor}
+                            onChange={(vals) => updateFilter("proveedor", vals)}
+                            placeholder="Todos"
                         />
                     )}
 
@@ -279,6 +333,12 @@ export function InventoryControls({ categories, brands, estantes, clasificacione
                             <button onClick={() => updateFilter("clasificacion", [])} className="hover:text-pink-200"><X className="w-3 h-3" /></button>
                         </span>
                     )}
+                    {currentTipoComponente.length > 0 && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-xs font-medium border border-indigo-500/20">
+                            {currentTipoComponente.join(", ")}
+                            <button onClick={() => updateFilter("tipoComponente", [])} className="hover:text-indigo-200"><X className="w-3 h-3" /></button>
+                        </span>
+                    )}
                     {currentFilterSku && (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-500/10 text-slate-400 text-xs font-medium border border-slate-500/20">
                             SKU: {currentFilterSku}
@@ -291,10 +351,28 @@ export function InventoryControls({ categories, brands, estantes, clasificacione
                             <button onClick={() => updateTextFilter("filterNombre", "")} className="hover:text-slate-200"><X className="w-3 h-3" /></button>
                         </span>
                     )}
+                    {currentFilterModelo && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-500/10 text-slate-400 text-xs font-medium border border-slate-500/20">
+                            Modelo: {currentFilterModelo}
+                            <button onClick={() => updateTextFilter("filterModelo", "")} className="hover:text-slate-200"><X className="w-3 h-3" /></button>
+                        </span>
+                    )}
+                    {currentFilterPotencia && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-500/10 text-slate-400 text-xs font-medium border border-slate-500/20">
+                            Potencia: {currentFilterPotencia}
+                            <button onClick={() => updateTextFilter("filterPotencia", "")} className="hover:text-slate-200"><X className="w-3 h-3" /></button>
+                        </span>
+                    )}
                     {currentTalla.length > 0 && (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-500/10 text-slate-400 text-xs font-medium border border-slate-500/20">
                             Talla: {currentTalla.join(", ")}
                             <button onClick={() => updateFilter("talla", [])} className="hover:text-slate-200"><X className="w-3 h-3" /></button>
+                        </span>
+                    )}
+                    {currentProveedor.length > 0 && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-teal-500/10 text-teal-400 text-xs font-medium border border-teal-500/20">
+                            {currentProveedor.join(", ")}
+                            <button onClick={() => updateFilter("proveedor", [])} className="hover:text-teal-200"><X className="w-3 h-3" /></button>
                         </span>
                     )}
                 </div>

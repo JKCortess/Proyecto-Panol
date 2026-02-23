@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useCart } from "@/context/cart-context";
 import { ShoppingBasket, X, Trash2, CheckCircle, Package, DollarSign, Minus, Plus, Ruler, Tag } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -14,6 +15,7 @@ const formatCLP = (value: number) => {
 export function CartSidebar() {
     const { items, isOpen, setIsOpen, removeFromCart, updateQuantity, totalItems, totalValue, hasMounted } = useCart();
     const router = useRouter();
+    const [pendingDeleteKey, setPendingDeleteKey] = useState<string | null>(null);
 
     const handleCheckout = () => {
         setIsOpen(false);
@@ -98,13 +100,33 @@ export function CartSidebar() {
                                                 )}
                                             </div>
                                         </div>
-                                        <button
-                                            onClick={() => removeFromCart(item.sku, item.talla)}
-                                            className="text-slate-500 hover:text-red-400 transition-colors p-1 shrink-0"
-                                            title="Eliminar del carrito"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
+                                        {pendingDeleteKey === `${item.sku}-${item.talla || 'no-size'}` ? (
+                                            <div className="flex items-center gap-1 shrink-0 animate-in fade-in duration-200">
+                                                <span className="text-[10px] text-red-400 font-medium mr-0.5">¿Eliminar?</span>
+                                                <button
+                                                    onClick={() => { removeFromCart(item.sku, item.talla); setPendingDeleteKey(null); }}
+                                                    className="w-6 h-6 rounded bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
+                                                    title="Confirmar eliminación"
+                                                >
+                                                    <span className="text-xs font-bold">Sí</span>
+                                                </button>
+                                                <button
+                                                    onClick={() => setPendingDeleteKey(null)}
+                                                    className="w-6 h-6 rounded bg-slate-700 border border-slate-600 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-600 transition-colors"
+                                                    title="Cancelar"
+                                                >
+                                                    <span className="text-xs font-bold">No</span>
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <button
+                                                onClick={() => setPendingDeleteKey(`${item.sku}-${item.talla || 'no-size'}`)}
+                                                className="text-slate-500 hover:text-red-400 transition-colors p-1 shrink-0"
+                                                title="Eliminar del carrito"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        )}
                                     </div>
 
                                     {/* Quantity controls + Value */}

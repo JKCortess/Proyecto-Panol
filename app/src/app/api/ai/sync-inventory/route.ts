@@ -33,39 +33,94 @@ export async function POST() {
 
         console.log(`[Sync] Fetched ${items.length} items from Google Sheets`);
 
-        // 2. Transform items to match Supabase schema
-        const rows = items.map((item) => ({
-            sku: item.sku,
-            name: item.nombre,
-            category: item.categoria || null,
-            brand: item.marca || null,
-            talla: item.talla || null,
-            image_url: item.foto || null,
-            stock_current: item.stock || 0,
-            stock_reserved: item.reservado || 0,
-            shelf_number: item.estante_nro || null,
-            shelf_level: item.estante_nivel || null,
-            observation: item.observacion || null,
-            general_description: item.descripcion_general || null,
-            usage_application: item.uso_aplicacion || null,
-            value_clp: item.valor_aprox_clp || null,
-            value_spex: item.valor_confirmado_spex || null,
-            value_final: item.valor || null,
-            classification: item.clasificacion || null,
-            rop: item.rop || null,
-            safety_stock: item.safety_stock || null,
-        }));
+        // 2. Group items by SKU to handle duplicates (items with same SKU but different talla)
+        // The Supabase inventory table has sku as PRIMARY KEY, so we must deduplicate
+        const skuMap = new Map<string, typeof items[0][]>();
+        for (const item of items) {
+            const existing = skuMap.get(item.sku) || [];
+            existing.push(item);
+            skuMap.set(item.sku, existing);
+        }
 
-        // 3. Call RPC function to atomically truncate + insert
-        const { data: insertedCount, error: rpcError } = await supabase.rpc(
-            "sync_inventory",
-            { items: rows }
-        );
+        // Merge items with the same SKU: aggregate stock, combine talla
+        const rows = Array.from(skuMap.entries()).map(([sku, groupedItems]) => {
+            // Use the first item as base
+            const base = groupedItems[0];
 
-        if (rpcError) {
-            console.error("[Sync] RPC Error:", rpcError);
+            // Sum stock and reserved across all talla variants
+            const totalStock = groupedItems.reduce((sum, i) => sum + (i.stock || 0), 0);
+            const totalReserved = groupedItems.reduce((sum, i) => sum + (i.reservado || 0), 0);
+
+            // Combine talla values (e.g., "S, M, L, XL")
+            const tallas = groupedItems
+                .map(i => i.talla)
+                .filter(Boolean)
+                .join(", ");
+
+            return {
+                sku,
+                name: base.nombre,
+                category: base.categoria || null,
+                brand: base.marca || null,
+                talla: tallas || null,
+                image_url: base.foto || null,
+                stock_current: totalStock,
+                stock_reserved: totalReserved,
+                shelf_number: base.estante_nro || null,
+                shelf_level: base.estante_nivel || null,
+                observation: base.observacion || null,
+                general_description: base.descripcion_general || null,
+                usage_application: base.uso_aplicacion || null,
+                value_clp: base.valor_aprox_clp || null,
+                value_spex: base.valor_confirmado_spex || null,
+                value_final: base.valor || null,
+                classification: base.clasificacion || null,
+                rop: base.rop || null,
+                safety_stock: base.safety_stock || null,
+            };
+        });
+
+        console.log(`[Sync] Grouped ${items.length} sheet rows into ${rows.length} unique SKUs`);
+
+        // 3. Direct sync: Delete all existing rows, then insert in batches
+        // This replaces the RPC function which was failing with unknown columns
+        console.log(`[Sync] Deleting all existing inventory rows...`);
+        const { error: deleteError } = await supabase
+            .from("inventory")
+            .delete()
+            .neq("sku", "___IMPOSSIBLE_SKU___"); // Delete all rows (workaround: Supabase requires a filter)
+
+        if (deleteError) {
+            console.error("[Sync] Delete Error:", deleteError);
             return NextResponse.json(
-                { error: `Error al sincronizar: ${rpcError.message}` },
+                { error: `Error al limpiar inventario: ${deleteError.message}` },
+                { status: 500 }
+            );
+        }
+
+        // Insert in batches of 50 to avoid payload limits
+        const BATCH_SIZE = 50;
+        let insertedCount = 0;
+        const errors: string[] = [];
+
+        for (let i = 0; i < rows.length; i += BATCH_SIZE) {
+            const batch = rows.slice(i, i + BATCH_SIZE);
+            const { error: insertError } = await supabase
+                .from("inventory")
+                .insert(batch);
+
+            if (insertError) {
+                console.error(`[Sync] Insert Error (batch ${Math.floor(i / BATCH_SIZE) + 1}):`, insertError);
+                errors.push(`Batch ${Math.floor(i / BATCH_SIZE) + 1}: ${insertError.message}`);
+                // Continue with next batch instead of aborting
+            } else {
+                insertedCount += batch.length;
+            }
+        }
+
+        if (errors.length > 0 && insertedCount === 0) {
+            return NextResponse.json(
+                { error: `Error al insertar ítems: ${errors.join('; ')}` },
                 { status: 500 }
             );
         }
@@ -84,13 +139,15 @@ export async function POST() {
             })
             .eq("key", "ai_last_sync");
 
-        const count = insertedCount || items.length;
-        console.log(`[Sync] Successfully synced ${count} items`);
+        console.log(`[Sync] Successfully synced ${insertedCount} of ${items.length} items${errors.length > 0 ? ` (${errors.length} batch errors)` : ''}`);
 
         return NextResponse.json({
             success: true,
-            count,
-            message: `${count} ítems sincronizados correctamente`,
+            count: insertedCount,
+            total: items.length,
+            message: errors.length > 0
+                ? `${insertedCount}/${items.length} ítems sincronizados (${errors.length} errores en lotes)`
+                : `${insertedCount} ítems sincronizados correctamente`,
         });
     } catch (error) {
         console.error("[Sync] Error:", error);

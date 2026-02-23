@@ -24,11 +24,11 @@ export async function syncStockToSheets(
 
     try {
         // 1. Fetch current stock and SKU mapping
-        // Reading A (SKU) through G (Stock_Actual)
-        // Columns: A=SKU, B=Nombre, C=Categoría, D=Marca, E=Talla, F=Link_Foto, G=Stock_Actual
+        // Reading A (SKU) through J (Stock_Actual)
+        // Columns: A=SKU, B=Nombre, C=Tipo_comp, D=Categoría, E=Marca, F=Modelo, G=Potencia, H=Talla, I=Link_Foto, J=Stock_Actual
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: SPREADSHEET_ID,
-            range: "ITEMS!A2:G",
+            range: "ITEMS!A2:J",
         });
 
         const rows = response.data.values;
@@ -42,7 +42,7 @@ export async function syncStockToSheets(
         rows.forEach((row, index) => {
             let sku = row[0]?.toString().trim();
             const name = row[1]?.toString().trim() || "";
-            const talla = row[4]?.toString().trim() || ""; // Column E = Talla
+            const talla = row[7]?.toString().trim() || ""; // Column H = Talla (index 7)
 
             if (!sku && name) {
                 // Determine SKU from Name hash (Same logic as data.ts)
@@ -55,7 +55,7 @@ export async function syncStockToSheets(
                 sku = `GEN-${Math.abs(hash).toString(16).toUpperCase()}`;
             }
 
-            const stock = parseInt(row[6] || "0", 10); // Column G = Stock_Actual (index 6)
+            const stock = parseInt(row[9] || "0", 10); // Column J = Stock_Actual (index 9)
             if (sku) {
                 // Use composite key SKU::Talla for items with sizes
                 const key = talla ? `${sku}::${talla}` : sku;
@@ -86,9 +86,9 @@ export async function syncStockToSheets(
             const resolvedData = itemData || inventoryMap.get(item.sku)!;
             const newStock = resolvedData.currentStock - item.quantity;
 
-            // Prepare Stock Update (Column G = Stock_Actual)
+            // Prepare Stock Update (Column J = Stock_Actual)
             updates.push({
-                range: `ITEMS!G${resolvedData.rowIndex}`,
+                range: `ITEMS!J${resolvedData.rowIndex}`,
                 values: [[newStock]],
             });
 
@@ -155,10 +155,10 @@ export async function restoreStockInSheets(
 
     try {
         // 1. Fetch current stock and SKU mapping
-        // Columns: A=SKU, B=Nombre, C=Categoría, D=Marca, E=Talla, F=Link_Foto, G=Stock_Actual
+        // Columns: A=SKU, B=Nombre, C=Tipo_comp, D=Categoría, E=Marca, F=Modelo, G=Potencia, H=Talla, I=Link_Foto, J=Stock_Actual
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: SPREADSHEET_ID,
-            range: "ITEMS!A2:G",
+            range: "ITEMS!A2:J",
         });
 
         const rows = response.data.values;
@@ -169,7 +169,7 @@ export async function restoreStockInSheets(
         rows.forEach((row, index) => {
             let sku = row[0]?.toString().trim();
             const name = row[1]?.toString().trim() || "";
-            const talla = row[4]?.toString().trim() || ""; // Column E = Talla
+            const talla = row[7]?.toString().trim() || ""; // Column H = Talla (index 7)
             // Fallback generation logic
             if (!sku && name) {
                 let hash = 0;
@@ -181,7 +181,7 @@ export async function restoreStockInSheets(
                 sku = `GEN-${Math.abs(hash).toString(16).toUpperCase()}`;
             }
 
-            const stock = parseInt(row[6] || "0", 10); // Column G = Stock_Actual (index 6)
+            const stock = parseInt(row[9] || "0", 10); // Column J = Stock_Actual (index 9)
             if (sku) {
                 // Use composite key SKU::Talla for items with sizes
                 const key = talla ? `${sku}::${talla}` : sku;
@@ -205,9 +205,9 @@ export async function restoreStockInSheets(
             // We are RESTORING, so we add
             const newStock = itemData.currentStock + item.quantity;
 
-            // Prepare Stock Update (Column G = Stock_Actual)
+            // Prepare Stock Update (Column J = Stock_Actual)
             updates.push({
-                range: `ITEMS!G${itemData.rowIndex}`,
+                range: `ITEMS!J${itemData.rowIndex}`,
                 values: [[newStock]],
             });
 
@@ -275,7 +275,7 @@ export async function addStockInSheets(
     try {
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: SPREADSHEET_ID,
-            range: "ITEMS!A2:G",
+            range: "ITEMS!A2:J",
         });
 
         const rows = response.data.values;
@@ -286,7 +286,7 @@ export async function addStockInSheets(
         rows.forEach((row, index) => {
             let sku = row[0]?.toString().trim();
             const name = row[1]?.toString().trim() || "";
-            const talla = row[4]?.toString().trim() || "";
+            const talla = row[7]?.toString().trim() || ""; // Column H = Talla (index 7)
 
             if (!sku && name) {
                 let hash = 0;
@@ -298,7 +298,7 @@ export async function addStockInSheets(
                 sku = `GEN-${Math.abs(hash).toString(16).toUpperCase()}`;
             }
 
-            const stock = parseInt(row[6] || "0", 10);
+            const stock = parseInt(row[9] || "0", 10); // Column J = Stock_Actual (index 9)
             if (sku) {
                 const key = talla ? `${sku}::${talla}` : sku;
                 inventoryMap.set(key, { rowIndex: index + 2, currentStock: stock });
@@ -323,7 +323,7 @@ export async function addStockInSheets(
             const newStock = itemData.currentStock + item.quantity;
 
             updates.push({
-                range: `ITEMS!G${itemData.rowIndex}`,
+                range: `ITEMS!J${itemData.rowIndex}`,
                 values: [[newStock]],
             });
 
@@ -391,7 +391,7 @@ export async function removeStockInSheets(
     try {
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: SPREADSHEET_ID,
-            range: "ITEMS!A2:G",
+            range: "ITEMS!A2:J",
         });
 
         const rows = response.data.values;
@@ -402,7 +402,7 @@ export async function removeStockInSheets(
         rows.forEach((row, index) => {
             let sku = row[0]?.toString().trim();
             const name = row[1]?.toString().trim() || "";
-            const talla = row[4]?.toString().trim() || "";
+            const talla = row[7]?.toString().trim() || ""; // Column H = Talla (index 7)
 
             if (!sku && name) {
                 let hash = 0;
@@ -414,7 +414,7 @@ export async function removeStockInSheets(
                 sku = `GEN-${Math.abs(hash).toString(16).toUpperCase()}`;
             }
 
-            const stock = parseInt(row[6] || "0", 10);
+            const stock = parseInt(row[9] || "0", 10); // Column J = Stock_Actual (index 9)
             if (sku) {
                 const key = talla ? `${sku}::${talla}` : sku;
                 inventoryMap.set(key, { rowIndex: index + 2, currentStock: stock });
@@ -439,7 +439,7 @@ export async function removeStockInSheets(
             const newStock = Math.max(0, itemData.currentStock - item.quantity);
 
             updates.push({
-                range: `ITEMS!G${itemData.rowIndex}`,
+                range: `ITEMS!J${itemData.rowIndex}`,
                 values: [[newStock]],
             });
 

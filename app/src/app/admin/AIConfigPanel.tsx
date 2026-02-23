@@ -15,8 +15,8 @@ interface AIConfig {
 
 const GEMINI_MODELS = [
     { value: "gemini-3.1-pro-preview", label: "⭐ Gemini 3.1 Pro (Último — Feb 2026)" },
-    { value: "gemini-3-pro", label: "Gemini 3 Pro (Más inteligente)" },
-    { value: "gemini-3-flash", label: "Gemini 3 Flash (Rápido + Potente)" },
+    { value: "gemini-3-pro-preview", label: "Gemini 3 Pro (Más inteligente)" },
+    { value: "gemini-3-flash-preview", label: "Gemini 3 Flash (Rápido + Potente)" },
     { value: "gemini-2.5-pro", label: "Gemini 2.5 Pro (Estable)" },
     { value: "gemini-2.5-flash", label: "Gemini 2.5 Flash (Equilibrado)" },
     { value: "gemini-2.5-flash-lite", label: "Gemini 2.5 Flash Lite (Económico)" },
@@ -27,7 +27,7 @@ export function AIConfigPanel() {
         ai_provider: "gemini",
         ai_api_key: "",
         ai_model: "gemini-2.5-flash",
-        ai_bot_name: "Chispita",
+        ai_bot_name: "Asistente",
         ai_openrouter_key: "",
         ai_system_prompt: "",
     });

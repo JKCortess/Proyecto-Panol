@@ -136,18 +136,18 @@ export function NotificationBell({ initialPendingCount, isAdmin }: NotificationB
         <div className="relative" ref={dropdownRef}>
             <button
                 onClick={toggleOpen}
-                className={`p-2.5 border rounded-lg transition-colors relative ${isOpen ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'}`}
+                className={`p-2.5 border rounded-lg transition-colors relative ${isOpen ? 'bg-slate-200 dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'}`}
             >
                 <Bell className="w-5 h-5" />
                 {hasNotifications && (
-                    <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-slate-900 animate-pulse"></span>
+                    <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-slate-900 animate-pulse"></span>
                 )}
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-80 md:w-96 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 overflow-hidden ring-1 ring-slate-800">
-                    <div className="p-3 border-b border-slate-800 bg-slate-950/50 flex justify-between items-center backdrop-blur-sm">
-                        <h3 className="font-bold text-xs uppercase tracking-wider text-slate-400">Notificaciones Recientes</h3>
+                <div className="absolute right-0 mt-2 w-80 md:w-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl z-50 overflow-hidden ring-1 ring-slate-200 dark:ring-slate-800">
+                    <div className="p-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 flex justify-between items-center backdrop-blur-sm">
+                        <h3 className="font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">Notificaciones Recientes</h3>
                         {pendingCount > 0 && (
                             <span className="text-[10px] bg-red-500/10 text-red-400 px-2 py-0.5 rounded-full border border-red-500/20 font-medium">
                                 {pendingCount} Pendiente{pendingCount !== 1 ? 's' : ''}
@@ -157,48 +157,48 @@ export function NotificationBell({ initialPendingCount, isAdmin }: NotificationB
 
                     <div className="max-h-[350px] overflow-y-auto custom-scrollbar">
                         {loading ? (
-                            <div className="p-8 flex justify-center text-slate-500">
-                                <span className="loading-spinner w-5 h-5 border-2 border-slate-600 border-t-transparent rounded-full animate-spin"></span>
+                            <div className="p-8 flex justify-center text-slate-400 dark:text-slate-500">
+                                <span className="loading-spinner w-5 h-5 border-2 border-slate-300 dark:border-slate-600 border-t-transparent rounded-full animate-spin"></span>
                             </div>
                         ) : notifications.length === 0 ? (
-                            <div className="p-8 text-center text-slate-500 flex flex-col items-center">
+                            <div className="p-8 text-center text-slate-400 dark:text-slate-500 flex flex-col items-center">
                                 <Bell className="w-10 h-10 opacity-10 mb-3" />
-                                <p className="text-sm font-medium text-slate-400">Sin notificaciones</p>
+                                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Sin notificaciones</p>
                                 <p className="text-xs mt-1 opacity-70">No hay actividad reciente.</p>
                             </div>
                         ) : (
-                            <div className="divide-y divide-slate-800/50">
+                            <div className="divide-y divide-slate-100 dark:divide-slate-800/50">
                                 {notifications.map(n => (
                                     <Link
                                         href={n.status === 'Pendiente' ? '/requests/pending' : `/my-orders/${n.id}`}
                                         key={n.id}
-                                        className="block p-4 hover:bg-slate-800/50 transition-all group"
+                                        className="block p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all group"
                                         onClick={() => setIsOpen(false)}
                                     >
                                         <div className="flex gap-3">
                                             <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border mt-0.5 ${n.status === 'Pendiente'
                                                 ? 'bg-amber-500/10 border-amber-500/30 text-amber-500'
-                                                : 'bg-slate-800 border-slate-700 text-slate-400'
+                                                : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400'
                                                 }`}>
                                                 {n.status === 'Pendiente' ? <Clock className="w-4 h-4" /> : <Package className="w-4 h-4" />}
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex justify-between items-start gap-2">
-                                                    <p className="text-sm font-medium text-slate-200 group-hover:text-blue-400 transition-colors">
+                                                    <p className="text-sm font-medium text-slate-700 dark:text-slate-200 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors">
                                                         Solicitud #{n.request_code}
                                                     </p>
-                                                    <span className="text-[10px] text-slate-500 font-mono whitespace-nowrap">
+                                                    <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono whitespace-nowrap">
                                                         {formatTimeAgo(n.created_at)}
                                                     </span>
                                                 </div>
-                                                <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
+                                                <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-0.5">
                                                     <User className="w-3 h-3" /> {n.user_name || 'Usuario desconocido'}
                                                 </p>
                                                 <div className="mt-2 flex items-center gap-2">
                                                     <span className={`text-[10px] px-1.5 py-0.5 rounded border capitalize ${n.status === 'Pendiente' ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' :
                                                         n.status === 'Aceptada' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
                                                             n.status === 'Entregada' ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' :
-                                                                'bg-slate-800 border-slate-700 text-slate-400'
+                                                                'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'
                                                         }`}>
                                                         {n.status}
                                                     </span>

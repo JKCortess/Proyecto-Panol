@@ -45,8 +45,11 @@ export function getCacheStatus(): { hasCachedInventory: boolean; hasCachedImages
 export interface InventoryItem {
     sku: string;
     nombre: string;
+    tipo_componente: string;
     categoria: string;
     marca: string;
+    modelo: string;
+    potencia: string;
     talla: string;
     foto: string;
     fotos: string[];
@@ -63,6 +66,7 @@ export interface InventoryItem {
     clasificacion: string;
     rop: number;
     safety_stock: number;
+    proveedor: string;
 }
 
 export interface SizeVariant {
@@ -350,7 +354,7 @@ export async function getInventory(query?: string): Promise<InventoryItem[]> {
     const [inventoryResponse, imageMap] = await Promise.all([
         sheets.spreadsheets.values.get({
             spreadsheetId,
-            range: "ITEMS!A2:S", // 19 columns (A-S), includes Talla column, skip header
+            range: "ITEMS!A2:Y", // Columns A-Y (25 cols): SKU, Nombre, Tipo componente, Categoría, Marca, Modelo, Potencia, Talla, Link_Foto, Stock_Actual, Stock_Reservado, #, Estante Nro, Estante Nivel, Observación, Desc. general, Uso/Aplicación, Valor SPEX, Clasificación, ROP, Safety_Stock, #, #, #, Proveedor
         }),
         getImageLinksMap(),
     ]);
@@ -375,7 +379,7 @@ export async function getInventory(query?: string): Promise<InventoryItem[]> {
             sku = `UNKNOWN-${Math.random().toString(36).substr(2, 5)}`;
         }
 
-        const linkFoto = row[5] || "";
+        const linkFoto = row[8] || ""; // Column I = Link_Foto (index 8)
 
         // Determine fotos array:
         // 1. If SKU exists in imageMap → use those URLs (already proxied)
@@ -388,27 +392,38 @@ export async function getInventory(query?: string): Promise<InventoryItem[]> {
             fotos = [convertToProxyUrl(linkFoto)];
         }
 
+        // New column mapping after adding Tipo componente (C), Modelo (F), Potencia (G):
+        // A=SKU(0), B=Nombre(1), C=Tipo_componente(2), D=Categoría(3), E=Marca(4),
+        // F=Modelo(5), G=Potencia(6), H=Talla(7), I=Link_Foto(8),
+        // J=Stock_Actual(9), K=Stock_Reservado(10), L=#(11),
+        // M=Estante_Nro(12), N=Estante_Nivel(13), O=Observación(14),
+        // P=Desc_general(15), Q=Uso/Aplicación(16), R=Valor_SPEX(17),
+        // S=Clasificación(18), T=ROP(19), U=Safety_Stock(20)
         return {
             sku: sku,
             nombre: name,
-            categoria: row[2] || "",
-            marca: row[3] || "",
-            talla: row[4] || "",
+            tipo_componente: row[2] || "",
+            categoria: row[3] || "",
+            marca: row[4] || "",
+            modelo: row[5] || "",
+            potencia: row[6] || "",
+            talla: row[7] || "",
             foto: fotos.length > 0 ? fotos[0] : linkFoto,
             fotos: fotos,
-            stock: parseInt(row[6] || "0") || 0,
-            reservado: parseInt(row[7] || "0") || 0,
-            estante_nro: row[8] || "",
-            estante_nivel: row[9] || "",
-            observacion: row[10] || "",
-            descripcion_general: row[11] || "",
-            uso_aplicacion: row[12] || "",
-            valor_aprox_clp: parseNumericValue(row[13]),
-            valor_confirmado_spex: parseNumericValue(row[14]),
-            valor: parseNumericValue(row[15]),
-            clasificacion: row[16] || "",
-            rop: parseInt(row[17] || "0") || 0,
-            safety_stock: parseInt(row[18] || "0") || 0,
+            stock: parseInt(row[9] || "0") || 0,
+            reservado: parseInt(row[10] || "0") || 0,
+            estante_nro: row[12] || "",
+            estante_nivel: row[13] || "",
+            observacion: row[14] || "",
+            descripcion_general: row[15] || "",
+            uso_aplicacion: row[16] || "",
+            valor_confirmado_spex: parseNumericValue(row[17]),
+            valor_aprox_clp: parseNumericValue(row[17]),  // Use SPEX value as fallback (old Valor aprox column no longer exists)
+            valor: parseNumericValue(row[17]),             // Use SPEX value as fallback (old Valor column no longer exists)
+            clasificacion: row[18] || "",
+            rop: parseInt(row[19] || "0") || 0,
+            safety_stock: parseInt(row[20] || "0") || 0,
+            proveedor: row[24] || "",
         };
     });
 

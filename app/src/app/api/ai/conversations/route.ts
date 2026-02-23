@@ -20,6 +20,7 @@ export async function GET() {
             .from("ai_conversations")
             .select("id, title, created_at, updated_at")
             .eq("user_id", user.id)
+            .is("deleted_at", null)
             .order("updated_at", { ascending: false });
 
         if (error) {
@@ -72,7 +73,7 @@ export async function POST() {
 
 /**
  * DELETE /api/ai/conversations?id=uuid
- * Deletes a conversation and all its messages.
+ * Soft-deletes a conversation (hides it from the user without removing data).
  */
 export async function DELETE(req: NextRequest) {
     try {
@@ -87,21 +88,37 @@ export async function DELETE(req: NextRequest) {
 
         const { searchParams } = new URL(req.url);
         const id = searchParams.get("id");
+        const all = searchParams.get("all");
+
+        if (all === "true") {
+            // Soft-delete ALL conversations for this user
+            const { error } = await supabase
+                .from("ai_conversations")
+                .update({ deleted_at: new Date().toISOString() })
+                .eq("user_id", user.id)
+                .is("deleted_at", null);
+
+            if (error) {
+                console.error("[Conversations] Error bulk soft-deleting:", error);
+                return NextResponse.json({ error: "Error al eliminar conversaciones" }, { status: 500 });
+            }
+
+            return NextResponse.json({ success: true });
+        }
 
         if (!id) {
             return NextResponse.json({ error: "ID de conversación requerido" }, { status: 400 });
         }
 
-        // RLS ensures users can only delete their own conversations
-        // CASCADE on ai_messages will clean up messages automatically
+        // Soft-delete: mark as deleted instead of removing from database
         const { error } = await supabase
             .from("ai_conversations")
-            .delete()
+            .update({ deleted_at: new Date().toISOString() })
             .eq("id", id)
             .eq("user_id", user.id);
 
         if (error) {
-            console.error("[Conversations] Error deleting:", error);
+            console.error("[Conversations] Error soft-deleting:", error);
             return NextResponse.json({ error: "Error al eliminar conversación" }, { status: 500 });
         }
 

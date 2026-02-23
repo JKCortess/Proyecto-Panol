@@ -17,23 +17,25 @@
 |---|---|---|---|
 | A | SKU | string (PK) | Identificador único del ítem (ej: `PA-208`, `UCF-205`, `ROD 6202-2RS C3`) |
 | B | Nombre | string | Descripción del repuesto/consumible |
-| C | Categoría | string | Categoría funcional (ej: `Rodamientos`, `Chumaceras`, `Inserto de rodamiento`) |
-| D | Marca | string | Marca del fabricante (ej: `BBC-R`, `FAG`, `COLLWAY`, `EDB`) |
-| E | Talla | string | Talla del ítem (ej: `S`, `M`, `L`, `XL`, `XXL`) — vacío si no aplica |
-| F | Link_Foto | string (URL) | Foto del ítem (URL de proveedor o Google Drive) |
-| G | Stock_Actual | int | Cantidad física en pañol |
-| H | Stock_Reservado | int | Cantidad apartada para pedidos en curso |
-| I | Estante Nro | string | Número del estante donde se ubica el ítem (ej: `202`, `203`, `206`) |
-| J | Estante Nivel | string | Nivel dentro del estante (ej: `30`, `40`) |
-| K | Observación | string | Notas u observaciones sobre el ítem |
-| L | Descripción general | string | Descripción técnica del componente |
-| M | Uso / Aplicación | string | Dónde y cómo se usa el componente (ej: `Rodamiento rígido de bolas serie 6202...`) |
-| N | Valor aprox ($CLP) | int | Valor aproximado de mercado en pesos chilenos |
-| O | Valor confirmado SPEX | int | Valor confirmado por proveedor SPEX |
-| P | Valor | int | Valor definitivo/final del ítem |
-| Q | Clasificación | string | `Crítico` o `No Crítico` |
-| R | ROP | float | Punto de Reorden calculado |
-| S | Safety_Stock | float | Stock de seguridad calculado |
+| C | Tipo de componente | string | Tipo funcional del componente (ej: `Manguilla plástica`, `Guante nitrilo`, `Ropa`) |
+| D | Categoría | string | Categoría funcional (ej: `Rodamientos`, `Chumaceras`, `Hygiena`) |
+| E | Marca | string | Marca del fabricante (ej: `Tresor`, `MRED`, `Blue Sail`, `EDR`) |
+| F | Modelo | string | Modelo específico del componente (ej: `Red Cont...`) |
+| G | Potencia | string | Potencia del componente si aplica (ej: `1 HP - 0.75 kW`, `1650W`) |
+| H | Talla | string | Talla del ítem (ej: `S`, `M`, `L`, `XL`, `XXL`, `46 cms`, `2"`) — vacío si no aplica |
+| I | Link_Foto | string (URL) | Foto del ítem (URL de proveedor o Google Drive) |
+| J | Stock_Actual | int | Cantidad física en pañol |
+| K | Stock_Reservado | int | Cantidad apartada para pedidos en curso |
+| L | # | int | Columna auxiliar/contador |
+| M | Estante Nro | string | Número del estante donde se ubica el ítem (ej: `202`, `203`, `206`) |
+| N | Estante Nivel | string | Nivel dentro del estante (ej: `30`, `40`) |
+| O | Observación | string | Notas u observaciones sobre el ítem |
+| P | Descripción general | string | Descripción técnica del componente |
+| Q | Uso / Aplicación | string | Dónde y cómo se usa el componente |
+| R | Valor confirmado SPEX | int | Valor confirmado por proveedor SPEX en pesos chilenos |
+| S | Clasificación | string | `Crítico` o `No Crítico` |
+| T | ROP | float | Punto de Reorden calculado |
+| U | Safety_Stock | float | Stock de seguridad calculado |
 
 > **Nota sobre Ubicación**: La ubicación de cada componente se define por **Estante Nro** (número de estante) + **Estante Nivel** (nivel dentro del estante). El formato visual es: `E{nro} / N{nivel}` (ej: `E202 / N40`).
 

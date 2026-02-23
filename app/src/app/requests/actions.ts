@@ -7,7 +7,7 @@ import { invalidateInventoryCache } from '@/lib/data';
 import { revalidatePath } from 'next/cache';
 import { Resend } from 'resend';
 import { getActiveWebhookUrl } from '@/app/admin/webhook-actions';
-import { generateQRCodeDataUrl } from '@/lib/qr-utils';
+import { generateQRCodeDataUrl, uploadQRToStorage, deleteQRFromStorage } from '@/lib/qr-utils';
 
 // Generate a random 6-digit numeric code
 const generateRequestCode = () => {
@@ -80,6 +80,27 @@ export async function createRequest(
     // Generate QR code data URL for embedding in email and returning to client
     const qrDataUrl = await generateQRCodeDataUrl(requestCode, 180);
     const finalUserName = data.requester_name || userName || null;
+
+    // Upload QR code to Supabase Storage (public bucket)
+    let qrImageUrl = '';
+    try {
+        qrImageUrl = await uploadQRToStorage(requestCode);
+    } catch (qrUploadError) {
+        console.error('QR upload to storage failed (non-blocking):', qrUploadError);
+    }
+
+    // Fetch user phone from profile
+    let userPhone: string | null = null;
+    try {
+        const { data: profile } = await supabase
+            .from('user_profiles')
+            .select('telefono')
+            .eq('id', userId)
+            .single();
+        userPhone = profile?.telefono || null;
+    } catch (phoneError) {
+        console.error('Could not fetch user phone:', phoneError);
+    }
 
     try {
         // 2. Insert into database
@@ -345,6 +366,8 @@ export async function createRequest(
                 request_code: requestCode,
                 recipient_email: userEmail,
                 recipient_name: finalUserName,
+                recipient_phone: userPhone,
+                qr_image_url: qrImageUrl,
                 area: data.area,
                 email_html: emailHtml,
                 raw_data: {
@@ -385,7 +408,7 @@ export async function createRequest(
         }
 
         revalidatePath('/requests');
-        return { success: true, code: requestCode, emailSent, webhookSent, qrDataUrl };
+        return { success: true, code: requestCode, emailSent, webhookSent, qrDataUrl, qrImageUrl };
 
     } catch (error) {
         console.error('Server Action Error:', error);
@@ -727,6 +750,13 @@ export async function deliverRequest(requestId: string, deliveryDate: string) {
             }
         } catch (e) {
             console.error("Sheets Sync Exception:", e);
+        }
+
+        // Delete QR image from Supabase Storage (no longer needed after delivery)
+        try {
+            await deleteQRFromStorage(request.request_code);
+        } catch (qrDeleteError) {
+            console.error('QR cleanup failed (non-blocking):', qrDeleteError);
         }
 
         // Invalidate cache so next page load shows fresh stock

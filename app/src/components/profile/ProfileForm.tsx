@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AvatarSelector } from './AvatarSelector';
-import { ThemeToggle } from '@/components/layout/ThemeToggle';
+
 
 interface ProfileFormProps {
     profile: UserProfile | null;
@@ -203,26 +203,6 @@ export function ProfileForm({ profile, userEmail }: ProfileFormProps) {
                                 className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg py-2.5 input-with-icon pr-3 text-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400/50 focus:border-slate-500 placeholder:text-slate-400 dark:placeholder:text-slate-600"
                             />
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* System Preferences */}
-            <div className="bg-white dark:bg-slate-900/50 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-none">
-                <div className="flex items-center gap-3 mb-5">
-                    <div className="p-2 bg-amber-500/10 rounded-lg">
-                        <Sparkles className="w-5 h-5 text-amber-500" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Preferencias del Sistema</h3>
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-950/50 rounded-lg border border-slate-200 dark:border-slate-800">
-                    <div>
-                        <h4 className="font-medium text-slate-900 dark:text-slate-200 text-sm">Tema de la Interfaz</h4>
-                        <p className="text-xs text-slate-500 mt-1">Elige entre modo claro u oscuro</p>
-                    </div>
-                    <div className="flex items-center">
-                        <ThemeToggle variant="default" className="relative top-0 right-0 bg-transparent border-slate-300 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" />
                     </div>
                 </div>
             </div>

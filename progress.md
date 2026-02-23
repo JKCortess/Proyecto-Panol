@@ -1,11 +1,208 @@
 ﻿# Progress Log — Proyecto Pañol (Gestión de Pañol — Dole Molina)
 
 ## Estado Actual
-- **Fase**: 2 (Web App Premium)
-- **Progreso**: ~87%
-- **Última Actualización**: Escáner QR para administradores — escaneo de cámara + ingreso manual, vista de detalle con stock/ubicación, entrega rápida.
+- **Fase**: 2 (Web App Premium) — ✅ COMPLETADA
+- **Progreso**: ~97%
+- **Última Actualización**: QR Storage en Supabase + Webhook con teléfono, código y URL del QR.
 
 ## Log de Cambios (Reciente)
+
+### [2026-02-22] - 📱 Feature: QR Storage en Supabase + Webhook Enhancement
+- **Objetivo**: Migrar la generación de QR de base64 inline a una imagen pública almacenada en Supabase Storage, enriquecer el webhook de n8n con campos independientes, y limpiar la imagen al entregar.
+- **Supabase Storage**:
+  1. ✅ **Bucket `qr-codes`** público creado via migration DDL con límite de 512KB, tipo `image/png`.
+  2. ✅ **Políticas**: lectura pública, upload/delete para `authenticated`, full access para `service_role`.
+- **Backend** (`src/lib/qr-utils.ts`):
+  1. ✅ **`uploadQRToStorage(requestCode)`**: Genera QR como PNG 300px via `QRCode.toBuffer`, sube al bucket `qr-codes/{code}.png`, retorna URL pública.
+  2. ✅ **`deleteQRFromStorage(requestCode)`**: Elimina la imagen del bucket (non-blocking, solo log de error).
+- **Backend** (`src/app/requests/actions.ts`):
+  1. ✅ **`createRequest()`**: Sube QR al storage, busca `telefono` del usuario desde `user_profiles`, agrega 3 campos al webhook payload:
+     - `recipient_phone` — teléfono del usuario
+     - `qr_image_url` — URL pública de la imagen QR en Storage
+     - `request_code` — código numérico del pedido (existía pero ahora explícito)
+  2. ✅ **`deliverRequest()`**: Elimina QR del storage al marcar como 'Entregada' (`deleteQRFromStorage`).
+- **Archivos Modificados**:
+  - `src/lib/qr-utils.ts`: Nuevas funciones `uploadQRToStorage`, `deleteQRFromStorage`.
+  - `src/app/requests/actions.ts`: Import, upload QR, fetch phone, payload enriquecido, cleanup en delivery.
+- **Verificado**: ✅ Página `/requests/new` carga sin errores, dev server compila correctamente.
+
+### [2026-02-22] - 🔍 UX: Lightbox para Adjuntos (Input + Chat)
+- **Problema**: Al hacer clic en una imagen adjunta en el chat, se abría una pestaña vacía (`about:blank`) porque Chrome bloquea data URIs en `target="_blank"`.
+- **Correcciones**:
+  1. ✅ **Lightbox en ChatBubble**: Reemplazado `<a target="_blank">` por un modal fullscreen con `AnimatePresence` + `motion.div`. Imagen centrada con fondo oscuro (`bg-black/80 backdrop-blur-sm`), botón ✕ para cerrar, y click-outside-to-close.
+  2. ✅ **Lightbox en Input (pre-envío)**: Las miniaturas de adjuntos en el strip del input ahora son `<button>` clickeables. Al hacer clic se abre el mismo estilo de lightbox para verificar la imagen antes de enviar. Efecto hover `scale-105` + borde amber.
+  3. ✅ **Descarga de PDFs**: Los PDFs adjuntados en mensajes del chat ahora tienen botón de descarga (`Download` icon). Convierte base64 → Blob → `URL.createObjectURL` → descarga automática.
+  4. ✅ **Estado `previewLightbox`**: Nuevo state en `AssistantClient` para el lightbox del input. Return envuelto en `<>...</>` fragment para permitir `AnimatePresence` fuera de `<main>`.
+  5. ✅ **Estado `lightboxImage`**: Nuevo state en `ChatBubble` para el lightbox de mensajes enviados.
+- **Archivo Modificado**: `src/app/assistant/AssistantClient.tsx`
+
+### [2026-02-22] - 👀 UX: Previsualización Visual de Adjuntos en Mensajes del Chat
+- **Problema**: Al adjuntar una imagen y enviar el mensaje, el chat solo mostraba el texto `📎 nombre.png` sin la imagen real. El usuario no podía verificar visualmente qué había adjuntado.
+- **Correcciones**:
+  1. ✅ **Interfaz `Message` ampliada**: Nuevo campo opcional `attachmentPreviews: { url: string; name: string; type: "image" | "pdf" }[]` para almacenar datos de previsualización.
+  2. ✅ **Captura de previews al enviar**: `sendMessage` convierte los archivos adjuntos a data URIs (base64) y los incluye en el mensaje del usuario antes de limpiar el estado.
+  3. ✅ **Renderizado visual en ChatBubble**: Los mensajes del usuario ahora muestran:
+     - **Imágenes**: Miniaturas 128x128px con bordes redondeados, clickeables para abrir en nueva pestaña.
+     - **PDFs**: Tarjeta con ícono `FileText` y nombre truncado del archivo.
+  4. ✅ **Texto limpio**: Se oculta la línea `📎 filename` en los mensajes, mostrando solo el texto + previews visuales.
+- **Archivo Modificado**: `src/app/assistant/AssistantClient.tsx`
+
+### [2026-02-22] - 📋 Feature: Pegar Imágenes desde Portapapeles (Ctrl+V)
+- **Objetivo**: Permitir pegar capturas de pantalla directamente en el chat usando Ctrl+V, sin necesidad de seleccionar archivos manualmente.
+- **Implementación**:
+  1. ✅ **Handler `handlePaste`**: Intercepta eventos de pegado en el textarea. Detecta items de tipo `image/*` en el clipboard.
+  2. ✅ **Conversión automática**: Las imágenes del portapapeles se convierten a base64, se genera un preview URL, y se agregan al array de adjuntos.
+  3. ✅ **Nombre amigable**: Las capturas se nombran automáticamente como `Captura DD mes, HH:MM.png` usando `toLocaleString("es-CL")`.
+  4. ✅ **Compatible con**: Herramienta de recortes de Windows, capturas de Chrome, copiar imagen desde cualquier app.
+  5. ✅ **Sin conflicto**: Si el portapapeles contiene texto en lugar de imágenes, el pegado normal funciona sin interrupción.
+- **Archivo Modificado**: `src/app/assistant/AssistantClient.tsx`
+
+### [2026-02-22] - 📎 Feature: Adjuntar Archivos en el Chat IA (Imágenes + PDF)
+- **Objetivo**: Permitir enviar imágenes y PDFs al asistente IA junto con el mensaje de texto, aprovechando la capacidad multimodal de Gemini.
+- **Cambios Frontend** (`AssistantClient.tsx`):
+  1. ✅ **Interfaz `Attachment`**: Nuevo tipo con `file`, `preview` (URL temporal para imágenes), `type` ("image" | "pdf"), `base64` (contenido codificado).
+  2. ✅ **Handler `handleFileSelect`**: Valida tipo (JPEG, PNG, GIF, WebP, PDF) y tamaño (máx 20MB por archivo Gemini). Convierte a base64 con `FileReader`. Genera preview con `URL.createObjectURL` para imágenes.
+  3. ✅ **Envío con adjuntos**: `sendMessage` captura los attachments antes de limpiar estado, los envía como array `{ base64, mimeType, fileName }` en el body del fetch a `/api/ai/chat`.
+  4. ✅ **Mensaje del usuario**: Muestra indicador `📎 archivo1.png, archivo2.pdf` debajo del texto.
+  5. ✅ **Cleanup**: `removeAttachment` revoca URLs temporales para liberar memoria.
+- **Nuevos imports**: `Paperclip`, `FileText`, `ChevronUp` de lucide-react.
+- **Archivo Modificado**: `src/app/assistant/AssistantClient.tsx`
+
+### [2026-02-22] - 🔲 UX: Toggle de Sidebar de Chats estilo Gemini
+- **Objetivo**: Permitir ocultar/mostrar el panel lateral de historial de conversaciones en desktop para maximizar el espacio del chat, igual que en Google Gemini.
+- **Cambios**:
+  1. ✅ **Estado `sidebarCollapsed`**: Controla la visibilidad del sidebar en desktop (independiente del `sidebarOpen` de mobile).
+  2. ✅ **Botón `PanelLeftClose`** en el header del sidebar: Oculta el panel con transición suave (`transition-all duration-300`). Solo visible en desktop (`hidden md:flex`).
+  3. ✅ **Botón `PanelLeftOpen`** en el header del chat: Aparece solo cuando el sidebar está colapsado. Restaura el panel al hacer clic.
+  4. ✅ **Sidebar colapsado**: Se reduce a `w-0` con `overflow-hidden` y borde removido (`border-r-0`). El área de chat se expande para ocupar todo el espacio.
+  5. ✅ **Mobile sin cambios**: En pantallas pequeñas sigue funcionando el menú hamburguesa con overlay.
+- **Nuevos imports**: `PanelLeftClose`, `PanelLeftOpen` de lucide-react.
+- **Archivo Modificado**: `src/app/assistant/AssistantClient.tsx`
+- **Verificado**: ✅ Toggle funcional con animación suave, botón de restaurar aparece correctamente.
+
+### [2026-02-22] - 🗑️ Feature: Eliminar Todos los Chats + Modal de Confirmación
+- **Objetivo**: Agregar un botón de configuración en el sidebar del asistente IA que permita eliminar (soft-delete) todas las conversaciones anteriores de una sola vez.
+- **Cambios Backend** (`/api/ai/conversations/route.ts`):
+  1. ✅ **`DELETE ?all=true`**: Nuevo parámetro que hace soft-delete masivo — marca todas las conversaciones del usuario con `deleted_at` (misma lógica que el delete individual, pero aplicado en masa).
+  2. ✅ Filtro `.is("deleted_at", null)` para no re-eliminar conversaciones ya borradas.
+- **Cambios Frontend** (`AssistantClient.tsx`):
+  1. ✅ **Botón "Eliminar todos los chats"**: Ubicado al fondo del sidebar, con ícono `Trash2`. Solo visible cuando hay conversaciones. Estilo discreto con hover rojo sutil.
+  2. ✅ **Modal de confirmación**: Ícono `AlertTriangle`, muestra el conteo exacto de conversaciones a eliminar (ej: "7 conversaciones"), botón "Eliminar todo" con loading spinner (`Loader2`) durante la operación.
+  3. ✅ **Estados `deleteAllConfirm` y `isDeletingAll`**: Controlan la visibilidad del modal y el estado de carga.
+  4. ✅ **Función `deleteAllConversations`**: Llama a la API, limpia `conversations`, `activeConversation` y `messages` en el estado local.
+- **Archivos Modificados**: `src/app/api/ai/conversations/route.ts`, `src/app/assistant/AssistantClient.tsx`
+- **Verificado**: ✅ Botón visible, modal con conteo correcto, eliminación masiva funcional.
+
+### [2026-02-22] - 🔔 Pulido: Toaster Sonner + NotificationBell Light Mode
+- **Problema 1**: El Toaster de Sonner usaba estilos por defecto (fondo blanco) sin adaptarse al tema dark/light de la app.
+- **Problema 2**: NotificationBell tenía todos sus estilos hardcoded para dark mode (bg-slate-900, border-slate-800, text-slate-400) — ilegible en modo claro.
+- **Correcciones**:
+  1. ✅ **`layout.tsx`**: Toaster configurado con `position="top-right"`, `richColors`, y `toastOptions.style` usando CSS variables (`--surface`, `--border`, `--foreground`).
+  2. ✅ **`NotificationBell.tsx`**: 13 ediciones con variantes `dark:` — botón, dropdown, header, spinner, empty state, items, hover, timestamps, badges de estado.
+- **Archivos Modificados**: `src/app/layout.tsx`, `src/components/dashboard/NotificationBell.tsx`
+
+### [2026-02-22] - ⚡ Infra: Supabase Realtime — Replicación Habilitada
+- **Problema**: Ninguna tabla tenía replicación habilitada en `supabase_realtime`. Los componentes `DashboardRealtimeSync`, `NotificationBell`, `PendingRequestsList` y `StockManager` caían a polling (30s) en vez de usar websockets en tiempo real.
+- **Corrección**: Migración SQL `enable_realtime_replication`:
+  ```sql
+  ALTER PUBLICATION supabase_realtime ADD TABLE material_requests;
+  ALTER PUBLICATION supabase_realtime ADD TABLE request_status_log;
+  ALTER PUBLICATION supabase_realtime ADD TABLE stock_movements;
+  ```
+- **Resultado**: Dashboard ahora muestra "En vivo" (verde) en vez de "Sincro. automática" (azul). Notificaciones de nuevas solicitudes llegan instantáneamente.
+
+### [2026-02-22] - 🏷️ UX: Badge de Categoría en Tarjetas de Inventario (Deck View)
+- **Objetivo**: Mostrar la categoría de cada ítem directamente en la tarjeta del inventario para identificación rápida.
+- **Cambio**: Se agregó un chip/badge discreto debajo del SKU en cada tarjeta de la vista deck con:
+  - Icono `Tag` de lucide-react
+  - Texto de la categoría (ej: "Electricidad", "Ropa", "Inocuidad", "Automatización")
+  - Estilo neutral: `bg-slate-100 dark:bg-slate-800` con bordes sutiles, compatible dark/light mode
+  - Renderizado condicional: solo se muestra si el ítem tiene categoría asignada
+- **Archivo Modificado**: `src/app/inventory/page.tsx` — Import de `Tag`, nuevo `<span>` condicional.
+- **Verificado**: ✅ Visible en todas las tarjetas con categoría asignada.
+
+### [2026-02-22] - ⚡ Feature: Panel de Cambio de Modelo IA + Gestión de API Keys
+- **Objetivo**: Permitir cambiar de modelo Gemini y rotar API Keys directamente desde El Maestro cuando se agotan los créditos.
+- **Cambios Backend**:
+  1. ✅ **`POST /api/ai/test-model`** — Endpoint que envía un ping mínimo a un modelo Gemini para verificar disponibilidad. Retorna: `available`, `latency`, `error` (cuota agotada 429, modelo no encontrado 404, timeout, etc).
+  2. ✅ **`PATCH /api/ai/config`** — Permite a cualquier usuario autenticado cambiar el modelo activo (sin requerir admin). Decisión de diseño: es una acción operacional, no de seguridad.
+  3. ✅ **`/api/ai/api-keys` (GET/POST/PATCH)** — CRUD de API Keys. GET lista keys con máscara. POST guarda nueva key y la activa. PATCH activa una key existente por ID.
+  4. ✅ **Migración Supabase**: Tabla `ai_api_keys` (id, api_key, label, key_preview, created_by, created_at) con RLS.
+- **Cambios Frontend** (`assistant/page.tsx`):
+  1. ✅ **Botón ⚙️ Modelo** en header del chat → abre panel animado
+  2. ✅ **Grid de 6 modelos Gemini** con verificación automática en paralelo al abrir
+  3. ✅ **Estados visuales**: ✅ Disponible (con latencia ms) / ❌ Error (detalle) / 🔄 Verificando
+  4. ✅ **Badge "ACTIVO"** en modelo actual + botón "Usar →" solo en modelos disponibles
+  5. ✅ **Botón cerrar (X)** en el header del panel
+  6. ✅ **Sección "API Keys de Gemini"** colapsable: lista keys guardadas con badge "EN USO", formulario para agregar nueva key (nombre + key con toggle visibilidad), botón "Guardar y usar esta Key", link a aistudio.google.com
+  7. ✅ **Auto re-test**: Al cambiar API Key, se re-verifican todos los modelos automáticamente
+- **Nombres de modelos corregidos** (verificado contra [docs oficiales](https://ai.google.dev/gemini-api/docs/models)):
+  - `gemini-3-flash` → `gemini-3-flash-preview`
+  - `gemini-3-pro` → `gemini-3-pro-preview`
+  - Corregido en `assistant/page.tsx` y `AIConfigPanel.tsx`
+- **Archivos Creados**: `src/app/api/ai/test-model/route.ts`, `src/app/api/ai/api-keys/route.ts`
+- **Archivos Modificados**: `src/app/assistant/page.tsx`, `src/app/api/ai/config/route.ts`, `src/app/admin/AIConfigPanel.tsx`
+- **Build**: ✅ Compilación exitosa, verificado en navegador
+
+### [2026-02-22] - 🤖 Mejora: El Maestro — Interpretación Contextual de Preguntas
+- **Problema**: Cuando el usuario preguntaba "recomiéndame los de PU o nitrilo para corte", El Maestro no entendía que se refería a **guantes**. Buscaba literalmente "PU" o "nitrilo" como texto suelto y no encontraba resultados.
+- **Corrección**: Nueva sección **INTERPRETACIÓN CONTEXTUAL** en el system prompt con 6 reglas:
+  1. ✅ **Deducción de producto implícito**: "los de PU" → guantes de PU, "las N95" → mascarillas, "los 6011" → electrodos E6011.
+  2. ✅ **Asociación material→producto**: PU/nitrilo/cuero = guantes, Kevlar = guantes anticorte, policarbonato = lentes.
+  3. ✅ **Contexto del trabajo**: Si mencionan "corte" o "soldadura", deduce TODOS los EPP necesarios.
+  4. ✅ **Preguntas comparativas**: "¿PU o nitrilo para corte?" = comparación técnica de guantes fundamentada.
+  5. ✅ **Búsqueda inteligente**: Busca "guantes nitrilo", NO solo "nitrilo".
+  6. ✅ **Preguntas básicas**: No pide detalles innecesarios, busca directamente.
+- **Mejora adicional**: Regla de múltiples búsquedas al comparar alternativas.
+- **Archivo Modificado**: `src/lib/ai-data.ts` (función `buildSystemPrompt`)
+
+### [2026-02-22] - 🤖 Mejora: El Maestro — Tono Formal + Conocimiento Técnico + Validación con Superiores
+- **Problema**: El Maestro tenía un tono demasiado casual/chistoso y no sabía responder preguntas técnicas sobre EPP o herramientas, diciendo que "solo maneja temas de inventario".
+- **Correcciones aplicadas**:
+  1. ✅ **Tono formal**: Trata de "usted", tono técnico y profesional, sin chistes ni expresiones coloquiales.
+  2. ✅ **Emojis reducidos**: Solo indicadores funcionales (📊📍⚠️✅), eliminados los decorativos (⚡🔧🔩🛡️📦).
+  3. ✅ **Conocimiento técnico agregado**:
+     - Guantes: nitrilo, PU, cuero, anticorte (ANSI A1-A9), dieléctricos, soldador — recomendación por riesgo.
+     - Protección respiratoria: N95, P100, respiradores, filtros por contaminante.
+     - Protección visual: antiparras, lentes de seguridad, caretas, soldadura.
+     - Protección auditiva: NRR, tapones vs. orejeras, doble protección.
+     - Protección contra caídas: arneses, líneas de vida, normativa chilena (≥1.8m).
+     - Ropa de protección: ignífuga (FR), antiácida, alta visibilidad, térmica.
+     - Rodamientos: tipos, sellos, carga y velocidad.
+     - Herramientas de corte: discos según material, RPM.
+     - Soldadura: electrodos, alambres MIG/TIG, gases.
+     - Productos químicos: lubricantes, desengrasantes, SDS.
+  4. ✅ **Protocolo de validación**: Siempre cierra recomendaciones técnicas con nota de validar con el Prevencionista de Riesgos o supervisor del área.
+  5. ✅ **Alcance ampliado**: Ahora responde consultas de inventario + recomendaciones técnicas + seguridad industrial.
+- **Archivo Modificado**: `src/lib/ai-data.ts` (función `buildSystemPrompt`)
+
+
+### [2026-02-22] - 🔧 Fix: Sincronización Supabase — Duplicados SKU + Reemplazo de RPC
+- **Problema**: El asistente IA "El Maestro" detectaba solo 83 ítems cuando debían ser 114. La sincronización Google Sheets → Supabase fallaba por dos razones:
+  1. La función RPC `sync_inventory` rechazaba columnas desconocidas (`component_type`, `model`, `power_rating`).
+  2. Ítems con mismo SKU pero diferente talla (ej: guantes S, M, L, XL) violaban la restricción de PRIMARY KEY.
+- **Corrección**:
+  1. ✅ Reemplazada la llamada RPC por operación directa `delete all + insert en lotes` (batches de 50).
+  2. ✅ Agregada lógica de deduplicación por SKU: agrupa variantes de talla, suma stocks, combina tallas ("S, M, L, XL").
+  3. ✅ Removidas columnas desconocidas del payload (`component_type`, `model`, `power_rating`).
+  4. ✅ Logging detallado: "Grouped 114 sheet rows into 83 unique SKUs".
+- **Resultado**: 114 filas de Google Sheets → 83 SKUs únicos sincronizados correctamente en Supabase.
+- **Archivo Modificado**: `src/app/api/ai/sync-inventory/route.ts`
+
+### [2026-02-22] - 🔧 Fix: Actualización de Mapeo de Columnas — 3 nuevas columnas en Google Sheets
+- **Problema**: Se agregaron 3 nuevas columnas a la hoja ITEMS de Pañol_DB: **Tipo de componente** (C), **Modelo** (F), **Potencia** (G). Esto desplazó todas las columnas posteriores, rompiendo la lectura de inventario, el descuento de stock y el mapeo completo de datos.
+- **Impacto anterior**: Talla leía Marca, Link_Foto leía Modelo, Stock leía Potencia → todo el inventario mostraba datos incorrectos y el stock se escribía en la columna equivocada.
+- **Correcciones aplicadas**:
+    1. ✅ **`data.ts`**: Agregados 3 campos al interfaz `InventoryItem` (`tipo_componente`, `modelo`, `potencia`). Range actualizado `ITEMS!A2:S` → `ITEMS!A2:V`. Todos los `row[N]` actualizados (talla 4→7, linkFoto 5→8, stock 6→9, reservado 7→10, estante_nro 8→12, estante_nivel 9→13, observacion 10→14, etc).
+    2. ✅ **`sheets-mutations.ts`**: 4 funciones actualizadas (`syncStockToSheets`, `restoreStockInSheets`, `addStockInSheets`, `removeStockInSheets`). Range `ITEMS!A2:G` → `ITEMS!A2:J`. Talla `row[4]` → `row[7]`. Stock `row[6]` → `row[9]`. Escritura `ITEMS!G` → `ITEMS!J`.
+    3. ✅ **`sync-inventory/route.ts`**: 3 nuevos campos en la sincronización Sheets→Supabase (`component_type`, `model`, `power_rating`).
+    4. ✅ **`gemini.md`**: Schema ITEMS actualizado con las 21 columnas (A-U).
+- **Archivos Modificados** (4):
+    - `src/lib/data.ts`
+    - `src/lib/sheets-mutations.ts`
+    - `src/app/api/ai/sync-inventory/route.ts`
+    - `gemini.md`
+- **Build**: ✅ Compilación exitosa sin errores TypeScript, 20/20 páginas generadas.
 
 ### [2026-02-22] - 🎨 Dark Mode: Eliminación total de azul → Paleta neutral gris estilo Apple macOS
 - **Objetivo**: Reemplazar TODOS los acentos azules del modo oscuro con grises neutros profesionales.
@@ -656,9 +853,9 @@
 
 ## Tareas Pendientes Inmediatas
 - [x] Integrar carrusel de imágenes desde "Link imágenes" en inventario.
-- [ ] Verificar si el usuario ha habilitado la Replicación en Supabase (para activar el modo Realtime nativo).
-- [ ] Pulir estilos de notificaciones.
-- [ ] Continuar con la Fase 3 (Integración Apps Script no prioritaria por ahora, foco en Supabase).
+- [x] Verificar si el usuario ha habilitado la Replicación en Supabase (para activar el modo Realtime nativo).
+- [x] Pulir estilos de notificaciones.
+- [~] Continuar con la Fase 3 (Integración Apps Script no aplica — conexión directa a Sheets es suficiente).
 
 ## Notas Técnicas
 - **Realtime vs Polling**: El sistema prefiere Realtime (WebSockets), pero degrada elegantemente a Polling (HTTP requests periódicos) para garantizar funcionalidad.

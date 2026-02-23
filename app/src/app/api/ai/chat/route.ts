@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { conversationId, message } = body;
+        const { conversationId, message, attachments } = body;
 
         if (!message || !conversationId) {
             return NextResponse.json(
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
                 ? config.ai_openrouter_key
                 : config.ai_api_key;
         const model = config.ai_model || "gemini-2.5-flash";
-        const botName = config.ai_bot_name || "Chispita";
+        const botName = config.ai_bot_name || "Asistente";
         const customPrompt = config.ai_system_prompt || "";
 
         if (!apiKey) {
@@ -97,7 +97,8 @@ export async function POST(req: NextRequest) {
                 apiKey,
                 model,
                 systemPrompt,
-                conversationMessages
+                conversationMessages,
+                attachments
             );
         } else {
             responseText = await callOpenRouterSimple(
@@ -160,27 +161,124 @@ export async function POST(req: NextRequest) {
 }
 
 /**
+ * Truncates a tool result string to avoid blowing up the context window.
+ * Keeps the first MAX_CHARS characters and appends a truncation notice.
+ */
+function truncateToolResult(result: string, maxChars: number = 4000): string {
+    if (result.length <= maxChars) return result;
+    const truncated = result.substring(0, maxChars);
+    // Try to cut at a clean line break
+    const lastNewline = truncated.lastIndexOf("\n");
+    const cutPoint = lastNewline > maxChars * 0.7 ? lastNewline : maxChars;
+    return truncated.substring(0, cutPoint) + "\n...[Resultado truncado. Se mostraron los primeros resultados relevantes.]";
+}
+
+/**
+ * Compacts older tool call rounds into a brief summary to free context space.
+ * Keeps the original conversation messages and the last `keepRecent` tool rounds intact.
+ * Earlier tool rounds are replaced with a concise text summary.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function compactToolHistory(contents: any[], originalMessageCount: number, keepRecent: number = 4): any[] {
+    // Tool rounds start after original messages. Each round = 2 entries (model + user/functionResponse)
+    const toolEntries = contents.slice(originalMessageCount);
+    const totalToolPairs = Math.floor(toolEntries.length / 2);
+
+    // Only compact if we have more tool pairs than keepRecent
+    if (totalToolPairs <= keepRecent) return contents;
+
+    const pairsToCompact = totalToolPairs - keepRecent;
+    const entriesToCompact = pairsToCompact * 2; // Each pair = model response + function results
+
+    // Build a summary of the compacted rounds
+    const summaryLines: string[] = [];
+    for (let i = 0; i < entriesToCompact; i += 2) {
+        const modelEntry = toolEntries[i];
+        const resultEntry = toolEntries[i + 1];
+
+        // Extract function call names from the model entry
+        const callNames = (modelEntry?.parts || [])
+            .filter((p: { functionCall?: { name: string } }) => p.functionCall)
+            .map((p: { functionCall: { name: string } }) => p.functionCall.name);
+
+        // Extract a brief snippet from each function response
+        const resultSnippets = (resultEntry?.parts || [])
+            .filter((p: { functionResponse?: unknown }) => p.functionResponse)
+            .map((p: { functionResponse: { name: string; response: { result: string } } }) => {
+                const res = p.functionResponse.response?.result || "";
+                // Keep first 200 chars of each result as summary
+                const snippet = res.length > 200 ? res.substring(0, 200) + "..." : res;
+                return `${p.functionResponse.name}: ${snippet}`;
+            });
+
+        summaryLines.push(`Consulta ${Math.floor(i / 2) + 1}: [${callNames.join(", ")}] → ${resultSnippets.join(" | ")}`);
+    }
+
+    const summaryText = `[Resumen de consultas anteriores al inventario]\n${summaryLines.join("\n")}`;
+
+    // Rebuild: original messages + summary + recent tool rounds
+    const recentToolEntries = toolEntries.slice(entriesToCompact);
+    return [
+        ...contents.slice(0, originalMessageCount),
+        { role: "user", parts: [{ text: summaryText }] },
+        { role: "model", parts: [{ text: "Entendido. Tengo el contexto de las consultas anteriores. Continúo analizando." }] },
+        ...recentToolEntries,
+    ];
+}
+
+/**
  * Calls Gemini API with function calling support.
  * Implements a tool loop: if Gemini requests a function call,
  * we execute it and feed the result back until Gemini produces text.
+ *
+ * Context management strategy:
+ * - Tool results are truncated to ~4000 chars to prevent context bloat.
+ * - After round 7, older tool rounds are compacted into a brief summary,
+ *   keeping the last 4 rounds at full fidelity for the model to reason over.
+ * - This allows up to 15 tool rounds without exhausting the context window.
  */
 async function callGeminiWithTools(
     apiKey: string,
     model: string,
     systemPrompt: string,
-    messages: { role: string; content: string }[]
+    messages: { role: string; content: string }[],
+    attachments?: { base64: string; mimeType: string; fileName: string }[]
 ): Promise<string> {
     // Convert messages to Gemini format
-    const geminiContents = messages.map((m) => ({
-        role: m.role === "assistant" ? "model" : "user",
-        parts: [{ text: m.content }],
-    }));
+    const geminiContents = messages.map((m, idx) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const parts: any[] = [{ text: m.content }];
 
-    const MAX_TOOL_ROUNDS = 5;
+        // Attach files to the last user message
+        if (attachments && attachments.length > 0 && m.role === "user" && idx === messages.length - 1) {
+            for (const att of attachments) {
+                parts.push({
+                    inlineData: {
+                        mimeType: att.mimeType,
+                        data: att.base64,
+                    },
+                });
+            }
+        }
+
+        return {
+            role: m.role === "assistant" ? "model" : "user",
+            parts,
+        };
+    });
+
+    const MAX_TOOL_ROUNDS = 15;
+    const COMPACT_AFTER_ROUND = 7; // Start compacting older rounds after this
+    const originalMessageCount = geminiContents.length;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let currentContents: any[] = [...geminiContents];
 
     for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
+        // Progressive compaction: after COMPACT_AFTER_ROUND, summarize old tool rounds
+        if (round >= COMPACT_AFTER_ROUND) {
+            currentContents = compactToolHistory(currentContents, originalMessageCount, 4);
+        }
+
         const response = await fetch(
             `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
             {
@@ -236,9 +334,15 @@ async function callGeminiWithTools(
             const functionResponses = [];
             for (const fc of functionCalls) {
                 const { name, args } = fc.functionCall;
-                console.log(`[AI Tool] Executing: ${name}(${JSON.stringify(args)})`);
+                console.log(`[AI Tool] Round ${round + 1}/${MAX_TOOL_ROUNDS} — Executing: ${name}(${JSON.stringify(args)})`);
 
-                const result = await executeToolCall(name, args || {});
+                const rawResult = await executeToolCall(name, args || {});
+                // Truncate large results to preserve context window
+                const result = truncateToolResult(rawResult);
+
+                if (rawResult.length !== result.length) {
+                    console.log(`[AI Tool] Result truncated: ${rawResult.length} → ${result.length} chars`);
+                }
 
                 functionResponses.push({
                     functionResponse: {
@@ -260,10 +364,12 @@ async function callGeminiWithTools(
 
         // No function calls — extract text response
         const textParts = parts.filter((p: { text?: string }) => p.text);
+        console.log(`[AI Tool] Completed in ${round + 1} round(s)`);
         return textParts.map((p: { text: string }) => p.text).join("") || "No pude generar una respuesta.";
     }
 
-    return "Se alcanzó el límite de consultas internas. Por favor, intenta reformular tu pregunta.";
+    console.warn(`[AI Tool] Hit MAX_TOOL_ROUNDS (${MAX_TOOL_ROUNDS})`);
+    return "He realizado muchas consultas internas para responder tu pregunta. Por favor, intenta hacer una pregunta más específica o dividirla en partes más pequeñas.";
 }
 
 /**

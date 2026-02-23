@@ -64,7 +64,18 @@ export default async function RootLayout({
             {/* Overlays */}
             <CartSidebar />
           </div>
-          <Toaster />
+          <Toaster
+            position="top-right"
+            richColors
+            toastOptions={{
+              style: {
+                background: 'var(--surface)',
+                border: '1px solid var(--border)',
+                color: 'var(--foreground)',
+              },
+              className: 'font-sans',
+            }}
+          />
         </CartProvider>
       </body>
     </html>

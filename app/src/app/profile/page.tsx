@@ -17,8 +17,8 @@ export default async function ProfilePage() {
     return (
         <div className="container mx-auto max-w-3xl py-10 px-4">
             <div className="flex items-center gap-4 mb-2">
-                <div className="p-2.5 bg-blue-600/10 rounded-xl">
-                    <UserCircle className="w-7 h-7 text-blue-500" />
+                <div className="p-2.5 bg-slate-500/10 rounded-xl">
+                    <UserCircle className="w-7 h-7 text-slate-400" />
                 </div>
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Configuraciones</h1>
