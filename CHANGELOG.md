@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.5.4 - 2026-02-23
+
+### 🐛 Correcciones
+- **Asistente IA no encontraba productos**: Corregido bug crítico donde el Maestro no encontraba ítems como "guantes de PU" — el asistente consultaba una tabla Supabase `inventory` desincronizada en vez de Google Sheets (la fuente real de datos)
+- Las 5 funciones de herramientas del IA (`buscar_inventario`, `contar_stock`, `detalle_item`, `listar_categorias`, `items_stock_bajo`) ahora usan `getInventory()` directamente desde Google Sheets, igual que la página de Inventario
+- Eliminada dependencia de sincronización manual — el asistente siempre ve los datos actualizados en tiempo real
+
 ## v0.5.3 - 2026-02-23
 
 ### 🐛 Correcciones

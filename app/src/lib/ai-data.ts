@@ -1,10 +1,11 @@
 
-import { createClient } from "@/utils/supabase/server";
+import { getInventory, type InventoryItem } from "@/lib/data";
 
 /**
- * SQL query functions for the AI agent.
- * These are called by the Gemini function calling mechanism
- * to provide precise, real-time inventory data.
+ * AI tool functions that query inventory data from Google Sheets
+ * via getInventory() — the same source of truth as the Inventory page.
+ * This ensures the AI assistant always sees the latest data without
+ * needing manual sync to a separate Supabase table.
  */
 
 /**
@@ -17,49 +18,62 @@ export async function searchInventory(params: {
     marca?: string;
     limit?: number;
 }): Promise<string> {
-    const supabase = await createClient();
-    let q = supabase
-        .from("inventory")
-        .select("sku, name, category, brand, talla, stock_current, stock_reserved, shelf_number, shelf_level, classification, general_description, usage_application, value_final, rop, safety_stock, observation, image_url");
+    const allItems = await getInventory();
+    let filtered = allItems;
 
     if (params.query) {
-        q = q.or(`name.ilike.%${params.query}%,sku.ilike.%${params.query}%,general_description.ilike.%${params.query}%,usage_application.ilike.%${params.query}%,observation.ilike.%${params.query}%`);
+        const q = params.query.toLowerCase();
+        filtered = filtered.filter((item) =>
+            item.nombre.toLowerCase().includes(q) ||
+            item.sku.toLowerCase().includes(q) ||
+            item.descripcion_general.toLowerCase().includes(q) ||
+            item.uso_aplicacion.toLowerCase().includes(q) ||
+            item.observacion.toLowerCase().includes(q) ||
+            item.categoria.toLowerCase().includes(q) ||
+            item.marca.toLowerCase().includes(q)
+        );
     }
     if (params.categoria) {
-        q = q.ilike("category", `%${params.categoria}%`);
+        const cat = params.categoria.toLowerCase();
+        filtered = filtered.filter((item) =>
+            item.categoria.toLowerCase().includes(cat)
+        );
     }
     if (params.marca) {
-        q = q.ilike("brand", `%${params.marca}%`);
+        const marca = params.marca.toLowerCase();
+        filtered = filtered.filter((item) =>
+            item.marca.toLowerCase().includes(marca)
+        );
     }
 
-    q = q.order("name").limit(params.limit || 25);
+    // Sort by name and limit results
+    filtered.sort((a, b) => a.nombre.localeCompare(b.nombre));
+    const limited = filtered.slice(0, params.limit || 25);
 
-    const { data, error } = await q;
+    if (limited.length === 0) return "No se encontraron ítems con esos criterios.";
 
-    if (error) return `Error en consulta: ${error.message}`;
-    if (!data || data.length === 0) return "No se encontraron ítems con esos criterios.";
-
-    const results = data.map((item) => {
-        const disponible = (item.stock_current || 0) - (item.stock_reserved || 0);
-        const ubicacion = item.shelf_number && item.shelf_level
-            ? `E${item.shelf_number}/N${item.shelf_level}`
+    const results = limited.map((item) => {
+        const disponible = (item.stock || 0) - (item.reservado || 0);
+        const ubicacion = item.estante_nro && item.estante_nivel
+            ? `E${item.estante_nro}/N${item.estante_nivel}`
             : "Sin ubicación";
         const talla = item.talla ? ` | Talla: ${item.talla}` : "";
-        const valor = item.value_final ? ` | Valor: $${item.value_final.toLocaleString("es-CL")} CLP` : "";
-        const clasif = item.classification ? ` | ${item.classification}` : "";
-        const desc = item.general_description ? `\n   Descripción: ${item.general_description}` : "";
-        const uso = item.usage_application ? `\n   Uso: ${item.usage_application}` : "";
-        const obs = item.observation ? `\n   Obs: ${item.observation}` : "";
+        const valor = item.valor ? ` | Valor: $${item.valor.toLocaleString("es-CL")} CLP` : "";
+        const clasif = item.clasificacion ? ` | ${item.clasificacion}` : "";
+        const desc = item.descripcion_general ? `\n   Descripción: ${item.descripcion_general}` : "";
+        const uso = item.uso_aplicacion ? `\n   Uso: ${item.uso_aplicacion}` : "";
+        const obs = item.observacion ? `\n   Obs: ${item.observacion}` : "";
         const ropWarning = item.rop && disponible <= item.rop ? " ⚠️ BAJO ROP" : "";
-        const cardData = item.image_url ? JSON.stringify({ sku: item.sku, name: item.name, cat: item.category || "", img: item.image_url, val: item.value_final || 0 }) : "";
+        const imgUrl = item.foto || (item.fotos && item.fotos.length > 0 ? item.fotos[0] : "");
+        const cardData = imgUrl ? JSON.stringify({ sku: item.sku, name: item.nombre, cat: item.categoria || "", img: imgUrl, val: item.valor || 0 }) : "";
         const productCard = cardData ? `\n   [PRODUCT_CARD:${cardData}]` : "";
 
-        return `📦 ${item.name} (SKU: ${item.sku})${talla}${clasif}
-   Stock: ${item.stock_current} total | ${item.stock_reserved} reservado | ${disponible} disponible${ropWarning}
+        return `📦 ${item.nombre} (SKU: ${item.sku})${talla}${clasif}
+   Stock: ${item.stock} total | ${item.reservado} reservado | ${disponible} disponible${ropWarning}
    Ubicación: ${ubicacion}${valor}${desc}${uso}${obs}${productCard}`;
     });
 
-    return `Encontrados ${data.length} ítems:\n\n${results.join("\n---\n")}`;
+    return `Encontrados ${limited.length} ítems${filtered.length > limited.length ? ` (mostrando ${limited.length} de ${filtered.length})` : ""}:\n\n${results.join("\n---\n")}`;
 }
 
 /**
@@ -69,32 +83,33 @@ export async function countStock(params: {
     categoria?: string;
     agrupacion?: string;
 }): Promise<string> {
-    const supabase = await createClient();
+    const allItems = await getInventory();
+    let data: InventoryItem[] = allItems;
 
-    let q = supabase.from("inventory").select("name, category, brand, talla, stock_current, stock_reserved, value_final");
     if (params.categoria) {
-        q = q.ilike("category", `%${params.categoria}%`);
+        const cat = params.categoria.toLowerCase();
+        data = data.filter((item) =>
+            item.categoria.toLowerCase().includes(cat)
+        );
     }
 
-    const { data, error } = await q;
-    if (error) return `Error: ${error.message}`;
-    if (!data || data.length === 0) return "No se encontraron ítems en esa categoría.";
+    if (data.length === 0) return "No se encontraron ítems en esa categoría.";
 
-    const totalStock = data.reduce((sum, i) => sum + (i.stock_current || 0), 0);
-    const totalReservado = data.reduce((sum, i) => sum + (i.stock_reserved || 0), 0);
+    const totalStock = data.reduce((sum, i) => sum + (i.stock || 0), 0);
+    const totalReservado = data.reduce((sum, i) => sum + (i.reservado || 0), 0);
     const totalDisponible = totalStock - totalReservado;
-    const totalValor = data.reduce((sum, i) => sum + ((i.value_final || 0) * (i.stock_current || 0)), 0);
+    const totalValor = data.reduce((sum, i) => sum + ((i.valor || 0) * (i.stock || 0)), 0);
 
     // Group by category or brand
-    const groupBy = params.agrupacion === "marca" ? "brand" : "category";
+    const groupBy = params.agrupacion === "marca" ? "marca" : "categoria";
     const groups = new Map<string, { count: number; stock: number; reserved: number; value: number }>();
     data.forEach((item) => {
         const key = (item as Record<string, unknown>)[groupBy] as string || "Sin clasificar";
         const existing = groups.get(key) || { count: 0, stock: 0, reserved: 0, value: 0 };
         existing.count++;
-        existing.stock += item.stock_current || 0;
-        existing.reserved += item.stock_reserved || 0;
-        existing.value += (item.value_final || 0) * (item.stock_current || 0);
+        existing.stock += item.stock || 0;
+        existing.reserved += item.reservado || 0;
+        existing.value += (item.valor || 0) * (item.stock || 0);
         groups.set(key, existing);
     });
 
@@ -110,7 +125,7 @@ Reservado: ${totalReservado} unidades
 Disponible: ${totalDisponible} unidades
 Valor total estimado: $${totalValor.toLocaleString("es-CL")} CLP
 
-Desglose por ${groupBy === "brand" ? "marca" : "categoría"}:
+Desglose por ${groupBy === "marca" ? "marca" : "categoría"}:
 ${breakdown}`;
 }
 
@@ -118,67 +133,60 @@ ${breakdown}`;
  * Gets detailed info for a specific item by SKU.
  */
 export async function getItemDetail(params: { sku: string }): Promise<string> {
-    const supabase = await createClient();
-    const { data, error } = await supabase
-        .from("inventory")
-        .select("*")
-        .eq("sku", params.sku)
-        .single();
+    const allItems = await getInventory();
+    const data = allItems.find((item) => item.sku === params.sku);
 
-    if (error || !data) return `No se encontró un ítem con SKU "${params.sku}".`;
+    if (!data) return `No se encontró un ítem con SKU "${params.sku}".`;
 
-    const disponible = (data.stock_current || 0) - (data.stock_reserved || 0);
-    const ubicacion = data.shelf_number && data.shelf_level
-        ? `Estante ${data.shelf_number} / Nivel ${data.shelf_level}`
+    const disponible = (data.stock || 0) - (data.reservado || 0);
+    const ubicacion = data.estante_nro && data.estante_nivel
+        ? `Estante ${data.estante_nro} / Nivel ${data.estante_nivel}`
         : "Sin ubicación asignada";
 
-    const cardData = data.image_url ? JSON.stringify({ sku: data.sku, name: data.name, cat: data.category || "", img: data.image_url, val: data.value_final || 0 }) : "";
+    const imgUrl = data.foto || (data.fotos && data.fotos.length > 0 ? data.fotos[0] : "");
+    const cardData = imgUrl ? JSON.stringify({ sku: data.sku, name: data.nombre, cat: data.categoria || "", img: imgUrl, val: data.valor || 0 }) : "";
     const productCard = cardData ? `\n\n[PRODUCT_CARD:${cardData}]` : "";
 
-    return `📦 DETALLE COMPLETO: ${data.name}
+    return `📦 DETALLE COMPLETO: ${data.nombre}
 SKU: ${data.sku}
-Categoría: ${data.category || "N/A"}
-Marca: ${data.brand || "N/A"}
+Categoría: ${data.categoria || "N/A"}
+Marca: ${data.marca || "N/A"}
 Talla: ${data.talla || "N/A"}
-Clasificación: ${data.classification || "N/A"}${productCard}
+Clasificación: ${data.clasificacion || "N/A"}${productCard}
 
 📊 Stock:
-  - Total: ${data.stock_current}
-  - Reservado: ${data.stock_reserved}
+  - Total: ${data.stock}
+  - Reservado: ${data.reservado}
   - Disponible: ${disponible}${disponible <= (data.rop || 0) ? " ⚠️ BAJO PUNTO DE REORDEN" : ""}
   - ROP: ${data.rop || "N/A"} | Safety Stock: ${data.safety_stock || "N/A"}
 
 📍 Ubicación: ${ubicacion}
 
 💰 Valores:
-  - Aprox CLP: $${(data.value_clp || 0).toLocaleString("es-CL")}
-  - Confirmado SPEX: $${(data.value_spex || 0).toLocaleString("es-CL")}
-  - Valor final: $${(data.value_final || 0).toLocaleString("es-CL")}
+  - Aprox CLP: $${(data.valor_aprox_clp || 0).toLocaleString("es-CL")}
+  - Confirmado SPEX: $${(data.valor_confirmado_spex || 0).toLocaleString("es-CL")}
+  - Valor final: $${(data.valor || 0).toLocaleString("es-CL")}
 
-📝 Descripción: ${data.general_description || "Sin descripción"}
-🔧 Uso/Aplicación: ${data.usage_application || "Sin info"}
-📌 Observación: ${data.observation || "Sin observación"}`;
+📝 Descripción: ${data.descripcion_general || "Sin descripción"}
+🔧 Uso/Aplicación: ${data.uso_aplicacion || "Sin info"}
+📌 Observación: ${data.observacion || "Sin observación"}`;
 }
 
 /**
  * Lists all categories with item counts.
  */
 export async function listCategories(): Promise<string> {
-    const supabase = await createClient();
-    const { data, error } = await supabase
-        .from("inventory")
-        .select("category, stock_current, stock_reserved");
+    const allItems = await getInventory();
 
-    if (error) return `Error: ${error.message}`;
-    if (!data || data.length === 0) return "No hay ítems en el inventario.";
+    if (allItems.length === 0) return "No hay ítems en el inventario.";
 
     const categories = new Map<string, { count: number; stock: number; available: number }>();
-    data.forEach((item) => {
-        const cat = item.category || "Sin categoría";
+    allItems.forEach((item) => {
+        const cat = item.categoria || "Sin categoría";
         const existing = categories.get(cat) || { count: 0, stock: 0, available: 0 };
         existing.count++;
-        existing.stock += item.stock_current || 0;
-        existing.available += (item.stock_current || 0) - (item.stock_reserved || 0);
+        existing.stock += item.stock || 0;
+        existing.available += (item.stock || 0) - (item.reservado || 0);
         categories.set(cat, existing);
     });
 
@@ -187,7 +195,7 @@ export async function listCategories(): Promise<string> {
         .map(([cat, info]) => `  - ${cat}: ${info.count} ítems, ${info.stock} unidades (${info.available} disponibles)`)
         .join("\n");
 
-    return `📋 Categorías del Inventario (${data.length} ítems totales):
+    return `📋 Categorías del Inventario (${allItems.length} ítems totales):
 ${list}`;
 }
 
@@ -195,29 +203,25 @@ ${list}`;
  * Finds items with low stock (below ROP).
  */
 export async function findLowStock(): Promise<string> {
-    const supabase = await createClient();
-    const { data, error } = await supabase
-        .from("inventory")
-        .select("sku, name, category, stock_current, stock_reserved, rop, safety_stock, shelf_number, shelf_level")
-        .gt("rop", 0);
+    const allItems = await getInventory();
+    const withRop = allItems.filter((item) => item.rop > 0);
 
-    if (error) return `Error: ${error.message}`;
-    if (!data || data.length === 0) return "No hay ítems con ROP configurado.";
+    if (withRop.length === 0) return "No hay ítems con ROP configurado.";
 
-    const lowStock = data.filter((item) => {
-        const disponible = (item.stock_current || 0) - (item.stock_reserved || 0);
+    const lowStock = withRop.filter((item) => {
+        const disponible = (item.stock || 0) - (item.reservado || 0);
         return disponible <= (item.rop || 0);
     });
 
     if (lowStock.length === 0) return "✅ Todos los ítems están por encima de su punto de reorden.";
 
     const list = lowStock.map((item) => {
-        const disponible = (item.stock_current || 0) - (item.stock_reserved || 0);
-        const ubicacion = item.shelf_number ? `E${item.shelf_number}/N${item.shelf_level}` : "";
-        return `  ⚠️ ${item.name} (${item.sku}) — ${disponible} disponibles / ROP: ${item.rop} [${ubicacion}]`;
+        const disponible = (item.stock || 0) - (item.reservado || 0);
+        const ubicacion = item.estante_nro ? `E${item.estante_nro}/N${item.estante_nivel}` : "";
+        return `  ⚠️ ${item.nombre} (${item.sku}) — ${disponible} disponibles / ROP: ${item.rop} [${ubicacion}]`;
     }).join("\n");
 
-    return `🚨 Ítems con stock bajo (${lowStock.length} de ${data.length} monitoreados):
+    return `🚨 Ítems con stock bajo (${lowStock.length} de ${withRop.length} monitoreados):
 ${list}`;
 }
 
