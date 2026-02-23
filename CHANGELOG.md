@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.5.2 - 2026-02-23
+
+### ✨ Funcionalidades
+- **Selector de cámara en escáner QR**: Dropdown para elegir entre cámaras disponibles del dispositivo, evitando que se active la ultra-wide (0.6x) por defecto
+- Persistencia de cámara preferida en `localStorage` para futuras visitas
+- Reinicio automático del escáner al cambiar de cámara
+- **Carrito flotante movible**: El ícono del carrito ahora se puede arrastrar a cualquier posición de la pantalla
+
 ## v0.5.1 - 2026-02-23
 
 ### 🐛 Correcciones

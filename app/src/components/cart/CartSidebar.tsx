@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useCart } from "@/context/cart-context";
 import { ShoppingBasket, X, Trash2, CheckCircle, Package, DollarSign, Minus, Plus, Ruler, Tag } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
@@ -15,11 +15,97 @@ const formatCLP = (value: number) => {
 // Admin route prefixes where the cart FAB should be hidden
 const ADMIN_ROUTES = ["/scan", "/requests/pending", "/stock", "/admin"];
 
+const FAB_STORAGE_KEY = "cart-fab-position";
+const FAB_SIZE = 56; // approximate button size in px
+const DRAG_THRESHOLD = 5; // px to distinguish click from drag
+
+function loadFabPosition(): { x: number; y: number } | null {
+    if (typeof window === "undefined") return null;
+    try {
+        const raw = localStorage.getItem(FAB_STORAGE_KEY);
+        if (raw) return JSON.parse(raw);
+    } catch { /* ignore */ }
+    return null;
+}
+
+function saveFabPosition(pos: { x: number; y: number }) {
+    try {
+        localStorage.setItem(FAB_STORAGE_KEY, JSON.stringify(pos));
+    } catch { /* ignore */ }
+}
+
+function clampPosition(x: number, y: number) {
+    const maxX = window.innerWidth - FAB_SIZE;
+    const maxY = window.innerHeight - FAB_SIZE;
+    return {
+        x: Math.max(0, Math.min(x, maxX)),
+        y: Math.max(0, Math.min(y, maxY)),
+    };
+}
+
 export function CartSidebar() {
     const { items, isOpen, setIsOpen, removeFromCart, updateQuantity, totalItems, totalValue, hasMounted } = useCart();
     const router = useRouter();
     const pathname = usePathname();
     const [pendingDeleteKey, setPendingDeleteKey] = useState<string | null>(null);
+
+    // --- Draggable FAB state ---
+    const [fabPos, setFabPos] = useState<{ x: number; y: number } | null>(null);
+    const isDragging = useRef(false);
+    const didDrag = useRef(false);
+    const dragStart = useRef({ x: 0, y: 0, fabX: 0, fabY: 0 });
+    const fabRef = useRef<HTMLButtonElement>(null);
+
+    // Initialize position from localStorage or default (bottom-right)
+    useEffect(() => {
+        const saved = loadFabPosition();
+        if (saved) {
+            setFabPos(clampPosition(saved.x, saved.y));
+        } else {
+            // default: bottom-right, matching original position
+            const isMobile = window.innerWidth < 768;
+            setFabPos(clampPosition(window.innerWidth - FAB_SIZE - 24, window.innerHeight - (isMobile ? 96 : 24) - FAB_SIZE));
+        }
+    }, []);
+
+    // Keep position clamped on window resize
+    useEffect(() => {
+        const handleResize = () => {
+            setFabPos((prev) => prev ? clampPosition(prev.x, prev.y) : prev);
+        };
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
+
+    // Pointer handlers for drag
+    const onPointerDown = useCallback((e: React.PointerEvent) => {
+        isDragging.current = true;
+        didDrag.current = false;
+        const pos = fabPos ?? { x: 0, y: 0 };
+        dragStart.current = { x: e.clientX, y: e.clientY, fabX: pos.x, fabY: pos.y };
+        (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    }, [fabPos]);
+
+    const onPointerMove = useCallback((e: React.PointerEvent) => {
+        if (!isDragging.current) return;
+        const dx = e.clientX - dragStart.current.x;
+        const dy = e.clientY - dragStart.current.y;
+        if (!didDrag.current && Math.abs(dx) + Math.abs(dy) < DRAG_THRESHOLD) return;
+        didDrag.current = true;
+        const newPos = clampPosition(dragStart.current.fabX + dx, dragStart.current.fabY + dy);
+        setFabPos(newPos);
+    }, []);
+
+    const onPointerUp = useCallback((e: React.PointerEvent) => {
+        isDragging.current = false;
+        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+        if (didDrag.current && fabPos) {
+            saveFabPosition(fabPos);
+        }
+        if (!didDrag.current) {
+            setIsOpen(true);
+        }
+    }, [fabPos, setIsOpen]);
 
     // Hide the cart entirely on admin routes
     const isAdminRoute = ADMIN_ROUTES.some((route) => pathname.startsWith(route));
@@ -33,12 +119,16 @@ export function CartSidebar() {
     if (!isOpen) {
         return (
             <button
-                onClick={() => setIsOpen(true)}
-                className="fixed bottom-24 md:bottom-6 right-6 z-50 p-4 rounded-full bg-blue-600 hover:bg-blue-500 text-white shadow-xl shadow-blue-500/30 transition-transform active:scale-95 flex items-center gap-2"
+                ref={fabRef}
+                onPointerDown={onPointerDown}
+                onPointerMove={onPointerMove}
+                onPointerUp={onPointerUp}
+                style={fabPos ? { left: fabPos.x, top: fabPos.y } : { right: 24, bottom: 96 }}
+                className="fixed z-50 p-4 rounded-full bg-blue-600 hover:bg-blue-500 text-white shadow-xl shadow-blue-500/30 transition-shadow active:scale-95 flex items-center gap-2 select-none touch-none cursor-grab active:cursor-grabbing"
             >
-                <ShoppingBasket className="w-6 h-6" />
+                <ShoppingBasket className="w-6 h-6 pointer-events-none" />
                 {hasMounted && totalItems > 0 && (
-                    <span className="absolute -top-2 -right-2 w-6 h-6 flex items-center justify-center rounded-full bg-red-500 text-xs font-bold border-2 border-slate-950">
+                    <span className="absolute -top-2 -right-2 w-6 h-6 flex items-center justify-center rounded-full bg-red-500 text-xs font-bold border-2 border-slate-950 pointer-events-none">
                         {totalItems}
                     </span>
                 )}

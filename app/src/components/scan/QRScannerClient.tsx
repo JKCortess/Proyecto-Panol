@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import {
     ScanLine, Search, Package, MapPin, Layers, CheckCircle2,
     XCircle, Clock, AlertTriangle, ArrowLeft, Loader2, Keyboard,
-    Camera, Truck, Hash, CameraOff, ExternalLink
+    Camera, Truck, Hash, CameraOff, ExternalLink, ChevronDown, RefreshCw
 } from 'lucide-react';
 import Image from 'next/image';
 import { lookupRequestByCode, deliverRequest } from '@/app/requests/actions';
@@ -49,6 +49,8 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.
     'Cancelada': { label: 'Cancelada', color: 'text-red-400 bg-red-500/10 border-red-500/30', icon: <XCircle className="w-3.5 h-3.5" /> },
 };
 
+const CAMERA_PREF_KEY = 'preferred-camera-id';
+
 export function QRScannerClient() {
     const [viewState, setViewState] = useState<ViewState>('scanner');
     const [code, setCode] = useState('');
@@ -58,6 +60,13 @@ export function QRScannerClient() {
     const [result, setResult] = useState<RequestResult | null>(null);
     const [scannerActive, setScannerActive] = useState(false);
     const [cameraError, setCameraError] = useState<string | null>(null);
+    const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
+    const [selectedCameraId, setSelectedCameraId] = useState<string | null>(() => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem(CAMERA_PREF_KEY);
+        }
+        return null;
+    });
     const html5QrcodeRef = useRef<any>(null);
     const videoContainerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -70,6 +79,29 @@ export function QRScannerClient() {
             isMountedRef.current = false;
             stopScanner();
         };
+    }, []);
+
+    // Enumerate available cameras on mount
+    const loadCameras = useCallback(async () => {
+        try {
+            // Need a brief getUserMedia call first so labels become available
+            const tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
+            tempStream.getTracks().forEach(t => t.stop());
+
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const videoDevices = devices.filter(d => d.kind === 'videoinput');
+            if (isMountedRef.current) {
+                setCameras(videoDevices);
+                // If stored preference is no longer valid, clear it
+                const storedId = localStorage.getItem(CAMERA_PREF_KEY);
+                if (storedId && !videoDevices.some(d => d.deviceId === storedId)) {
+                    localStorage.removeItem(CAMERA_PREF_KEY);
+                    setSelectedCameraId(null);
+                }
+            }
+        } catch (e) {
+            console.warn('Could not enumerate cameras:', e);
+        }
     }, []);
 
     const stopScanner = useCallback(async () => {
@@ -136,8 +168,17 @@ export function QRScannerClient() {
             const qrScanner = new Html5Qrcode('qr-video-container');
             html5QrcodeRef.current = qrScanner;
 
+            // If we haven't enumerated cameras yet, do it now
+            if (cameras.length === 0) {
+                await loadCameras();
+            }
+
+            const cameraConfig = selectedCameraId
+                ? { deviceId: { exact: selectedCameraId } }
+                : { facingMode: 'environment' };
+
             await qrScanner.start(
-                { facingMode: 'environment' },
+                cameraConfig,
                 {
                     fps: 10,
                     qrbox: { width: 220, height: 220 },
@@ -179,7 +220,7 @@ export function QRScannerClient() {
             }
             html5QrcodeRef.current = null;
         }
-    }, [stopScanner, isSecureContext]);
+    }, [stopScanner, isSecureContext, selectedCameraId, cameras.length, loadCameras]);
 
     const handleLookup = async (lookupCode?: string) => {
         const searchCode = lookupCode || code;
@@ -254,9 +295,43 @@ export function QRScannerClient() {
 
                 {/* Camera Scanner */}
                 <div className="ui-card rounded-2xl overflow-hidden border-l-4 border-l-blue-500">
-                    <div className="px-5 py-4 border-b border-slate-800 bg-slate-900/70 flex items-center gap-3">
+                    <div className="px-5 py-4 border-b border-slate-800 bg-slate-900/70 flex items-center gap-3 flex-wrap">
                         <Camera className="w-5 h-5 text-blue-400" />
                         <h2 className="font-semibold text-white text-sm">Cámara</h2>
+
+                        {/* Camera selector dropdown — only shown when >1 camera */}
+                        {cameras.length > 1 && (
+                            <div className="relative">
+                                <select
+                                    value={selectedCameraId || ''}
+                                    onChange={async (e) => {
+                                        const newId = e.target.value || null;
+                                        setSelectedCameraId(newId);
+                                        if (newId) {
+                                            localStorage.setItem(CAMERA_PREF_KEY, newId);
+                                        } else {
+                                            localStorage.removeItem(CAMERA_PREF_KEY);
+                                        }
+                                        // Restart scanner with new camera if active
+                                        if (scannerActive) {
+                                            await stopScanner();
+                                            // Small delay to let cleanup finish
+                                            setTimeout(() => startScanner(), 300);
+                                        }
+                                    }}
+                                    className="appearance-none pl-3 pr-8 py-1.5 rounded-lg bg-slate-800 border border-slate-600 text-white text-xs font-medium cursor-pointer hover:border-blue-500/50 focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all"
+                                >
+                                    <option value="">Auto (trasera)</option>
+                                    {cameras.map((cam, i) => (
+                                        <option key={cam.deviceId} value={cam.deviceId}>
+                                            {cam.label || `Cámara ${i + 1}`}
+                                        </option>
+                                    ))}
+                                </select>
+                                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+                            </div>
+                        )}
+
                         {isSecureContext && !scannerActive ? (
                             <button
                                 onClick={startScanner}
