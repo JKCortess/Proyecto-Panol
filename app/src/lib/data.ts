@@ -323,6 +323,31 @@ function convertToProxyUrl(url: string): string {
     return url;
 }
 
+/**
+ * Normalizes a string for search: lowercases and removes Spanish accents.
+ */
+function normalizeForSearch(str: string): string {
+    return str.toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+}
+
+/**
+ * Multi-word fuzzy search: splits query into words and checks that EVERY word
+ * matches at least one searchable field (nombre, sku, categoria, marca, descripcion).
+ * This way "guante pu" matches "Guantes de PU Negro".
+ */
+function matchesSearchQuery(item: InventoryItem, queryWords: string[]): boolean {
+    // Build a single searchable string from all relevant fields
+    const searchableText = normalizeForSearch(
+        [item.nombre, item.sku, item.categoria, item.marca, item.descripcion_general, item.tipo_componente, item.proveedor]
+            .join(' ')
+    );
+
+    // Every query word must appear somewhere in the searchable text
+    return queryWords.every(word => searchableText.includes(word));
+}
+
 export async function getInventory(query?: string): Promise<InventoryItem[]> {
     // Return cached inventory if valid (for the full, unfiltered list)
     // Query filtering is applied after cache retrieval
@@ -334,14 +359,8 @@ export async function getInventory(query?: string): Promise<InventoryItem[]> {
     // If we have a query but cache is valid, filter from cache
     if (query && isCacheValid(inventoryCache)) {
         console.log('[Cache] Using cached inventory data with query filter.');
-        const lowerQuery = query.toLowerCase();
-        return inventoryCache!.data.filter((item) =>
-            item.nombre.toLowerCase().includes(lowerQuery) ||
-            item.sku.toLowerCase().includes(lowerQuery) ||
-            item.categoria.toLowerCase().includes(lowerQuery) ||
-            item.marca.toLowerCase().includes(lowerQuery) ||
-            item.descripcion_general.toLowerCase().includes(lowerQuery)
-        );
+        const queryWords = normalizeForSearch(query).split(/\s+/).filter(Boolean);
+        return inventoryCache!.data.filter((item) => matchesSearchQuery(item, queryWords));
     }
 
     console.log('[Cache] Fetching fresh inventory from Google Sheets...');
@@ -432,14 +451,8 @@ export async function getInventory(query?: string): Promise<InventoryItem[]> {
     console.log(`[Cache] Inventory cached: ${items.length} items. Expires in ${CACHE_TTL_MS / 1000}s.`);
 
     if (query) {
-        const lowerQuery = query.toLowerCase();
-        return items.filter((item) =>
-            item.nombre.toLowerCase().includes(lowerQuery) ||
-            item.sku.toLowerCase().includes(lowerQuery) ||
-            item.categoria.toLowerCase().includes(lowerQuery) ||
-            item.marca.toLowerCase().includes(lowerQuery) ||
-            item.descripcion_general.toLowerCase().includes(lowerQuery)
-        );
+        const queryWords = normalizeForSearch(query).split(/\s+/).filter(Boolean);
+        return items.filter((item) => matchesSearchQuery(item, queryWords));
     }
 
     return items;

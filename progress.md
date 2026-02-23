@@ -7,6 +7,45 @@
 
 ## Log de Cambios (Reciente)
 
+### [2026-02-23] - 🔧 Fix: Sidebar duplicaba highlight en /admin y /admin/edit-history
+- **Problema**: Al navegar a `/admin/edit-history`, tanto "Historial Ediciones" como "Configuración avanzada" (`/admin`) quedaban resaltados simultáneamente en la barra lateral.
+- **Causa raíz**: `renderMenuLink` usaba `pathname.startsWith(item.href)`, y `/admin/edit-history` empieza con `/admin`.
+- **Corrección**: Para la ruta `/admin` se requiere coincidencia exacta (`pathname === '/admin'`) en vez de `startsWith`. Las demás rutas mantienen `startsWith` para subrutas válidas.
+- **Archivo Modificado**: `src/components/layout/AppSidebar.tsx` — `isActive` con lógica especial para `/admin`.
+
+### [2026-02-23] - ✏️ Feature: Edición de Ítems de Inventario (Admin) + Historial de Auditoría
+- **Objetivo**: Permitir a administradores editar ítems del inventario con confirmación visual, registrar todos los cambios en Supabase, y visualizar el historial de ediciones.
+- **Correcciones de UI** (`EditItemModal.tsx`):
+  1. ✅ **Fix overlap iconos/valores**: Eliminados todos los iconos de dentro de los inputs (`<Hash>`, `<DollarSign>`, `<Layers>`, `<Truck>`, `<AlertTriangle>`). Los valores ahora se leen claramente sin superposición.
+  2. ✅ **Campo "Nombre del Ítem"**: Nueva sección "Identificación" al inicio del modal con input para editar el nombre (columna B de Google Sheets).
+  3. ✅ **Diálogo de confirmación**: Al presionar "Guardar Cambios", se muestra un overlay con resumen de todos los campos modificados (valor anterior → valor nuevo en rojo/verde). Botón "Confirmar y Guardar" para proceder.
+- **Server Action** (`actions.ts`):
+  1. ✅ **Campo `nombre`** agregado a `InventoryItemUpdate` y `FIELD_COLUMN_MAP` (columna B).
+  2. ✅ **Lectura de valores anteriores**: Se lee la fila completa (`A2:Y`) para capturar los old values de cada campo antes de actualizar.
+  3. ✅ **Audit logging**: Tras actualizar Google Sheets, se insertan registros en la tabla `inventory_edit_history` de Supabase con: SKU, nombre del ítem, campo modificado, etiqueta legible, valor anterior, valor nuevo, ID y nombre del editor.
+- **Base de Datos (Supabase)**:
+  - ✅ Tabla `inventory_edit_history` creada con: `id`, `created_at`, `sku`, `item_name`, `talla`, `field_name`, `field_label`, `old_value`, `new_value`, `edited_by`, `edited_by_name`.
+  - ✅ Índices en `created_at DESC` y `sku`.
+  - ✅ RLS habilitado con policies para lectura e inserción por usuarios autenticados.
+  - ✅ Permiso `edit_history` agregado a `role_permissions` para todos los roles.
+- **Página de Historial** (`/admin/edit-history`):
+  - ✅ Página admin-only con protección de rol.
+  - ✅ Registros de auditoría agrupados por timestamp+SKU (misma sesión de edición).
+  - ✅ Cada grupo muestra: nombre del ítem, SKU, editor, fecha/hora, y lista de campos con valor anterior (tachado rojo) → valor nuevo (verde).
+  - ✅ Barra de búsqueda por SKU, nombre o editor.
+  - ✅ Paginación (50 registros por página).
+  - ✅ Estado vacío descriptivo cuando no hay registros.
+- **Navegación** (`navigation.ts`):
+  - ✅ Nuevo ítem `edit_history` ("Historial Ediciones", ícono `History`) en la sección admin del sidebar.
+- **Archivos Creados**:
+  - `src/app/admin/edit-history/page.tsx`
+- **Archivos Modificados**:
+  - `src/components/inventory/EditItemModal.tsx`: Reescritura completa (sin iconos en inputs, campo nombre, confirmación).
+  - `src/app/inventory/actions.ts`: Campo nombre, lectura de old values, audit logging a Supabase.
+  - `src/constants/navigation.ts`: Import `History`, nuevo ítem de menú.
+  - `src/components/layout/AppSidebar.tsx`: Fix isActive para `/admin`.
+- **Verificado**: ✅ Modal sin overlap, nombre editable, confirmación funcional, historial carga correctamente, sidebar con enlace visible.
+
 ### [2026-02-23] - 📱 Fix: Barra "Entregar solicitud" tapaba contenido en móvil (QR Scanner)
 - **Problema**: Al escanear un QR desde el celular, la barra sticky "Entregar solicitud 257665" se superponía sobre el detalle de ítems, impidiendo ver toda la información (ubicación, stock, etc.).
 - **Causa raíz**: El botón de entrega móvil usaba `fixed bottom-20` con `backdrop-blur`, creando un overlay fijo que tapaba el contenido inferior de la página.

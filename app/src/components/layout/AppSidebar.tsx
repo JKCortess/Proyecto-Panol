@@ -87,7 +87,13 @@ export function AppSidebar({ user, profile, permissions }: AppSidebarProps) {
     const isNavRouteActive = visibleNavItems.some(item => item.href === '/' ? pathname === '/' : pathname.startsWith(item.href));
 
     const renderMenuLink = (item: typeof allMenuItems[0]) => {
-        const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
+        // For short routes like /admin, require exact match to avoid
+        // highlighting multiple items (e.g. /admin AND /admin/edit-history)
+        const isActive = item.href === '/'
+            ? pathname === '/'
+            : item.href === '/admin'
+                ? pathname === '/admin'
+                : pathname.startsWith(item.href);
         const Icon = item.icon;
         return (
             <li key={item.href}>

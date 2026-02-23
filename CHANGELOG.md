@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.5.5 - 2026-02-23
+
+### ✨ Funcionalidades
+- **Edición de ítems de inventario (Admin)**: Modal de edición con campo para nombre, stock, precio, ubicación, clasificación y descripción — sincroniza en tiempo real con Google Sheets
+- **Confirmación visual de cambios**: Diálogo de confirmación que muestra resumen de campos modificados (valor anterior → valor nuevo) antes de guardar
+- **Historial de auditoría**: Tabla `inventory_edit_history` en Supabase registra automáticamente cada cambio con valor anterior, valor nuevo, editor y timestamp
+- **Página de historial de ediciones** (`/admin/edit-history`): Vista admin con registros agrupados, búsqueda por SKU/nombre/editor, y paginación
+- **Navegación**: Nuevo enlace "Historial Ediciones" en la sección de Administración del sidebar
+
+### 🐛 Correcciones
+- **Fix overlap iconos/valores**: Eliminados iconos superpuestos dentro de los inputs del modal de edición — los valores ahora se leen correctamente
+- **Fix sidebar doble highlight**: Corregido `/admin` y `/admin/edit-history` resaltados simultáneamente — `/admin` ahora requiere coincidencia exacta
+
+### 🔧 Mantenimiento
+- Actualizado `progress.md` con registro completo de cambios
+
 ## v0.5.4 - 2026-02-23
 
 ### 🐛 Correcciones

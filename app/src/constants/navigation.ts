@@ -11,6 +11,7 @@ import {
     Settings,
     ScanLine,
     Bot,
+    History,
 } from "lucide-react";
 
 export type MenuGroup = "navigation" | "admin";
@@ -35,5 +36,6 @@ export const ALL_MENU_ITEMS: MenuItem[] = [
     { key: "scan_qr", label: "Escanear QR", href: "/scan", icon: ScanLine, group: "admin" },
     { key: "requests_pending", label: "Administrar Solicitudes", href: "/requests/pending", icon: ListTodo, group: "admin" },
     { key: "stock", label: "Gestión de Stock", href: "/stock", icon: ArrowLeftRight, group: "admin" },
+    { key: "edit_history", label: "Historial Ediciones", href: "/admin/edit-history", icon: History, group: "admin" },
     { key: "admin", label: "Configuración avanzada", href: "/admin", icon: Settings, group: "admin" },
 ];
