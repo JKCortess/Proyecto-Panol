@@ -104,7 +104,7 @@ export async function countStock(params: {
     const groupBy = params.agrupacion === "marca" ? "marca" : "categoria";
     const groups = new Map<string, { count: number; stock: number; reserved: number; value: number }>();
     data.forEach((item) => {
-        const key = (item as Record<string, unknown>)[groupBy] as string || "Sin clasificar";
+        const key = (item as unknown as Record<string, unknown>)[groupBy] as string || "Sin clasificar";
         const existing = groups.get(key) || { count: 0, stock: 0, reserved: 0, value: 0 };
         existing.count++;
         existing.stock += item.stock || 0;
