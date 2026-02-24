@@ -1,21 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SlidersHorizontal, X } from "lucide-react";
 import { FilterCombobox, Option } from "@/components/ui/FilterCombobox";
 import { FilterTextInput } from "@/components/ui/FilterTextInput";
 import { FilterVisibilityManager } from "./FilterVisibilityManager";
+import type { InventoryItem } from "@/lib/data";
+import type { FilterConfig } from "@/app/admin/filter-config-actions";
 
 interface InventoryControlsProps {
-    categories: string[];
-    brands: string[];
-    estantes: string[];
-    clasificaciones: string[];
-    niveles: string[];
-    tallas: string[];
-    tiposComponente: string[];
-    proveedores: string[];
+    allItems: InventoryItem[];
+    filterConfig?: FilterConfig;
 }
 
 const AVAILABLE_FILTERS = [
@@ -34,7 +30,61 @@ const AVAILABLE_FILTERS = [
     { key: "proveedor", label: "Proveedor" },
 ];
 
-export function InventoryControls({ categories, brands, estantes, clasificaciones, niveles, tallas, tiposComponente, proveedores }: InventoryControlsProps) {
+const DEFAULT_VISIBLE = ["status", "category", "brand", "estante"];
+
+// ── Helper: apply a single filter to the items list ──
+function applyOneFilter(
+    items: InventoryItem[],
+    key: string,
+    values: string[]
+): InventoryItem[] {
+    if (values.length === 0) return items;
+
+    switch (key) {
+        case "category":
+            return items.filter(i => values.includes(i.categoria));
+        case "brand":
+            return items.filter(i => i.marca && values.includes(i.marca));
+        case "tipoComponente":
+            return items.filter(i => i.tipo_componente && values.includes(i.tipo_componente));
+        case "estante":
+            return items.filter(i => i.estante_nro && values.includes(i.estante_nro));
+        case "nivel":
+            return items.filter(i => i.estante_nivel && values.includes(i.estante_nivel));
+        case "clasificacion":
+            return items.filter(i => i.clasificacion && values.includes(i.clasificacion));
+        case "talla":
+            return items.filter(i => i.talla && values.includes(i.talla));
+        case "proveedor":
+            return items.filter(i => i.proveedor && values.includes(i.proveedor));
+        case "status":
+            return items.filter(i => values.some(s => {
+                if (s === 'critical') return i.rop > 0 && i.stock <= i.rop;
+                if (s === 'low') return i.rop > 0 && i.stock > i.rop && i.stock <= i.rop * 1.5;
+                if (s === 'good') return i.rop === 0 || i.stock > i.rop * 1.5;
+                return false;
+            }));
+        case "filterSku":
+            return items.filter(i => i.sku.toLowerCase().includes(values[0].toLowerCase()));
+        case "filterNombre":
+            return items.filter(i => i.nombre.toLowerCase().includes(values[0].toLowerCase()));
+        case "filterModelo":
+            return items.filter(i => i.modelo.toLowerCase().includes(values[0].toLowerCase()));
+        case "filterPotencia":
+            return items.filter(i => i.potencia.toLowerCase().includes(values[0].toLowerCase()));
+        default:
+            return items;
+    }
+}
+
+// ── Extract unique sorted values from a filtered subset ──
+function uniqueSorted(items: InventoryItem[], field: keyof InventoryItem): string[] {
+    return Array.from(new Set(
+        items.map(i => String(i[field] || "")).filter(Boolean)
+    )).sort();
+}
+
+export function InventoryControls({ allItems, filterConfig }: InventoryControlsProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -59,30 +109,95 @@ export function InventoryControls({ categories, brands, estantes, clasificacione
     const currentFilterModelo = searchParams.get("filterModelo") || "";
     const currentFilterPotencia = searchParams.get("filterPotencia") || "";
 
-    // Determine active visible filters - logic: 
-    // 1. If we have params that are NOT in default, show them.
-    // 2. Otherwise default set.
-    const [visibleFilters, setVisibleFilters] = useState<string[]>([
-        "status", "category", "brand", "estante"
-    ]);
+    // ── Build a map of all active filters ──
+    const activeFiltersMap = useMemo(() => {
+        const map: Record<string, string[]> = {};
+        if (currentCategory.length > 0) map["category"] = currentCategory;
+        if (currentBrand.length > 0) map["brand"] = currentBrand;
+        if (currentStatus.length > 0) map["status"] = currentStatus;
+        if (currentEstante.length > 0) map["estante"] = currentEstante;
+        if (currentNivel.length > 0) map["nivel"] = currentNivel;
+        if (currentClasificacion.length > 0) map["clasificacion"] = currentClasificacion;
+        if (currentTalla.length > 0) map["talla"] = currentTalla;
+        if (currentTipoComponente.length > 0) map["tipoComponente"] = currentTipoComponente;
+        if (currentProveedor.length > 0) map["proveedor"] = currentProveedor;
+        if (currentFilterSku) map["filterSku"] = [currentFilterSku];
+        if (currentFilterNombre) map["filterNombre"] = [currentFilterNombre];
+        if (currentFilterModelo) map["filterModelo"] = [currentFilterModelo];
+        if (currentFilterPotencia) map["filterPotencia"] = [currentFilterPotencia];
+        return map;
+    }, [currentCategory, currentBrand, currentStatus, currentEstante, currentNivel, currentClasificacion, currentTalla, currentTipoComponente, currentProveedor, currentFilterSku, currentFilterNombre, currentFilterModelo, currentFilterPotencia]);
 
-    // Ensure effectively active filters (from URL) are always visible
-    const activeParams = [];
-    if (currentStatus.length > 0) activeParams.push("status");
-    if (currentCategory.length > 0) activeParams.push("category");
-    if (currentBrand.length > 0) activeParams.push("brand");
-    if (currentTipoComponente.length > 0) activeParams.push("tipoComponente");
-    if (currentFilterSku) activeParams.push("filterSku");
-    if (currentFilterNombre) activeParams.push("filterNombre");
-    if (currentFilterModelo) activeParams.push("filterModelo");
-    if (currentFilterPotencia) activeParams.push("filterPotencia");
-    if (currentEstante.length > 0) activeParams.push("estante");
-    if (currentNivel.length > 0) activeParams.push("nivel");
-    if (currentClasificacion.length > 0) activeParams.push("clasificacion");
-    if (currentTalla.length > 0) activeParams.push("talla");
-    if (currentProveedor.length > 0) activeParams.push("proveedor");
+    // ── Cascading: compute filtered subset for each filter (excluding itself) ──
+    const getSubsetExcluding = (excludeKey: string): InventoryItem[] => {
+        let filtered = allItems;
+        for (const [key, values] of Object.entries(activeFiltersMap)) {
+            if (key === excludeKey) continue;
+            filtered = applyOneFilter(filtered, key, values);
+        }
+        return filtered;
+    };
+
+    // ── Compute cascaded options for each combobox filter ──
+    const cascadedOptions = useMemo(() => {
+        const hasAnyFilter = Object.keys(activeFiltersMap).length > 0;
+        if (!hasAnyFilter) {
+            // No filters active → show all options from allItems
+            return {
+                categories: uniqueSorted(allItems, "categoria"),
+                brands: uniqueSorted(allItems, "marca"),
+                tiposComponente: uniqueSorted(allItems, "tipo_componente"),
+                estantes: uniqueSorted(allItems, "estante_nro"),
+                niveles: uniqueSorted(allItems, "estante_nivel"),
+                clasificaciones: uniqueSorted(allItems, "clasificacion"),
+                tallas: uniqueSorted(allItems, "talla"),
+                proveedores: uniqueSorted(allItems, "proveedor"),
+            };
+        }
+
+        return {
+            categories: uniqueSorted(getSubsetExcluding("category"), "categoria"),
+            brands: uniqueSorted(getSubsetExcluding("brand"), "marca"),
+            tiposComponente: uniqueSorted(getSubsetExcluding("tipoComponente"), "tipo_componente"),
+            estantes: uniqueSorted(getSubsetExcluding("estante"), "estante_nro"),
+            niveles: uniqueSorted(getSubsetExcluding("nivel"), "estante_nivel"),
+            clasificaciones: uniqueSorted(getSubsetExcluding("clasificacion"), "clasificacion"),
+            tallas: uniqueSorted(getSubsetExcluding("talla"), "talla"),
+            proveedores: uniqueSorted(getSubsetExcluding("proveedor"), "proveedor"),
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [allItems, activeFiltersMap]);
+
+    // ── Filter visibility ──
+    const defaultVisible = filterConfig?.defaultFilters || DEFAULT_VISIBLE;
+    const configOrder = filterConfig?.filterOrder;
+
+    const [visibleFilters, setVisibleFilters] = useState<string[]>(defaultVisible);
+
+    // Active params
+    const activeParams = Object.keys(activeFiltersMap);
 
     const displayedFilters = Array.from(new Set([...visibleFilters, ...activeParams]));
+
+    // Apply admin-configured order
+    const orderedAvailableFilters = useMemo(() => {
+        if (!configOrder) return AVAILABLE_FILTERS;
+        const ordered = configOrder
+            .map(key => AVAILABLE_FILTERS.find(f => f.key === key))
+            .filter(Boolean) as typeof AVAILABLE_FILTERS;
+        // Append any filters not in configOrder
+        const missing = AVAILABLE_FILTERS.filter(f => !configOrder.includes(f.key));
+        return [...ordered, ...missing];
+    }, [configOrder]);
+
+    // Sort displayedFilters by admin order
+    const sortedDisplayedFilters = useMemo(() => {
+        const orderIndex = orderedAvailableFilters.reduce((acc, f, i) => {
+            acc[f.key] = i;
+            return acc;
+        }, {} as Record<string, number>);
+        return [...displayedFilters].sort((a, b) => (orderIndex[a] ?? 99) - (orderIndex[b] ?? 99));
+    }, [displayedFilters, orderedAvailableFilters]);
 
     const hasActiveFilters = activeParams.length > 0;
 
@@ -117,24 +232,143 @@ export function InventoryControls({ categories, brands, estantes, clasificacione
         router.push(`/inventory?${params.toString()}`);
     };
 
-    // Prepare Options
+    // Prepare Options (cascaded)
     const statusOptions: Option[] = [
         { value: "critical", label: "Crítico (Bajo ROP)" },
         { value: "low", label: "Bajo Stock (Atención)" },
         { value: "good", label: "Stock OK" },
     ];
 
-    const categoryOptions: Option[] = categories.map(c => ({ value: c, label: c }));
-    const brandOptions: Option[] = brands.map(b => ({ value: b, label: b }));
-    const estanteOptions: Option[] = estantes.map(e => ({ value: e, label: `Estante ${e}` }));
-    const nivelOptions: Option[] = niveles.map(n => ({ value: n, label: `Nivel ${n}` }));
-    const clasificacionOptions: Option[] = clasificaciones.map(c => ({ value: c, label: c }));
-    const tallaOptions: Option[] = tallas.map(t => ({ value: t, label: t }));
-    const tipoComponenteOptions: Option[] = tiposComponente.map(t => ({ value: t, label: t }));
-    const proveedorOptions: Option[] = proveedores.map(p => ({ value: p, label: p }));
+    const categoryOptions: Option[] = cascadedOptions.categories.map(c => ({ value: c, label: c }));
+    const brandOptions: Option[] = cascadedOptions.brands.map(b => ({ value: b, label: b }));
+    const estanteOptions: Option[] = cascadedOptions.estantes
+        .sort((a, b) => parseInt(a) - parseInt(b))
+        .map(e => ({ value: e, label: `Estante ${e}` }));
+    const nivelOptions: Option[] = cascadedOptions.niveles.map(n => ({ value: n, label: `Nivel ${n}` }));
+    const clasificacionOptions: Option[] = cascadedOptions.clasificaciones.map(c => ({ value: c, label: c }));
+    const tallaOptions: Option[] = cascadedOptions.tallas.map(t => ({ value: t, label: t }));
+    const tipoComponenteOptions: Option[] = cascadedOptions.tiposComponente.map(t => ({ value: t, label: t }));
+    const proveedorOptions: Option[] = cascadedOptions.proveedores.map(p => ({ value: p, label: p }));
 
     const handleFilterVisibilityChange = (newFilters: string[]) => {
         setVisibleFilters(newFilters);
+    };
+
+    // Map of filter key → rendered component
+    const filterComponents: Record<string, React.ReactNode> = {
+        status: (
+            <FilterCombobox
+                label="Estado"
+                options={statusOptions}
+                value={currentStatus}
+                onChange={(vals) => updateFilter("status", vals)}
+                placeholder="Todos"
+            />
+        ),
+        category: (
+            <FilterCombobox
+                label="Categoría"
+                options={categoryOptions}
+                value={currentCategory}
+                onChange={(vals) => updateFilter("category", vals)}
+                placeholder="Todas"
+            />
+        ),
+        brand: (
+            <FilterCombobox
+                label="Marca"
+                options={brandOptions}
+                value={currentBrand}
+                onChange={(vals) => updateFilter("brand", vals)}
+                placeholder="Todas"
+            />
+        ),
+        tipoComponente: (
+            <FilterCombobox
+                label="Tipo Componente"
+                options={tipoComponenteOptions}
+                value={currentTipoComponente}
+                onChange={(vals) => updateFilter("tipoComponente", vals)}
+                placeholder="Todos"
+            />
+        ),
+        filterSku: (
+            <FilterTextInput
+                label="SKU"
+                value={currentFilterSku}
+                onChange={(val) => updateTextFilter("filterSku", val)}
+                placeholder="Filtrar por SKU..."
+            />
+        ),
+        filterNombre: (
+            <FilterTextInput
+                label="Nombre"
+                value={currentFilterNombre}
+                onChange={(val) => updateTextFilter("filterNombre", val)}
+                placeholder="Filtrar por nombre..."
+            />
+        ),
+        filterModelo: (
+            <FilterTextInput
+                label="Modelo"
+                value={currentFilterModelo}
+                onChange={(val) => updateTextFilter("filterModelo", val)}
+                placeholder="Filtrar por modelo..."
+            />
+        ),
+        filterPotencia: (
+            <FilterTextInput
+                label="Potencia"
+                value={currentFilterPotencia}
+                onChange={(val) => updateTextFilter("filterPotencia", val)}
+                placeholder="Filtrar por potencia..."
+            />
+        ),
+        talla: (
+            <FilterCombobox
+                label="Talla"
+                options={tallaOptions}
+                value={currentTalla}
+                onChange={(vals) => updateFilter("talla", vals)}
+                placeholder="Todas"
+            />
+        ),
+        estante: (
+            <FilterCombobox
+                label="Ubicación"
+                options={estanteOptions}
+                value={currentEstante}
+                onChange={(vals) => updateFilter("estante", vals)}
+                placeholder="Todas"
+            />
+        ),
+        nivel: (
+            <FilterCombobox
+                label="Nivel"
+                options={nivelOptions}
+                value={currentNivel}
+                onChange={(vals) => updateFilter("nivel", vals)}
+                placeholder="Todos"
+            />
+        ),
+        clasificacion: (
+            <FilterCombobox
+                label="Clasificación"
+                options={clasificacionOptions}
+                value={currentClasificacion}
+                onChange={(vals) => updateFilter("clasificacion", vals)}
+                placeholder="Todas"
+            />
+        ),
+        proveedor: (
+            <FilterCombobox
+                label="Proveedor"
+                options={proveedorOptions}
+                value={currentProveedor}
+                onChange={(vals) => updateFilter("proveedor", vals)}
+                placeholder="Todos"
+            />
+        ),
     };
 
     return (
@@ -144,136 +378,16 @@ export function InventoryControls({ categories, brands, estantes, clasificacione
                 {/* Filter Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-flow-col xl:auto-cols-fr gap-3 w-full flex-1">
 
-                    {displayedFilters.includes("status") && (
-                        <FilterCombobox
-                            label="Estado"
-                            options={statusOptions}
-                            value={currentStatus}
-                            onChange={(vals) => updateFilter("status", vals)}
-                            placeholder="Todos"
-                        />
-                    )}
-
-                    {displayedFilters.includes("category") && (
-                        <FilterCombobox
-                            label="Categoría"
-                            options={categoryOptions}
-                            value={currentCategory}
-                            onChange={(vals) => updateFilter("category", vals)}
-                            placeholder="Todas"
-                        />
-                    )}
-
-                    {displayedFilters.includes("brand") && (
-                        <FilterCombobox
-                            label="Marca"
-                            options={brandOptions}
-                            value={currentBrand}
-                            onChange={(vals) => updateFilter("brand", vals)}
-                            placeholder="Todas"
-                        />
-                    )}
-
-                    {displayedFilters.includes("tipoComponente") && (
-                        <FilterCombobox
-                            label="Tipo Componente"
-                            options={tipoComponenteOptions}
-                            value={currentTipoComponente}
-                            onChange={(vals) => updateFilter("tipoComponente", vals)}
-                            placeholder="Todos"
-                        />
-                    )}
-
-                    {displayedFilters.includes("filterSku") && (
-                        <FilterTextInput
-                            label="SKU"
-                            value={currentFilterSku}
-                            onChange={(val) => updateTextFilter("filterSku", val)}
-                            placeholder="Filtrar por SKU..."
-                        />
-                    )}
-
-                    {displayedFilters.includes("filterNombre") && (
-                        <FilterTextInput
-                            label="Nombre"
-                            value={currentFilterNombre}
-                            onChange={(val) => updateTextFilter("filterNombre", val)}
-                            placeholder="Filtrar por nombre..."
-                        />
-                    )}
-
-                    {displayedFilters.includes("filterModelo") && (
-                        <FilterTextInput
-                            label="Modelo"
-                            value={currentFilterModelo}
-                            onChange={(val) => updateTextFilter("filterModelo", val)}
-                            placeholder="Filtrar por modelo..."
-                        />
-                    )}
-
-                    {displayedFilters.includes("filterPotencia") && (
-                        <FilterTextInput
-                            label="Potencia"
-                            value={currentFilterPotencia}
-                            onChange={(val) => updateTextFilter("filterPotencia", val)}
-                            placeholder="Filtrar por potencia..."
-                        />
-                    )}
-
-                    {displayedFilters.includes("talla") && (
-                        <FilterCombobox
-                            label="Talla"
-                            options={tallaOptions}
-                            value={currentTalla}
-                            onChange={(vals) => updateFilter("talla", vals)}
-                            placeholder="Todas"
-                        />
-                    )}
-
-                    {displayedFilters.includes("estante") && (
-                        <FilterCombobox
-                            label="Ubicación"
-                            options={estanteOptions}
-                            value={currentEstante}
-                            onChange={(vals) => updateFilter("estante", vals)}
-                            placeholder="Todas"
-                        />
-                    )}
-
-                    {displayedFilters.includes("nivel") && (
-                        <FilterCombobox
-                            label="Nivel"
-                            options={nivelOptions}
-                            value={currentNivel}
-                            onChange={(vals) => updateFilter("nivel", vals)}
-                            placeholder="Todos"
-                        />
-                    )}
-
-                    {displayedFilters.includes("clasificacion") && (
-                        <FilterCombobox
-                            label="Clasificación"
-                            options={clasificacionOptions}
-                            value={currentClasificacion}
-                            onChange={(vals) => updateFilter("clasificacion", vals)}
-                            placeholder="Todas"
-                        />
-                    )}
-
-                    {displayedFilters.includes("proveedor") && (
-                        <FilterCombobox
-                            label="Proveedor"
-                            options={proveedorOptions}
-                            value={currentProveedor}
-                            onChange={(vals) => updateFilter("proveedor", vals)}
-                            placeholder="Todos"
-                        />
-                    )}
+                    {sortedDisplayedFilters.map(filterKey => (
+                        sortedDisplayedFilters.includes(filterKey) && filterComponents[filterKey] ? (
+                            <div key={filterKey}>{filterComponents[filterKey]}</div>
+                        ) : null
+                    ))}
 
                     {/* Add Filter Button */}
                     <div className="flex items-end gap-2">
                         <FilterVisibilityManager
-                            availableFilters={AVAILABLE_FILTERS}
+                            availableFilters={orderedAvailableFilters}
                             visibleFilters={displayedFilters}
                             onChange={handleFilterVisibilityChange}
                         />

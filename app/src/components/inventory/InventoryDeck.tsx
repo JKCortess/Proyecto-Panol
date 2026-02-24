@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, Ruler, DollarSign, MapPin, Tag, Package, Pencil } from "lucide-react";
+import { AlertCircle, Ruler, DollarSign, MapPin, Tag, Package } from "lucide-react";
 import { ImageCarousel } from "@/components/inventory/ImageCarousel";
 import { InventoryCardActions } from "@/components/inventory/InventoryCardActions";
 import { EditItemModal } from "@/components/inventory/EditItemModal";
@@ -16,6 +16,7 @@ interface InventoryDeckProps {
 export function InventoryDeck({ groupedItems, isAdmin }: InventoryDeckProps) {
     const router = useRouter();
     const [editingItem, setEditingItem] = useState<GroupedInventoryItem | null>(null);
+    const [editVariantInfo, setEditVariantInfo] = useState<{ talla?: string; stock: number; rop: number } | null>(null);
 
     const handleSaved = useCallback(() => {
         // Re-fetch the page after a successful save to reflect Google Sheets changes
@@ -35,7 +36,7 @@ export function InventoryDeck({ groupedItems, isAdmin }: InventoryDeckProps) {
                     const isCritical = effectiveRop > 0 && effectiveStock <= effectiveRop;
 
                     return (
-                        <div key={`${item.nombre}-${item.marca}-${item.categoria}-${index}`} className={`group relative bg-white dark:bg-slate-900 rounded-xl overflow-hidden border transition-all duration-300 hover:shadow-2xl hover:scale-[1.01] ui-card ${isCritical ? 'border-red-500/50 shadow-red-900/10' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'}`}>
+                        <div key={`${item.nombre}-${item.marca}-${item.categoria}-${index}`} className={`group relative flex flex-col bg-white dark:bg-slate-900 rounded-xl overflow-hidden border transition-all duration-300 hover:shadow-2xl hover:scale-[1.01] ui-card ${isCritical ? 'border-red-500/50 shadow-red-900/10' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'}`}>
 
                             {isCritical && (
                                 <div className="absolute top-0 left-1/2 -translate-x-1/2 transform bg-red-600 text-white text-[10px] font-bold px-3 py-0.5 rounded-b-lg shadow-lg shadow-red-900/50 z-10 flex items-center gap-1 border-b border-x border-red-400/30">
@@ -43,43 +44,39 @@ export function InventoryDeck({ groupedItems, isAdmin }: InventoryDeckProps) {
                                 </div>
                             )}
 
-                            {/* Admin edit button */}
-                            {isAdmin && (
-                                <button
-                                    onClick={() => setEditingItem(item)}
-                                    className="absolute top-3 right-3 z-20 p-1.5 rounded-lg bg-amber-500/90 hover:bg-amber-500 text-white shadow-lg shadow-amber-900/20 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110 cursor-pointer"
-                                    title="Editar ítem"
-                                >
-                                    <Pencil className="w-3.5 h-3.5" />
-                                </button>
-                            )}
+                            {/* Admin edit button removed from here — now triggered via InventoryCardActions */}
 
-                            {/* Size count badge */}
-                            {item.hasSizes && item.variants.length > 1 && (
-                                <div className="absolute top-3 left-3 z-20">
-                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-600/80 text-white border border-purple-400/30 backdrop-blur-sm flex items-center gap-1">
-                                        <Ruler className="w-3 h-3" />
-                                        {item.variants.length} tallas
-                                    </span>
-                                </div>
-                            )}
+
 
                             {/* Image Area — Carousel */}
-                            <ImageCarousel fotos={item.fotos} alt={item.nombre} marca={item.marca} />
+                            <ImageCarousel fotos={item.fotos} alt={item.nombre} marca={item.marca} sizesCount={item.hasSizes && item.variants.length > 1 ? item.variants.length : undefined} />
 
                             {/* Content Area */}
-                            <div className="p-5 space-y-3">
-                                <div>
-                                    <h3 className="font-bold text-base text-slate-900 dark:text-slate-100 line-clamp-1 group-hover:text-black dark:group-hover:text-white transition-colors" title={item.nombre}>{item.nombre}</h3>
+                            <div className="p-5 flex flex-col gap-3 flex-1">
+                                {/* Brand Badge — consistent position */}
+                                <div className="h-6 flex items-center">
+                                    {item.marca ? (
+                                        <span className="inline-flex items-center text-[10px] font-semibold tracking-wide uppercase px-2.5 py-1 rounded-full bg-white/60 dark:bg-white/[0.08] text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-white/[0.12] backdrop-blur-sm shadow-sm">
+                                            {item.marca}
+                                        </span>
+                                    ) : (
+                                        <span className="inline-flex items-center text-[10px] font-semibold tracking-wide uppercase px-2.5 py-1 rounded-full text-transparent select-none">—</span>
+                                    )}
+                                </div>
+
+                                {/* Title block — fixed height for 2 lines */}
+                                <div className="min-h-[4.25rem]">
+                                    <h3 className="font-bold text-base text-slate-900 dark:text-slate-100 line-clamp-2 leading-snug group-hover:text-black dark:group-hover:text-white transition-colors" title={item.nombre}>{item.nombre}</h3>
                                     <p className="text-xs font-mono text-slate-500 mt-0.5">SKU: {item.sku}</p>
+                                </div>
+
+                                {/* Category + Description — fixed height */}
+                                <div className="min-h-[1.75rem]">
                                     {item.categoria && (
-                                        <span className="inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
                                             <Tag className="w-3 h-3" />
                                             {item.categoria}
                                         </span>
-                                    )}
-                                    {item.descripcion_general && (
-                                        <p className="text-[11px] text-slate-400 mt-1 line-clamp-2" title={item.descripcion_general}>{item.descripcion_general}</p>
                                     )}
                                 </div>
 
@@ -138,6 +135,11 @@ export function InventoryDeck({ groupedItems, isAdmin }: InventoryDeckProps) {
                                     variants={item.hasSizes && item.variants.length > 1 ? item.variants.map(v => ({ talla: v.talla, stock: v.stock, rop: v.rop })) : undefined}
                                     totalStock={item.hasSizes && item.variants.length > 1 ? item.totalStock : undefined}
                                     maxRop={item.hasSizes && item.variants.length > 1 ? item.maxRop : undefined}
+                                    isAdmin={isAdmin}
+                                    onEditClick={isAdmin ? (variantInfo) => {
+                                        setEditVariantInfo(variantInfo);
+                                        setEditingItem(item);
+                                    } : undefined}
                                 />
                             </div>
                         </div>
@@ -149,21 +151,26 @@ export function InventoryDeck({ groupedItems, isAdmin }: InventoryDeckProps) {
             {editingItem && (
                 <EditItemModal
                     open={!!editingItem}
-                    onClose={() => setEditingItem(null)}
+                    onClose={() => { setEditingItem(null); setEditVariantInfo(null); }}
                     item={{
                         sku: editingItem.sku,
                         nombre: editingItem.nombre,
-                        talla: editingItem.hasSizes && editingItem.variants.length === 1 ? editingItem.variants[0].talla : undefined,
+                        talla: editVariantInfo?.talla || (editingItem.hasSizes && editingItem.variants.length === 1 ? editingItem.variants[0].talla : undefined),
                         foto: editingItem.fotos.length > 0 ? editingItem.fotos[0] : undefined,
                         marca: editingItem.marca || undefined,
                         categoria: editingItem.categoria,
-                        stock: editingItem.hasSizes && editingItem.variants.length === 1
-                            ? editingItem.variants[0].stock
-                            : editingItem.totalStock,
-                        rop: editingItem.hasSizes && editingItem.variants.length === 1
-                            ? editingItem.variants[0].rop
-                            : editingItem.maxRop,
-                        valor: editingItem.valor,
+                        stock: editVariantInfo?.stock ?? (
+                            editingItem.hasSizes && editingItem.variants.length === 1
+                                ? editingItem.variants[0].stock
+                                : editingItem.totalStock
+                        ),
+                        rop: editVariantInfo?.rop ?? (
+                            editingItem.hasSizes && editingItem.variants.length === 1
+                                ? editingItem.variants[0].rop
+                                : editingItem.maxRop
+                        ),
+                        valor_aprox_clp: editingItem.valor_aprox_clp,
+                        valor_spex: editingItem.valor_confirmado_spex,
                         estante_nro: editingItem.estante_nro,
                         estante_nivel: editingItem.estante_nivel,
                         descripcion_general: editingItem.descripcion_general,

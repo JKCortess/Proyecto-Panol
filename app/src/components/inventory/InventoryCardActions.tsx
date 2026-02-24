@@ -1,7 +1,7 @@
 "use client";
 
 import { useCart } from "@/context/cart-context";
-import { Plus, ShoppingCart, Ruler, AlertTriangle } from "lucide-react";
+import { Plus, ShoppingCart, Ruler, AlertTriangle, Pencil } from "lucide-react";
 import { useState, useEffect } from "react";
 
 interface SizeVariantInfo {
@@ -26,9 +26,12 @@ interface InventoryCardActionsProps {
     totalStock?: number;
     /** Max ROP across variants */
     maxRop?: number;
+    /** Admin-only: called when edit is clicked, passes selected variant info */
+    onEditClick?: (variantInfo: { talla?: string; stock: number; rop: number }) => void;
+    isAdmin?: boolean;
 }
 
-export function InventoryCardActions({ sku, nombre, valor, imagen, marca, talla, stock, variants, totalStock, maxRop }: InventoryCardActionsProps) {
+export function InventoryCardActions({ sku, nombre, valor, imagen, marca, talla, stock, variants, totalStock, maxRop, onEditClick, isAdmin }: InventoryCardActionsProps) {
     const { addToCart, cart } = useCart();
     const [quantity, setQuantity] = useState(1);
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -102,8 +105,53 @@ export function InventoryCardActions({ sku, nombre, valor, imagen, marca, talla,
         : undefined;
     const isCritical = currentRop !== undefined && currentRop > 0 && currentStock !== undefined && currentStock <= currentRop;
 
+    const handleEditClick = () => {
+        if (!onEditClick) return;
+        if (hasMultipleSizes && selectedIndex !== null) {
+            // Specific variant selected
+            onEditClick({
+                talla: variants![selectedIndex].talla,
+                stock: variants![selectedIndex].stock,
+                rop: variants![selectedIndex].rop,
+            });
+        } else if (hasMultipleSizes) {
+            // "Todas" selected — pass total stock, no specific talla
+            onEditClick({
+                talla: undefined,
+                stock: totalStock ?? 0,
+                rop: maxRop ?? 0,
+            });
+        } else {
+            // Single item or single variant
+            onEditClick({
+                talla: talla || undefined,
+                stock: stock ?? 0,
+                rop: 0,
+            });
+        }
+    };
+
     return (
         <div className="space-y-2 w-full">
+            {/* Admin Edit Button */}
+            {isAdmin && onEditClick && (() => {
+                const editDisabled = hasMultipleSizes && selectedIndex === null;
+                return (
+                    <button
+                        onClick={editDisabled ? undefined : handleEditClick}
+                        disabled={editDisabled}
+                        className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border text-xs font-semibold transition-all duration-200 ${editDisabled
+                            ? 'bg-slate-100 dark:bg-slate-800/40 border-slate-300 dark:border-slate-700 text-slate-400 dark:text-slate-600 cursor-not-allowed opacity-60'
+                            : 'bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/30 text-amber-600 dark:text-amber-400 hover:scale-[1.01]'
+                            }`}
+                        title={editDisabled ? "Selecciona una talla para editar" : "Editar ítem"}
+                    >
+                        <Pencil className="w-3.5 h-3.5" />
+                        {editDisabled ? 'Selecciona talla para editar' : `Editar Ítem${hasMultipleSizes && selectedIndex !== null ? ` (${variants![selectedIndex].talla})` : ''}`}
+                    </button>
+                );
+            })()}
+
             {/* Talla Selector + Stock for multi-size items */}
             {hasMultipleSizes && (
                 <div className="space-y-2">

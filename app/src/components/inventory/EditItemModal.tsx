@@ -29,7 +29,8 @@ const FIELD_LABELS: Record<string, string> = {
     nombre: "Nombre",
     stock: "Stock",
     rop: "Mín. (ROP)",
-    valor: "Valor CLP",
+    valor_aprox_clp: "Valor aprox (CLP)",
+    valor_spex: "Valor SPEX",
     estante_nro: "Estante Nro",
     estante_nivel: "Nivel Estante",
     descripcion_general: "Descripción",
@@ -51,7 +52,8 @@ interface EditItemModalProps {
         categoria?: string;
         stock: number;
         rop: number;
-        valor: number;
+        valor_aprox_clp: number;
+        valor_spex: number;
         estante_nro: string;
         estante_nivel: string;
         descripcion_general: string;
@@ -69,7 +71,8 @@ export function EditItemModal({ open, onClose, item, onSaved }: EditItemModalPro
     const [nombre, setNombre] = useState(item.nombre);
     const [stock, setStock] = useState(item.stock);
     const [rop, setRop] = useState(item.rop);
-    const [valor, setValor] = useState(item.valor);
+    const [valorAprox, setValorAprox] = useState(item.valor_aprox_clp);
+    const [valorSpex, setValorSpex] = useState(item.valor_spex);
     const [estanteNro, setEstanteNro] = useState(item.estante_nro);
     const [estanteNivel, setEstanteNivel] = useState(item.estante_nivel);
     const [descripcion, setDescripcion] = useState(item.descripcion_general);
@@ -83,7 +86,8 @@ export function EditItemModal({ open, onClose, item, onSaved }: EditItemModalPro
         setNombre(item.nombre);
         setStock(item.stock);
         setRop(item.rop);
-        setValor(item.valor);
+        setValorAprox(item.valor_aprox_clp);
+        setValorSpex(item.valor_spex);
         setEstanteNro(item.estante_nro);
         setEstanteNivel(item.estante_nivel);
         setDescripcion(item.descripcion_general);
@@ -115,7 +119,8 @@ export function EditItemModal({ open, onClose, item, onSaved }: EditItemModalPro
         if (nombre !== item.nombre) changes.push({ field: "nombre", label: FIELD_LABELS.nombre, oldValue: item.nombre, newValue: nombre });
         if (stock !== item.stock) changes.push({ field: "stock", label: FIELD_LABELS.stock, oldValue: item.stock, newValue: stock });
         if (rop !== item.rop) changes.push({ field: "rop", label: FIELD_LABELS.rop, oldValue: item.rop, newValue: rop });
-        if (valor !== item.valor) changes.push({ field: "valor", label: FIELD_LABELS.valor, oldValue: item.valor, newValue: valor });
+        if (valorAprox !== item.valor_aprox_clp) changes.push({ field: "valor_aprox_clp", label: FIELD_LABELS.valor_aprox_clp, oldValue: item.valor_aprox_clp, newValue: valorAprox });
+        if (valorSpex !== item.valor_spex) changes.push({ field: "valor_spex", label: FIELD_LABELS.valor_spex, oldValue: item.valor_spex, newValue: valorSpex });
         if (estanteNro !== item.estante_nro) changes.push({ field: "estante_nro", label: FIELD_LABELS.estante_nro, oldValue: item.estante_nro || "-", newValue: estanteNro || "-" });
         if (estanteNivel !== item.estante_nivel) changes.push({ field: "estante_nivel", label: FIELD_LABELS.estante_nivel, oldValue: item.estante_nivel || "-", newValue: estanteNivel || "-" });
         if (descripcion !== item.descripcion_general) changes.push({ field: "descripcion_general", label: FIELD_LABELS.descripcion_general, oldValue: item.descripcion_general || "-", newValue: descripcion || "-" });
@@ -124,7 +129,7 @@ export function EditItemModal({ open, onClose, item, onSaved }: EditItemModalPro
         if (marca !== (item.marca || "")) changes.push({ field: "marca", label: FIELD_LABELS.marca, oldValue: item.marca || "-", newValue: marca || "-" });
         if (proveedor !== (item.proveedor || "")) changes.push({ field: "proveedor", label: FIELD_LABELS.proveedor, oldValue: item.proveedor || "-", newValue: proveedor || "-" });
         return changes;
-    }, [nombre, stock, rop, valor, estanteNro, estanteNivel, descripcion, observacion, categoria, marca, proveedor, item]);
+    }, [nombre, stock, rop, valorAprox, valorSpex, estanteNro, estanteNivel, descripcion, observacion, categoria, marca, proveedor, item]);
 
     const handleRequestSave = useCallback(() => {
         if (changedFields.length === 0) {
@@ -141,7 +146,8 @@ export function EditItemModal({ open, onClose, item, onSaved }: EditItemModalPro
         if (nombre !== item.nombre) updates.nombre = nombre;
         if (stock !== item.stock) updates.stock = stock;
         if (rop !== item.rop) updates.rop = rop;
-        if (valor !== item.valor) updates.valor = valor;
+        if (valorAprox !== item.valor_aprox_clp) updates.valor_aprox_clp = valorAprox;
+        if (valorSpex !== item.valor_spex) updates.valor_spex = valorSpex;
         if (estanteNro !== item.estante_nro) updates.estante_nro = estanteNro;
         if (estanteNivel !== item.estante_nivel) updates.estante_nivel = estanteNivel;
         if (descripcion !== item.descripcion_general) updates.descripcion_general = descripcion;
@@ -168,7 +174,7 @@ export function EditItemModal({ open, onClose, item, onSaved }: EditItemModalPro
         } finally {
             setSaving(false);
         }
-    }, [nombre, stock, rop, valor, estanteNro, estanteNivel, descripcion, observacion, categoria, marca, proveedor, item, onSaved, onClose]);
+    }, [nombre, stock, rop, valorAprox, valorSpex, estanteNro, estanteNivel, descripcion, observacion, categoria, marca, proveedor, item, onSaved, onClose]);
 
     // Standard input class (no icon)
     const inputCls = "w-full px-3.5 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 transition-all";
@@ -322,7 +328,7 @@ export function EditItemModal({ open, onClose, item, onSaved }: EditItemModalPro
                                     <DollarSign className="w-3.5 h-3.5" />
                                     Stock y Precio
                                 </h3>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                                     <div>
                                         <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Stock Actual</label>
                                         <input
@@ -343,17 +349,32 @@ export function EditItemModal({ open, onClose, item, onSaved }: EditItemModalPro
                                             className={`${inputCls} font-mono`}
                                         />
                                     </div>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Valor CLP</label>
+                                        <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Valor aprox (CLP)</label>
                                         <input
                                             type="number"
                                             min={0}
-                                            value={valor}
-                                            onChange={(e) => setValor(Math.max(0, parseInt(e.target.value) || 0))}
+                                            value={valorAprox}
+                                            onChange={(e) => setValorAprox(Math.max(0, parseInt(e.target.value) || 0))}
                                             className={`${inputCls} font-mono`}
+                                            placeholder="0"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Valor confirmado SPEX</label>
+                                        <input
+                                            type="number"
+                                            min={0}
+                                            value={valorSpex}
+                                            onChange={(e) => setValorSpex(Math.max(0, parseInt(e.target.value) || 0))}
+                                            className={`${inputCls} font-mono`}
+                                            placeholder="0"
                                         />
                                     </div>
                                 </div>
+                                <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-2 italic">La columna “Valor” del Google Sheet se calcula automáticamente.</p>
                             </div>
 
                             {/* Section: Ubicación */}

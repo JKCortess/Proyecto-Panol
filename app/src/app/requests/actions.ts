@@ -692,7 +692,11 @@ export async function getRequestDetailForAdmin(requestId: string) {
     return { success: true, request: data };
 }
 
-export async function deliverRequest(requestId: string, deliveryDate: string) {
+export async function deliverRequest(
+    requestId: string,
+    deliveryDate: string,
+    deliveredItems?: { sku: string; quantity: number; detail: string; talla?: string; marca?: string; notes?: string; value?: number }[]
+) {
     const supabase = await createClient();
 
     // 1. Get the request details
@@ -710,17 +714,28 @@ export async function deliverRequest(requestId: string, deliveryDate: string) {
         return { error: 'La solicitud ya fue entregada' };
     }
 
-    const items = request.items_detail as { sku: string; quantity: number; detail: string; talla?: string }[];
+    const originalItems = request.items_detail as { sku: string; quantity: number; detail: string; talla?: string }[];
+    // Use delivered items if provided (admin modified), otherwise use original request
+    const itemsToDeliver = deliveredItems && deliveredItems.length > 0 ? deliveredItems : originalItems;
+    const wasModified = !!deliveredItems && deliveredItems.length > 0;
 
     const adminContext = await getAdminContext();
     if ('error' in adminContext) return { error: adminContext.error };
     const { adminId, adminName } = adminContext;
 
-    // Execute delivery transaction
-    const result = await deliverRequestRPC(requestId, deliveryDate, adminId, items);
+    // Execute delivery transaction with the items to actually deliver
+    const result = await deliverRequestRPC(requestId, deliveryDate, adminId, itemsToDeliver, wasModified ? deliveredItems : undefined);
 
     // Log the status change to Entregada ONLY if transaction succeeded
     if (result && 'success' in result && result.success && adminId) {
+        // Build delivery reason with modification details
+        let deliveryReason = `Entregada el ${new Date(deliveryDate).toLocaleDateString('es-CL')}`;
+        if (wasModified) {
+            const origCount = originalItems.reduce((s, i) => s + i.quantity, 0);
+            const delivCount = itemsToDeliver.reduce((s, i) => s + i.quantity, 0);
+            deliveryReason += ` (Modificada: ${origCount} solicitado(s) → ${delivCount} entregado(s))`;
+        }
+
         await supabase.from('request_status_log').insert({
             request_id: requestId,
             request_code: request.request_code,
@@ -728,7 +743,7 @@ export async function deliverRequest(requestId: string, deliveryDate: string) {
             new_status: 'Entregada',
             changed_by: adminId,
             changed_by_name: adminName,
-            reason: `Entregada el ${new Date(deliveryDate).toLocaleDateString('es-CL')}`,
+            reason: deliveryReason,
         });
 
         // Sync with Google Sheets
@@ -736,7 +751,7 @@ export async function deliverRequest(requestId: string, deliveryDate: string) {
         // If this fails, we log it, but the request remains in "Entregada" state in Supabase.
         try {
             const syncResult = await syncStockToSheets(
-                items.map(i => ({ sku: i.sku, quantity: i.quantity, talla: i.talla })),
+                itemsToDeliver.map(i => ({ sku: i.sku, quantity: i.quantity, talla: i.talla })),
                 adminId,
                 requestId,
                 deliveryDate
@@ -768,17 +783,28 @@ export async function deliverRequest(requestId: string, deliveryDate: string) {
 
 // Helper: deliver request via direct queries (no RPC needed)
 // Google Sheets is the source of truth for stock — Supabase only tracks status + audit log.
-async function deliverRequestRPC(requestId: string, deliveryDate: string, adminId: string | undefined, items: { sku: string; quantity: number; detail: string }[]) {
+async function deliverRequestRPC(
+    requestId: string,
+    deliveryDate: string,
+    adminId: string | undefined,
+    items: { sku: string; quantity: number; detail: string }[],
+    deliveredItems?: { sku: string; quantity: number; detail: string; talla?: string; marca?: string; notes?: string; value?: number }[]
+) {
     const supabase = await createClient();
 
-    // 1. Update request status to 'Entregada'
+    // 1. Update request status to 'Entregada' and save delivered items if modified
+    const updatePayload: Record<string, unknown> = {
+        status: 'Entregada',
+        delivered_at: deliveryDate,
+        updated_at: new Date().toISOString(),
+    };
+    if (deliveredItems) {
+        updatePayload.items_delivered = deliveredItems;
+    }
+
     const { error: statusError } = await supabase
         .from('material_requests')
-        .update({
-            status: 'Entregada',
-            delivered_at: deliveryDate,
-            updated_at: new Date().toISOString(),
-        })
+        .update(updatePayload)
         .eq('id', requestId);
 
     if (statusError) {

@@ -7,7 +7,9 @@ import { AdminUserTable } from "./AdminUserTable";
 import { AdminPermissionsPanel } from "./AdminPermissionsPanel";
 import { WebhookConfigPanel } from "./WebhookConfigPanel";
 import { AIConfigPanel } from "./AIConfigPanel";
+import { FilterConfigPanel } from "./FilterConfigPanel";
 import { getWebhookConfig } from "./webhook-actions";
+import { getFilterConfig } from "./filter-config-actions";
 
 export default async function AdminPage() {
     const isAdmin = await isCurrentUserAdmin();
@@ -16,10 +18,11 @@ export default async function AdminPage() {
         redirect('/');
     }
 
-    const [profiles, operadorPermissions, webhookConfig] = await Promise.all([
+    const [profiles, operadorPermissions, webhookConfig, filterConfig] = await Promise.all([
         getAllProfiles(),
         getRolePermissions('Operador'),
         getWebhookConfig(),
+        getFilterConfig(),
     ]);
 
     const adminCount = profiles.filter(p => p.role === 'Administrador').length;
@@ -71,6 +74,9 @@ export default async function AdminPage() {
                         <p className="text-xs text-slate-500">Acceso restringido por permisos</p>
                     </IndustrialCard>
                 </div>
+
+                {/* Filter Configuration */}
+                <FilterConfigPanel defaultFilters={filterConfig.defaultFilters} filterOrder={filterConfig.filterOrder} />
 
                 {/* Webhook Configuration */}
                 <WebhookConfigPanel config={webhookConfig} />

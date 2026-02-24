@@ -140,13 +140,13 @@ export function FilterCombobox({
                                         className={cn(
                                             "flex items-center w-full px-2 py-2 text-xs font-medium rounded-lg cursor-pointer transition-all group",
                                             isSelected
-                                                ? "bg-slate-100 dark:bg-slate-700/40 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600"
+                                                ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-900 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-500/30"
                                                 : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white border border-transparent"
                                         )}
                                     >
                                         <div className={cn(
                                             "mr-2 h-4 w-4 rounded flex items-center justify-center transition-colors border",
-                                            isSelected ? "bg-slate-600 border-slate-600 text-white" : "bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 group-hover:border-slate-400 dark:group-hover:border-slate-600"
+                                            isSelected ? "bg-emerald-500 border-emerald-500 text-white" : "bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 group-hover:border-slate-400 dark:group-hover:border-slate-600"
                                         )}>
                                             {isSelected && <Check className="h-3 w-3" />}
                                         </div>

@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
-import { ChevronLeft, ChevronRight, Package, X, ZoomIn } from "lucide-react";
+import { ChevronLeft, ChevronRight, Package, X, ZoomIn, Ruler } from "lucide-react";
 import { createPortal } from "react-dom";
 
 interface ImageCarouselProps {
     fotos: string[];
     alt: string;
     marca?: string;
+    sizesCount?: number;
 }
 
 /* ========================================================================
@@ -406,7 +407,7 @@ function ImageLightbox({
 /* ========================================================================
  *  IMAGE CAROUSEL — Card-level image display with lightbox trigger
  * ====================================================================== */
-export function ImageCarousel({ fotos, alt, marca }: ImageCarouselProps) {
+export function ImageCarousel({ fotos, alt, marca, sizesCount }: ImageCarouselProps) {
     const [current, setCurrent] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
     const [hasError, setHasError] = useState(false);
@@ -463,13 +464,7 @@ export function ImageCarousel({ fotos, alt, marca }: ImageCarouselProps) {
             <div className="aspect-square w-full bg-slate-950 relative p-6 flex items-center justify-center group-hover:bg-slate-950/80 transition-colors">
                 <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.05]"></div>
                 <Package className="w-16 h-16 text-slate-800 relative z-10" />
-                {marca && (
-                    <div className="absolute bottom-2 left-2 z-10">
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-900/80 text-slate-300 border border-slate-700/50 backdrop-blur-sm">
-                            {marca}
-                        </span>
-                    </div>
-                )}
+
             </div>
         );
     }
@@ -502,21 +497,24 @@ export function ImageCarousel({ fotos, alt, marca }: ImageCarouselProps) {
                             <Package className="w-16 h-16 text-slate-700" />
                         </div>
                     )}
+                    {/* Sizes badge for single photo */}
+                    {sizesCount && (
+                        <div className="absolute top-2 left-2 z-20">
+                            <span className="text-[10px] font-bold font-mono px-2 py-1 rounded-md bg-purple-600/80 text-white/90 backdrop-blur-sm border border-purple-400/30 flex items-center gap-1">
+                                <Ruler className="w-3 h-3" />
+                                {sizesCount} Tallas
+                            </span>
+                        </div>
+                    )}
                     {/* Zoom hint */}
                     {!hasError && !isLoading && (
-                        <div className="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="absolute bottom-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
                             <div className="w-7 h-7 rounded-md bg-black/50 backdrop-blur-sm border border-white/10 flex items-center justify-center">
                                 <ZoomIn className="w-3.5 h-3.5 text-white/70" />
                             </div>
                         </div>
                     )}
-                    {marca && (
-                        <div className="absolute bottom-2 left-2 z-10">
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-900/80 text-slate-300 border border-slate-700/50 backdrop-blur-sm">
-                                {marca}
-                            </span>
-                        </div>
-                    )}
+
                 </div>
 
                 {/* Lightbox */}
@@ -572,7 +570,7 @@ export function ImageCarousel({ fotos, alt, marca }: ImageCarouselProps) {
 
                     {/* Zoom hint on hover */}
                     {!hasError && !isLoading && (
-                        <div className="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                        <div className="absolute bottom-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                             <div className="w-7 h-7 rounded-md bg-black/50 backdrop-blur-sm border border-white/10 flex items-center justify-center">
                                 <ZoomIn className="w-3.5 h-3.5 text-white/70" />
                             </div>
@@ -580,11 +578,17 @@ export function ImageCarousel({ fotos, alt, marca }: ImageCarouselProps) {
                     )}
                 </div>
 
-                {/* Counter Badge */}
-                <div className="absolute top-2 left-2 z-20">
+                {/* Counter Badge + Tallas Badge */}
+                <div className="absolute top-2 left-2 z-20 flex items-center gap-1.5">
                     <span className="text-[10px] font-bold font-mono px-2 py-1 rounded-md bg-black/60 text-white/80 backdrop-blur-sm border border-white/10">
                         {current + 1}/{total}
                     </span>
+                    {sizesCount && (
+                        <span className="text-[10px] font-bold font-mono px-2 py-1 rounded-md bg-purple-600/80 text-white/90 backdrop-blur-sm border border-purple-400/30 flex items-center gap-1">
+                            <Ruler className="w-3 h-3" />
+                            {sizesCount} Tallas
+                        </span>
+                    )}
                 </div>
 
                 {/* Prev Button */}
@@ -620,14 +624,7 @@ export function ImageCarousel({ fotos, alt, marca }: ImageCarouselProps) {
                     ))}
                 </div>
 
-                {/* Brand Badge */}
-                {marca && (
-                    <div className="absolute bottom-10 left-2 z-20">
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-900/80 text-slate-300 border border-slate-700/50 backdrop-blur-sm">
-                            {marca}
-                        </span>
-                    </div>
-                )}
+
             </div>
 
             {/* Lightbox */}

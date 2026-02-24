@@ -1,4 +1,5 @@
 ﻿import { createClient } from "@/utils/supabase/server";
+import { getInventory, invalidateInventoryCache, type InventoryItem } from "@/lib/data";
 import { IndustrialCard } from "@/components/ui/IndustrialCard";
 import {
   Search,
@@ -89,73 +90,40 @@ export default async function Dashboard({
   } = await supabase.auth.getUser();
 
   /* ═══════════════════════════════════════════════
-     INVENTORY DATA — Direct from Supabase
+     INVENTORY DATA — From Google Sheets (source of truth)
      ═══════════════════════════════════════════════ */
-  const [
-    { data: inventoryStats },
-    { data: categoryBreakdown },
-    { data: criticalItemsRaw },
-  ] = await Promise.all([
-    supabase.rpc("get_inventory_stats").maybeSingle() as unknown as Promise<{
-      data: { total_items: number; total_stock: number; critical_count: number; total_value: number } | null;
-    }>,
-    // Fallback: direct query for categories
-    supabase
-      .from("inventory")
-      .select("category, stock_current")
-      .order("category"),
-    // Critical items
-    supabase
-      .from("inventory")
-      .select("sku, name, brand, stock_current, rop, shelf_number, image_url")
-      .gt("rop", 0)
-      .order("stock_current", { ascending: true })
-      .limit(6),
-  ]);
+  invalidateInventoryCache(); // Always get fresh data on dashboard load
+  const allInventoryItems = await getInventory();
 
-  // Compute inventory KPIs from raw data if RPC doesn't exist
-  let totalItems = 0;
-  let totalStock = 0;
-  let criticalCount = 0;
-  let totalValueCLP = 0;
-
-  if (inventoryStats) {
-    totalItems = inventoryStats.total_items;
-    totalStock = inventoryStats.total_stock;
-    criticalCount = inventoryStats.critical_count;
-    totalValueCLP = inventoryStats.total_value;
-  }
-
-  // If RPC failed, compute from direct query
-  if (!inventoryStats) {
-    const { data: allInv } = await supabase
-      .from("inventory")
-      .select("stock_current, rop, value_clp");
-    const inv = allInv || [];
-    totalItems = inv.length;
-    totalStock = inv.reduce((s, i) => s + (i.stock_current || 0), 0);
-    criticalCount = inv.filter((i) => (i.rop || 0) > 0 && (i.stock_current || 0) <= (i.rop || 0)).length;
-    totalValueCLP = inv.reduce((s, i) => s + (i.value_clp || 0) * (i.stock_current || 0), 0);
-  }
+  // Compute inventory KPIs from Google Sheets data
+  const totalItems = allInventoryItems.length;
+  const totalStock = allInventoryItems.reduce((s, i) => s + (i.stock || 0), 0);
+  const criticalCount = allInventoryItems.filter(
+    (i) => (i.rop || 0) > 0 && (i.stock || 0) <= (i.rop || 0)
+  ).length;
+  const totalValueCLP = allInventoryItems.reduce(
+    (s, i) => s + (i.valor || 0) * (i.stock || 0),
+    0
+  );
 
   // Category chart data
   const catMap: Record<string, { items: number; stock: number }> = {};
-  (categoryBreakdown || []).forEach((r: { category: string | null; stock_current: number | null }) => {
-    const cat = r.category || "Sin categoría";
+  allInventoryItems.forEach((r) => {
+    const cat = r.categoria || "Sin categoría";
     if (!catMap[cat]) catMap[cat] = { items: 0, stock: 0 };
     catMap[cat].items++;
-    catMap[cat].stock += r.stock_current || 0;
+    catMap[cat].stock += r.stock || 0;
   });
   const categoryChartData: CategoryData[] = Object.entries(catMap)
     .map(([name, v]) => ({ name, items: v.items, stock: v.stock }))
     .sort((a, b) => b.items - a.items)
     .slice(0, 8);
 
-  // Critical items
-  const criticalItems = (criticalItemsRaw || []).filter(
-    (i: { rop: number | null; stock_current: number | null }) =>
-      (i.rop || 0) > 0 && (i.stock_current || 0) <= (i.rop || 0)
-  );
+  // Critical items (top 6, sorted by lowest stock)
+  const criticalItems = allInventoryItems
+    .filter((i) => (i.rop || 0) > 0 && (i.stock || 0) <= (i.rop || 0))
+    .sort((a, b) => (a.stock || 0) - (b.stock || 0))
+    .slice(0, 6);
 
   /* ═══════════════════════════════════════════════
      REQUEST DATA — From Supabase
@@ -732,24 +700,16 @@ export default async function Dashboard({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {criticalItems.length > 0 ? (
                 criticalItems.map(
-                  (item: {
-                    sku: string;
-                    name: string;
-                    brand: string | null;
-                    stock_current: number;
-                    rop: number;
-                    shelf_number: string | null;
-                    image_url: string | null;
-                  }) => (
+                  (item) => (
                     <div
                       key={item.sku}
                       className="p-3 rounded-xl flex items-center gap-3 hover:border-slate-600 transition-colors group" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
                     >
                       <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 overflow-hidden" style={{ background: 'var(--surface-hover)', border: '1px solid var(--border)' }}>
-                        {item.image_url ? (
+                        {item.fotos.length > 0 ? (
                           <Image
-                            src={item.image_url}
-                            alt={item.name}
+                            src={item.fotos[0]}
+                            alt={item.nombre}
                             width={40}
                             height={40}
                             className="object-cover w-full h-full opacity-80 group-hover:opacity-100 transition-opacity"
@@ -762,21 +722,21 @@ export default async function Dashboard({
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start">
                           <h4 className="font-medium text-sm truncate pr-2" style={{ color: 'var(--foreground)' }}>
-                            {item.name}
+                            {item.nombre}
                           </h4>
                           <span className="text-xs font-bold text-red-400 shrink-0">
-                            {item.stock_current} uds
+                            {item.stock} uds
                           </span>
                         </div>
                         <div className="flex items-center gap-2 mt-1">
                           <span className="text-[10px] text-slate-500 font-mono">
-                            {item.brand || "-"}
+                            {item.marca || "-"}
                           </span>
-                          {item.shelf_number && (
+                          {item.estante_nro && (
                             <>
                               <span className="text-slate-700">·</span>
                               <span className="text-[10px] text-slate-500 flex items-center gap-0.5">
-                                <MapPin className="w-2.5 h-2.5" />E{item.shelf_number}
+                                <MapPin className="w-2.5 h-2.5" />E{item.estante_nro}
                               </span>
                             </>
                           )}
@@ -786,7 +746,7 @@ export default async function Dashboard({
                             <div
                               className="h-full bg-gradient-to-r from-red-500 to-red-400 rounded-full"
                               style={{
-                                width: `${item.rop > 0 ? Math.min((item.stock_current / item.rop) * 100, 100) : 100}%`,
+                                width: `${item.rop > 0 ? Math.min((item.stock / item.rop) * 100, 100) : 100}%`,
                               }}
                             />
                           </div>

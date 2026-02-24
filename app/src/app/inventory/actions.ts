@@ -15,29 +15,31 @@ export interface InventoryItemUpdate {
     nombre?: string;          // Column B, index 1
     stock?: number;
     rop?: number;
-    valor?: number;           // Valor SPEX (Column R, index 17)
-    estante_nro?: string;     // Column M, index 12
-    estante_nivel?: string;   // Column N, index 13
-    descripcion_general?: string; // Column P, index 15
-    observacion?: string;     // Column O, index 14
+    valor_aprox_clp?: number; // Valor aprox CLP (Column Q, index 16)
+    valor_spex?: number;      // Valor confirmado SPEX (Column R, index 17)
+    estante_nro?: string;     // Column L, index 11
+    estante_nivel?: string;   // Column M, index 12
+    descripcion_general?: string; // Column O, index 14
+    observacion?: string;     // Column N, index 13
     categoria?: string;       // Column D, index 3
     marca?: string;           // Column E, index 4
-    proveedor?: string;       // Column Y, index 24
+    proveedor?: string;       // Column X, index 23
 }
 
 // Maps field names to their Google Sheets column letters
 const FIELD_COLUMN_MAP: Record<keyof InventoryItemUpdate, string> = {
     nombre: 'B',              // index 1
     stock: 'J',               // index 9
-    rop: 'T',                 // index 19
-    valor: 'R',               // index 17
-    estante_nro: 'M',         // index 12
-    estante_nivel: 'N',       // index 13
-    descripcion_general: 'P', // index 15
-    observacion: 'O',         // index 14
+    rop: 'V',                 // index 21
+    valor_aprox_clp: 'Q',     // index 16
+    valor_spex: 'R',          // index 17
+    estante_nro: 'L',         // index 11
+    estante_nivel: 'M',       // index 12
+    descripcion_general: 'O', // index 14
+    observacion: 'N',         // index 13
     categoria: 'D',           // index 3
     marca: 'E',               // index 4
-    proveedor: 'Y',           // index 24
+    proveedor: 'X',           // index 23
 };
 
 // Human-readable labels for audit log
@@ -45,7 +47,8 @@ const FIELD_LABELS: Record<string, string> = {
     nombre: "Nombre",
     stock: "Stock",
     rop: "Mín. (ROP)",
-    valor: "Valor CLP",
+    valor_aprox_clp: "Valor aprox (CLP)",
+    valor_spex: "Valor SPEX",
     estante_nro: "Estante Nro",
     estante_nivel: "Nivel Estante",
     descripcion_general: "Descripción",
@@ -62,15 +65,16 @@ const FIELD_LABELS: Record<string, string> = {
 const FIELD_ROW_INDEX: Record<keyof InventoryItemUpdate, number> = {
     nombre: 1,
     stock: 9,
-    rop: 19,
-    valor: 17,
-    estante_nro: 12,
-    estante_nivel: 13,
-    descripcion_general: 15,
-    observacion: 14,
+    rop: 21,
+    valor_aprox_clp: 16,
+    valor_spex: 17,
+    estante_nro: 11,
+    estante_nivel: 12,
+    descripcion_general: 14,
+    observacion: 13,
     categoria: 3,
     marca: 4,
-    proveedor: 24,
+    proveedor: 23,
 };
 
 /**
@@ -108,7 +112,7 @@ export async function updateInventoryItem(
         // We need A to Y (25 cols) to get old values for all editable fields
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: SPREADSHEET_ID,
-            range: "ITEMS!A2:Y",
+            range: "ITEMS!A2:X",
         });
 
         const rows = response.data.values;

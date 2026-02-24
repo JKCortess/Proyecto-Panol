@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.5.6 - 2026-02-23
+
+### ✨ Funcionalidades
+- **Edición requiere talla**: El botón "Editar Ítem" ahora se deshabilita en ítems con múltiples tallas hasta que se seleccione una talla específica — previene ediciones accidentales en la vista "Todas"
+- **Campos de valor separados**: El modal de edición ahora muestra dos campos independientes: "Valor aprox (CLP)" (columna Q) y "Valor confirmado SPEX" (columna R) — la columna "Valor" (S) se calcula automáticamente en el Google Sheet
+
+### 🐛 Correcciones
+- **Fix crítico mapeo de columnas**: Corregido desfase en 12 columnas de Google Sheets (N→X) — Observación, Descripción General, ROP, Safety Stock, Clasificación y Proveedor se leían/escribían en columnas incorrectas
+- El código asumía una columna `#` fantasma en N (index 13) que no existía, desplazando todo lo posterior
+
+### 🔧 Mantenimiento
+- Verificado mapeo de columnas contra Google Sheet real via navegador
+- Actualizados comentarios de documentación en `data.ts` y `actions.ts`
+
 ## v0.5.5 - 2026-02-23
 
 ### ✨ Funcionalidades

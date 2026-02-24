@@ -12,7 +12,10 @@ import {
     Mail,
     Hash,
     ExternalLink,
-    ShieldCheck
+    ShieldCheck,
+    ChevronDown,
+    PackageCheck,
+    Edit3
 } from "lucide-react";
 import Image from "next/image";
 import { StatusChip } from "@/components/ui/request-status";
@@ -70,13 +73,19 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
         value?: number;
         brand?: string;
         size?: string;
+        talla?: string;
+        marca?: string;
     };
     const items: RequestDetailItem[] = Array.isArray(req.items_detail) ? req.items_detail : [];
+    const deliveredItems: RequestDetailItem[] | null = Array.isArray(req.items_delivered) ? req.items_delivered : null;
+    const isDelivered = req.status === 'Entregada';
+    const hasModifications = isDelivered && deliveredItems !== null;
 
     // Calculate total value
-    const totalValue = items.reduce((acc, item) => acc + ((item.value || 0) * item.quantity), 0);
+    const displayItems = hasModifications ? deliveredItems : items;
+    const totalValue = displayItems.reduce((acc, item) => acc + ((item.value || 0) * item.quantity), 0);
     const hasValue = totalValue > 0;
-    const totalItems = items.reduce((acc, item) => acc + item.quantity, 0);
+    const totalItems = displayItems.reduce((acc, item) => acc + item.quantity, 0);
 
     return (
         <main className="min-h-screen p-4 md:p-8 lg:p-12 text-slate-200" style={{ background: 'transparent' }}>
@@ -212,18 +221,148 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
                     </div>
                 </div>
 
-                {/* ── Materials Detail Card ──────────────────────── */}
-                <div className="ui-card rounded-2xl overflow-hidden">
+                {/* ── Delivered Materials Card (shown when modified delivery exists) ─── */}
+                {hasModifications && deliveredItems && (
+                    <div className="ui-card rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                        {/* Header */}
+                        <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid var(--border)', background: 'rgba(16, 185, 129, 0.04)' }}>
+                            <h3 className="font-bold flex items-center gap-2.5" style={{ color: 'var(--foreground)' }}>
+                                <PackageCheck className="w-5 h-5 text-emerald-400" />
+                                Entrega Real
+                            </h3>
+                            <div className="flex items-center gap-2">
+                                <span className="text-[10px] bg-amber-500/15 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
+                                    <Edit3 className="w-3 h-3" />
+                                    Modificada
+                                </span>
+                                <span className="text-xs font-mono px-2.5 py-1 rounded-full" style={{ background: 'rgba(16, 185, 129, 0.12)', color: 'rgb(52, 211, 153)' }}>
+                                    {totalItems} {totalItems === 1 ? 'ítem' : 'ítems'}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Delivered Items List */}
+                        <div>
+                            {deliveredItems.map((item, idx: number) => {
+                                // Find matching original item for diff
+                                const originalItem = items.find(oi => oi.sku === item.sku && (oi.talla || oi.size || '') === (item.talla || item.size || ''));
+                                const isNewInDelivery = !originalItem;
+                                const qtyChanged = originalItem && originalItem.quantity !== item.quantity;
+
+                                return (
+                                    <div
+                                        key={idx}
+                                        className="p-5 md:p-6 flex flex-col md:flex-row md:items-center gap-4 transition-colors order-detail-item-row"
+                                        style={{
+                                            borderBottom: idx < deliveredItems.length - 1 ? '1px solid color-mix(in oklab, var(--border) 50%, transparent)' : 'none',
+                                        }}
+                                    >
+                                        {/* Thumbnail */}
+                                        <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 relative flex items-center justify-center" style={{ background: 'color-mix(in oklab, var(--surface) 80%, transparent)', border: '1px solid var(--border)' }}>
+                                            {item.imagen ? (
+                                                <Image
+                                                    src={item.imagen}
+                                                    alt={item.detail}
+                                                    fill
+                                                    className="object-cover"
+                                                    sizes="64px"
+                                                    unoptimized
+                                                />
+                                            ) : (
+                                                <Package className="w-6 h-6" style={{ color: 'var(--muted)' }} />
+                                            )}
+                                        </div>
+
+                                        {/* Item Details */}
+                                        <div className="flex-1 min-w-0 space-y-1.5">
+                                            <h4 className="font-semibold text-lg truncate" style={{ color: 'var(--foreground)' }} title={item.detail}>
+                                                {item.detail}
+                                            </h4>
+                                            <div className="flex items-center gap-3 text-sm flex-wrap">
+                                                {item.sku && (
+                                                    <span className="font-mono text-xs px-2 py-0.5 rounded-md" style={{ color: 'var(--brand)', background: 'color-mix(in oklab, var(--brand) 10%, transparent)' }}>
+                                                        {item.sku}
+                                                    </span>
+                                                )}
+                                                {(item.talla || item.size) && (
+                                                    <span className="text-xs px-2 py-0.5 rounded-md" style={{ color: '#c084fc', background: 'rgba(192,132,252, 0.08)' }}>
+                                                        Talla {item.talla || item.size}
+                                                    </span>
+                                                )}
+                                                {/* Diff badges */}
+                                                {isNewInDelivery && (
+                                                    <span className="text-xs px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-medium">
+                                                        Agregado en entrega
+                                                    </span>
+                                                )}
+                                                {qtyChanged && (
+                                                    <span className="text-xs px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-400 border border-amber-500/30 font-medium">
+                                                        Solicitado: {originalItem.quantity} → Entregado: {item.quantity}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Quantity */}
+                                        <div className="shrink-0 flex flex-row md:flex-col items-center md:items-end gap-3 md:gap-2 md:pl-4">
+                                            <span className="font-mono font-bold text-sm px-3 py-1.5 rounded-lg" style={{ background: 'color-mix(in oklab, var(--surface) 80%, transparent)', border: '1px solid var(--border)', color: 'var(--foreground)' }}>
+                                                × {item.quantity}
+                                            </span>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+
+                            {/* Show items that were NOT delivered from original */}
+                            {items.filter(origItem => {
+                                return !deliveredItems.some(di => di.sku === origItem.sku && (di.talla || di.size || '') === (origItem.talla || origItem.size || ''));
+                            }).map((item, idx) => (
+                                <div
+                                    key={`not-delivered-${idx}`}
+                                    className="p-5 md:p-6 flex flex-col md:flex-row md:items-center gap-4 opacity-50"
+                                    style={{
+                                        borderBottom: '1px solid color-mix(in oklab, var(--border) 30%, transparent)',
+                                    }}
+                                >
+                                    <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 relative flex items-center justify-center" style={{ background: 'color-mix(in oklab, var(--surface) 80%, transparent)', border: '1px solid var(--border)' }}>
+                                        <Package className="w-6 h-6" style={{ color: 'var(--muted)' }} />
+                                    </div>
+                                    <div className="flex-1 min-w-0 space-y-1.5">
+                                        <h4 className="font-semibold text-lg truncate line-through" style={{ color: 'var(--muted)' }} title={item.detail}>
+                                            {item.detail}
+                                        </h4>
+                                        <div className="flex items-center gap-3 text-sm flex-wrap">
+                                            <span className="text-xs px-2 py-0.5 rounded-md bg-red-500/15 text-red-400 border border-red-500/30 font-medium">
+                                                No entregado
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="shrink-0">
+                                        <span className="font-mono text-sm text-red-400/60 line-through">× {item.quantity}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* ── Materials Detail Card (Original Request) ──────────────────────── */}
+                <details className="ui-card rounded-2xl overflow-hidden" {...(!hasModifications ? { open: true } : {})}>
                     {/* Header */}
-                    <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid var(--border)', background: 'color-mix(in oklab, var(--surface) 40%, transparent)' }}>
+                    <summary className="px-6 py-4 flex items-center justify-between cursor-pointer list-none" style={{ borderBottom: '1px solid var(--border)', background: 'color-mix(in oklab, var(--surface) 40%, transparent)' }}>
                         <h3 className="font-bold flex items-center gap-2.5" style={{ color: 'var(--foreground)' }}>
                             <Package className="w-5 h-5" style={{ color: 'var(--brand)' }} />
-                            Detalle de Materiales
+                            {hasModifications ? 'Solicitud Original' : 'Detalle de Materiales'}
                         </h3>
-                        <span className="text-xs font-mono px-2.5 py-1 rounded-full" style={{ background: 'color-mix(in oklab, var(--brand) 12%, transparent)', color: 'var(--brand)' }}>
-                            {totalItems} {totalItems === 1 ? 'ítem' : 'ítems'}
-                        </span>
-                    </div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs font-mono px-2.5 py-1 rounded-full" style={{ background: 'color-mix(in oklab, var(--brand) 12%, transparent)', color: 'var(--brand)' }}>
+                                {items.reduce((acc, item) => acc + item.quantity, 0)} {items.reduce((acc, item) => acc + item.quantity, 0) === 1 ? 'ítem' : 'ítems'}
+                            </span>
+                            {hasModifications && (
+                                <ChevronDown className="w-4 h-4" style={{ color: 'var(--muted)' }} />
+                            )}
+                        </div>
+                    </summary>
 
                     {/* Items List */}
                     <div>
@@ -335,7 +474,7 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
                     </div>
 
                     {/* Total Footer (only if has value) */}
-                    {hasValue && (
+                    {hasValue && !hasModifications && (
                         <div className="px-6 py-4 flex items-center justify-between" style={{ borderTop: '1px solid var(--border)', background: 'color-mix(in oklab, var(--surface) 40%, transparent)' }}>
                             <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>
                                 Total Solicitud
@@ -345,7 +484,7 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
                             </span>
                         </div>
                     )}
-                </div>
+                </details>
 
                 {/* ── General Notes (if any) ──────────────────────── */}
                 {req.notes && (

@@ -1,5 +1,6 @@
 ﻿
 import { getInventory, groupItemsByIdentity, invalidateInventoryCache } from "@/lib/data";
+import { getFilterConfig } from "@/app/admin/filter-config-actions";
 
 // Force dynamic rendering — never serve stale cached pages.
 // Google Sheets is the source of truth; every navigation should show fresh data.
@@ -44,10 +45,11 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
     // Always invalidate cache on page load so manual Google Sheets edits are reflected
     invalidateInventoryCache();
 
-    // Fetch inventory data and check admin status in parallel
-    const [allItems, profile] = await Promise.all([
+    // Fetch inventory data, check admin status, and filter config in parallel
+    const [allItems, profile, filterConfig] = await Promise.all([
         getInventory(query),
         getUserProfile(),
+        getFilterConfig(),
     ]);
     const isAdmin = profile?.role === 'Administrador';
 
@@ -217,14 +219,8 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
                 {/* Controls Component */}
                 <div className="sticky top-2 z-30">
                     <InventoryControls
-                        categories={categories}
-                        brands={brands}
-                        estantes={estantes}
-                        clasificaciones={clasificaciones}
-                        niveles={niveles}
-                        tallas={tallas}
-                        tiposComponente={tiposComponente}
-                        proveedores={proveedores}
+                        allItems={allItems}
+                        filterConfig={filterConfig}
                     />
                 </div>
 
