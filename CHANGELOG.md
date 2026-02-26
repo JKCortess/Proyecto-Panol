@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.5.7 - 2026-02-25
+
+### ✨ Funcionalidades
+- **Editar SKU**: El modal de edición ahora permite cambiar el SKU del ítem (columna A del Google Sheet)
+- **Editar Tipo de Componente**: Nuevo campo editable en la sección "Clasificación" (columna C)
+- **Editar Safety Stock**: Nuevo campo numérico junto a ROP en la sección "Stock y Precio" (columna W)
+- **Mejoras en búsqueda IA**: Estrategia de búsqueda más robusta con matching parcial y múltiples queries
+- **Ítem no listado en carrito**: Opción para agregar ítems no encontrados al buscar en el carrito
+- **Historial de ediciones mejorado**: Cards expandibles con imágenes de componentes y enlace de re-edición
+
+### 🐛 Correcciones
+- Corregidos colores de texto en inputs para modo claro
+- Corregido backdrop blur del carrito en modo claro
+- Corregido color del estado "Entregada" (azul → verde)
+- Corregido overlap de inputs en escáner QR
+- Corregidos colores del modal de detalle en modo claro
+
+### 🔧 Mantenimiento
+- Layout de clasificación reorganizado: Categoría + Tipo Componente (fila 1), Marca + Proveedor (fila 2)
+- Grid de Stock y Precio ajustado a 3 columnas: Stock, ROP, Safety Stock
+
 ## v0.5.6 - 2026-02-23
 
 ### ✨ Funcionalidades

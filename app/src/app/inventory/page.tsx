@@ -1,5 +1,5 @@
 ﻿
-import { getInventory, groupItemsByIdentity, invalidateInventoryCache } from "@/lib/data";
+import { getInventory, groupItemsByIdentity } from "@/lib/data";
 import { getFilterConfig } from "@/app/admin/filter-config-actions";
 
 // Force dynamic rendering — never serve stale cached pages.
@@ -42,10 +42,8 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
     const params = await searchParams;
     const query = params.q || "";
 
-    // Always invalidate cache on page load so manual Google Sheets edits are reflected
-    invalidateInventoryCache();
-
     // Fetch inventory data, check admin status, and filter config in parallel
+    // Cache (60s TTL) prevents excessive API calls. Use "Actualizar Datos" button to force refresh.
     const [allItems, profile, filterConfig] = await Promise.all([
         getInventory(query),
         getUserProfile(),

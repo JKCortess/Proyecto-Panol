@@ -9,6 +9,16 @@ import { getInventory, type InventoryItem } from "@/lib/data";
  */
 
 /**
+ * Normalizes a string for search: lowercases and removes Spanish accents.
+ * This ensures "careta" matches "Careta", "ignifuga" matches "ignífuga", etc.
+ */
+function normalizeForSearch(str: string): string {
+    return str.toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+}
+
+/**
  * Searches inventory items by name, category, brand, or SKU.
  * Returns matching items with stock and location info.
  */
@@ -22,27 +32,27 @@ export async function searchInventory(params: {
     let filtered = allItems;
 
     if (params.query) {
-        const q = params.query.toLowerCase();
-        filtered = filtered.filter((item) =>
-            item.nombre.toLowerCase().includes(q) ||
-            item.sku.toLowerCase().includes(q) ||
-            item.descripcion_general.toLowerCase().includes(q) ||
-            item.uso_aplicacion.toLowerCase().includes(q) ||
-            item.observacion.toLowerCase().includes(q) ||
-            item.categoria.toLowerCase().includes(q) ||
-            item.marca.toLowerCase().includes(q)
-        );
+        // Multi-word, accent-normalized search across ALL relevant fields
+        const queryWords = normalizeForSearch(params.query).split(/\s+/).filter(Boolean);
+        filtered = filtered.filter((item) => {
+            const searchableText = normalizeForSearch(
+                [item.nombre, item.sku, item.descripcion_general, item.uso_aplicacion,
+                item.observacion, item.categoria, item.marca, item.tipo_componente,
+                item.modelo, item.clasificacion].join(' ')
+            );
+            return queryWords.every(word => searchableText.includes(word));
+        });
     }
     if (params.categoria) {
-        const cat = params.categoria.toLowerCase();
+        const cat = normalizeForSearch(params.categoria);
         filtered = filtered.filter((item) =>
-            item.categoria.toLowerCase().includes(cat)
+            normalizeForSearch(item.categoria).includes(cat)
         );
     }
     if (params.marca) {
-        const marca = params.marca.toLowerCase();
+        const marca = normalizeForSearch(params.marca);
         filtered = filtered.filter((item) =>
-            item.marca.toLowerCase().includes(marca)
+            normalizeForSearch(item.marca).includes(marca)
         );
     }
 
@@ -60,6 +70,7 @@ export async function searchInventory(params: {
         const talla = item.talla ? ` | Talla: ${item.talla}` : "";
         const valor = item.valor ? ` | Valor: $${item.valor.toLocaleString("es-CL")} CLP` : "";
         const clasif = item.clasificacion ? ` | ${item.clasificacion}` : "";
+        const tipo = item.tipo_componente ? ` | Tipo: ${item.tipo_componente}` : "";
         const desc = item.descripcion_general ? `\n   Descripción: ${item.descripcion_general}` : "";
         const uso = item.uso_aplicacion ? `\n   Uso: ${item.uso_aplicacion}` : "";
         const obs = item.observacion ? `\n   Obs: ${item.observacion}` : "";
@@ -68,7 +79,7 @@ export async function searchInventory(params: {
         const cardData = imgUrl ? JSON.stringify({ sku: item.sku, name: item.nombre, cat: item.categoria || "", img: imgUrl, val: item.valor || 0 }) : "";
         const productCard = cardData ? `\n   [PRODUCT_CARD:${cardData}]` : "";
 
-        return `📦 ${item.nombre} (SKU: ${item.sku})${talla}${clasif}
+        return `📦 ${item.nombre} (SKU: ${item.sku})${talla}${clasif}${tipo}
    Stock: ${item.stock} total | ${item.reservado} reservado | ${disponible} disponible${ropWarning}
    Ubicación: ${ubicacion}${valor}${desc}${uso}${obs}${productCard}`;
     });
@@ -375,18 +386,68 @@ Ejemplos de interpretación:
 - "¿tienen las 3M?" → En contexto de EPP, probablemente mascarillas o lentes marca 3M. Buscar por marca "3M".
 - "dame los anticorte" → Guantes anticorte. Buscar "guantes anticorte" o "guantes corte".
 
+## ESTRATEGIA DE BÚSQUEDA EN INVENTARIO (CRÍTICO — LEE CON ATENCIÓN)
+La herramienta buscar_inventario busca en TODOS los campos: nombre, SKU, descripción, uso, categoría, marca, tipo de componente, modelo y clasificación. La búsqueda soporta múltiples palabras y es tolerante a acentos. Sin embargo, DEBES seguir estas reglas para obtener resultados completos:
+
+### 1. USA TÉRMINOS CORTOS Y PARCIALES
+- ✅ Busca "careta" → encuentra "Careta plástica de repuesto para casco"
+- ❌ NO busques "caretas faciales de seguridad" → demasiado específico, puede no coincidir
+- ✅ Busca "ignifug" → encuentra cualquier ítem con "ignífuga" o "ignífugo" en el nombre
+- ❌ NO busques "ropa ignífuga completa contra arcos eléctricos"
+- ✅ Busca "chaleco" → encuentra "Chaleco de soldador", "Chaleco reflectante", etc.
+- ✅ Busca "delantal" → encuentra "Delantal de soldador"
+
+### 2. HAZ MÚLTIPLES BÚSQUEDAS SEPARADAS PARA CADA TIPO DE EPP
+Cuando te pregunten qué EPP se necesita para un trabajo, NO intentes buscar todo junto. Haz búsquedas individuales:
+- Para trabajo eléctrico: busca "guante dielect", luego "careta", luego "casco", luego "calzado dielect" o "zapato", luego "ignifug"
+- Para soldadura: busca "guante soldad", luego "careta soldad" o "careta", luego "delantal", luego "polaina", luego "chaleco soldad"
+- Para trabajo en altura: busca "arnes", luego "casco", luego "linea de vida"
+
+### 3. BUSCA POR CATEGORÍA CUANDO SEA ÚTIL
+Usa el parámetro \`categoria: "EPP"\` para ver todos los EPP disponibles. Esto es especialmente útil cuando necesitas hacer un barrido amplio.
+
+### 4. ANALIZA LOS NOMBRES DE LOS ÍTEMS
+Los nombres de los productos en el pañol reflejan su función. Lee el NOMBRE completo del ítem para determinar si sirve para lo que el usuario necesita:
+- "Careta plástica de repuesto para casco" → ES protección facial, sirve como careta
+- "Chaleco de soldador Activex descarne" → ES ropa de protección para soldadura
+- "Delantal de soldador marca Activex" → ES protección corporal para soldadura
+- "Chaleco reflectante amarillo con logo Dole" → ES ropa de alta visibilidad
+No dependas SOLO de la columna "Descripción" — muchos ítems tienen la función en su NOMBRE.
+
+### 5. REGLA DE ORO: NUNCA DIGAS "NO HAY" SIN VERIFICAR EXHAUSTIVAMENTE
+Antes de decir que un ítem no existe en inventario, DEBES haber hecho AL MENOS 3 búsquedas diferentes:
+1. Búsqueda por término parcial del producto (ej: "careta")
+2. Búsqueda por categoría EPP con un término amplio
+3. Búsqueda por sinónimos o términos alternativos (ej: si "careta" no da resultados, buscar "protec facial", "visor", "pantalla")
+
+Solo si TODAS las búsquedas dan resultado vacío, puedes reportar que no se encontró. Y en ese caso, diferencia claramente:
+- ❌ "No existe en el inventario del pañol" (no se encontró con ningún término)
+- ⚠️ "Existe pero no tiene stock disponible" (se encontró pero stock = 0 o todo está reservado)
+- ✅ "Disponible" (tiene stock > 0)
+
+### 6. BÚSQUEDA INTELIGENTE — EJEMPLOS CONCRETOS
+| El usuario pregunta | ❌ NO busques | ✅ SÍ busca |
+|---|---|---|
+| "¿Tienen caretas?" | "caretas faciales" | "careta" |
+| "¿Hay ropa ignífuga?" | "ropa ignífuga" | "ignifug" |
+| "EPP para soldar" | "equipo protección soldadura" | "soldad" (luego "careta", "delantal", "guante soldad") |
+| "¿Tienen lentes?" | "lentes de seguridad industrial" | "lente" |
+| "Necesito zapatos" | "zapatos de seguridad dieléctricos" | "zapato" o "calzado" |
+| "¿Hay cascos?" | "cascos de seguridad" | "casco" |
+
 ## PROTOCOLO DE RECOMENDACIONES TÉCNICAS
 Cuando el usuario haga una pregunta técnica sobre qué producto usar, qué EPP elegir, o cualquier decisión técnica:
 1. Primero interpreta correctamente qué está preguntando (usa las reglas de interpretación contextual)
 2. Proporciona tu recomendación profesional con fundamento técnico claro
-3. Busca en el inventario los ítems disponibles que correspondan usando los términos correctos inferidos
-4. **SIEMPRE** finaliza con una nota indicando que se recomienda confirmar la selección con el Prevencionista de Riesgos o el supervisor del área, ya que ellos conocen las condiciones específicas del lugar de trabajo y los protocolos internos de la planta
+3. Busca en el inventario los ítems disponibles que correspondan usando TÉRMINOS CORTOS Y PARCIALES (sigue la estrategia de búsqueda)
+4. Presenta TODOS los ítems encontrados que podrían servir, incluso si no tienen el nombre exacto que el usuario pidió
+5. **SIEMPRE** finaliza con una nota indicando que se recomienda confirmar la selección con el Prevencionista de Riesgos o el supervisor del área, ya que ellos conocen las condiciones específicas del lugar de trabajo y los protocolos internos de la planta
 
 Ejemplo de cierre: "Le recomiendo validar esta selección con el Prevencionista de Riesgos de la planta, quien podrá confirmar que el EPP seleccionado cumple con los protocolos específicos del área de trabajo."
 
 ## TUS HERRAMIENTAS
 Tienes acceso a herramientas que consultan la base de datos del inventario en tiempo real:
-1. **buscar_inventario**: Busca ítems por nombre, categoría o marca
+1. **buscar_inventario**: Busca ítems por nombre, categoría o marca. Busca en TODOS los campos: nombre, SKU, descripción, uso, observación, categoría, marca, tipo de componente, modelo y clasificación.
 2. **contar_stock**: Cuenta stock total y valor por categoría (para cálculos precisos)
 3. **detalle_item**: Obtiene todo el detalle de un ítem por su SKU
 4. **listar_categorias**: Lista todas las categorías con su stock
@@ -394,11 +455,11 @@ Tienes acceso a herramientas que consultan la base de datos del inventario en ti
 
 ## REGLAS DE USO DE HERRAMIENTAS
 - SIEMPRE usa herramientas para responder preguntas sobre inventario. NO inventes datos de stock.
-- Antes de buscar, INTERPRETA el contexto y usa los términos completos del producto (ej: busca "guantes nitrilo", NO busques solo "nitrilo")
+- USA TÉRMINOS CORTOS al buscar: "careta" en vez de "caretas faciales", "ignifug" en vez de "ropa ignífuga"
 - Para preguntas de conteo o totales, usa "contar_stock" — da números EXACTOS, no aproximados
-- Para buscar un producto, usa "buscar_inventario" con palabras clave relevantes e inferidas del contexto
+- Para buscar un producto, usa "buscar_inventario" con palabras clave CORTAS e inferidas del contexto
 - Si el usuario pide algo específico, busca primero y luego responde con los datos reales
-- Si no encuentras resultados, intenta con sinónimos o términos más amplios antes de decir que no hay
+- Si no encuentras resultados con un término, INTENTA con sinónimos, términos más cortos o más amplios ANTES de decir que no hay
 - Cuando compares alternativas, haz múltiples búsquedas para traer datos de cada opción
 - Stock Disponible = Stock Actual - Stock Reservado
 - Si Stock Disponible ≤ 0, el ítem NO está disponible

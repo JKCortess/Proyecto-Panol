@@ -27,8 +27,11 @@ import { updateInventoryItem, type InventoryItemUpdate } from "@/app/inventory/a
 // Human-readable labels for change summary
 const FIELD_LABELS: Record<string, string> = {
     nombre: "Nombre",
+    sku_new: "SKU",
+    tipo_componente: "Tipo Componente",
     stock: "Stock",
     rop: "Mín. (ROP)",
+    safety_stock: "Safety Stock",
     valor_aprox_clp: "Valor aprox (CLP)",
     valor_spex: "Valor SPEX",
     estante_nro: "Estante Nro",
@@ -46,12 +49,14 @@ interface EditItemModalProps {
     item: {
         sku: string;
         nombre: string;
+        tipo_componente?: string;
         talla?: string;
         foto?: string;
         marca?: string;
         categoria?: string;
         stock: number;
         rop: number;
+        safety_stock?: number;
         valor_aprox_clp: number;
         valor_spex: number;
         estante_nro: string;
@@ -69,8 +74,11 @@ export function EditItemModal({ open, onClose, item, onSaved }: EditItemModalPro
 
     // Form state
     const [nombre, setNombre] = useState(item.nombre);
+    const [skuValue, setSkuValue] = useState(item.sku);
+    const [tipoComponente, setTipoComponente] = useState(item.tipo_componente || "");
     const [stock, setStock] = useState(item.stock);
     const [rop, setRop] = useState(item.rop);
+    const [safetyStock, setSafetyStock] = useState(item.safety_stock || 0);
     const [valorAprox, setValorAprox] = useState(item.valor_aprox_clp);
     const [valorSpex, setValorSpex] = useState(item.valor_spex);
     const [estanteNro, setEstanteNro] = useState(item.estante_nro);
@@ -84,8 +92,11 @@ export function EditItemModal({ open, onClose, item, onSaved }: EditItemModalPro
     // Reset form when item changes
     useEffect(() => {
         setNombre(item.nombre);
+        setSkuValue(item.sku);
+        setTipoComponente(item.tipo_componente || "");
         setStock(item.stock);
         setRop(item.rop);
+        setSafetyStock(item.safety_stock || 0);
         setValorAprox(item.valor_aprox_clp);
         setValorSpex(item.valor_spex);
         setEstanteNro(item.estante_nro);
@@ -117,8 +128,11 @@ export function EditItemModal({ open, onClose, item, onSaved }: EditItemModalPro
     const changedFields = useMemo(() => {
         const changes: { field: string; label: string; oldValue: string | number; newValue: string | number }[] = [];
         if (nombre !== item.nombre) changes.push({ field: "nombre", label: FIELD_LABELS.nombre, oldValue: item.nombre, newValue: nombre });
+        if (skuValue !== item.sku) changes.push({ field: "sku_new", label: FIELD_LABELS.sku_new, oldValue: item.sku, newValue: skuValue });
+        if (tipoComponente !== (item.tipo_componente || "")) changes.push({ field: "tipo_componente", label: FIELD_LABELS.tipo_componente, oldValue: item.tipo_componente || "-", newValue: tipoComponente || "-" });
         if (stock !== item.stock) changes.push({ field: "stock", label: FIELD_LABELS.stock, oldValue: item.stock, newValue: stock });
         if (rop !== item.rop) changes.push({ field: "rop", label: FIELD_LABELS.rop, oldValue: item.rop, newValue: rop });
+        if (safetyStock !== (item.safety_stock || 0)) changes.push({ field: "safety_stock", label: FIELD_LABELS.safety_stock, oldValue: item.safety_stock || 0, newValue: safetyStock });
         if (valorAprox !== item.valor_aprox_clp) changes.push({ field: "valor_aprox_clp", label: FIELD_LABELS.valor_aprox_clp, oldValue: item.valor_aprox_clp, newValue: valorAprox });
         if (valorSpex !== item.valor_spex) changes.push({ field: "valor_spex", label: FIELD_LABELS.valor_spex, oldValue: item.valor_spex, newValue: valorSpex });
         if (estanteNro !== item.estante_nro) changes.push({ field: "estante_nro", label: FIELD_LABELS.estante_nro, oldValue: item.estante_nro || "-", newValue: estanteNro || "-" });
@@ -129,7 +143,7 @@ export function EditItemModal({ open, onClose, item, onSaved }: EditItemModalPro
         if (marca !== (item.marca || "")) changes.push({ field: "marca", label: FIELD_LABELS.marca, oldValue: item.marca || "-", newValue: marca || "-" });
         if (proveedor !== (item.proveedor || "")) changes.push({ field: "proveedor", label: FIELD_LABELS.proveedor, oldValue: item.proveedor || "-", newValue: proveedor || "-" });
         return changes;
-    }, [nombre, stock, rop, valorAprox, valorSpex, estanteNro, estanteNivel, descripcion, observacion, categoria, marca, proveedor, item]);
+    }, [nombre, skuValue, tipoComponente, stock, rop, safetyStock, valorAprox, valorSpex, estanteNro, estanteNivel, descripcion, observacion, categoria, marca, proveedor, item]);
 
     const handleRequestSave = useCallback(() => {
         if (changedFields.length === 0) {
@@ -144,8 +158,11 @@ export function EditItemModal({ open, onClose, item, onSaved }: EditItemModalPro
 
         const updates: InventoryItemUpdate = {};
         if (nombre !== item.nombre) updates.nombre = nombre;
+        if (skuValue !== item.sku) updates.sku_new = skuValue;
+        if (tipoComponente !== (item.tipo_componente || "")) updates.tipo_componente = tipoComponente;
         if (stock !== item.stock) updates.stock = stock;
         if (rop !== item.rop) updates.rop = rop;
+        if (safetyStock !== (item.safety_stock || 0)) updates.safety_stock = safetyStock;
         if (valorAprox !== item.valor_aprox_clp) updates.valor_aprox_clp = valorAprox;
         if (valorSpex !== item.valor_spex) updates.valor_spex = valorSpex;
         if (estanteNro !== item.estante_nro) updates.estante_nro = estanteNro;
@@ -174,7 +191,7 @@ export function EditItemModal({ open, onClose, item, onSaved }: EditItemModalPro
         } finally {
             setSaving(false);
         }
-    }, [nombre, stock, rop, valorAprox, valorSpex, estanteNro, estanteNivel, descripcion, observacion, categoria, marca, proveedor, item, onSaved, onClose]);
+    }, [nombre, skuValue, tipoComponente, stock, rop, safetyStock, valorAprox, valorSpex, estanteNro, estanteNivel, descripcion, observacion, categoria, marca, proveedor, item, onSaved, onClose]);
 
     // Standard input class (no icon)
     const inputCls = "w-full px-3.5 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 transition-all";
@@ -305,20 +322,32 @@ export function EditItemModal({ open, onClose, item, onSaved }: EditItemModalPro
                         {/* Body */}
                         <div className="px-6 py-5 space-y-6">
 
-                            {/* Section: Nombre */}
+                            {/* Section: Identificación */}
                             <div>
                                 <h3 className="flex items-center gap-2 text-xs font-bold uppercase text-slate-400 dark:text-slate-500 mb-3 tracking-wider">
                                     <Type className="w-3.5 h-3.5" />
                                     Identificación
                                 </h3>
-                                <div>
-                                    <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Nombre del Ítem</label>
-                                    <input
-                                        type="text"
-                                        value={nombre}
-                                        onChange={(e) => setNombre(e.target.value)}
-                                        className={inputCls}
-                                    />
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Nombre del Ítem</label>
+                                        <input
+                                            type="text"
+                                            value={nombre}
+                                            onChange={(e) => setNombre(e.target.value)}
+                                            className={inputCls}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">SKU</label>
+                                        <input
+                                            type="text"
+                                            value={skuValue}
+                                            onChange={(e) => setSkuValue(e.target.value)}
+                                            className={`${inputCls} font-mono`}
+                                            placeholder="Ej: 101-ABRA2-01"
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
@@ -328,7 +357,7 @@ export function EditItemModal({ open, onClose, item, onSaved }: EditItemModalPro
                                     <DollarSign className="w-3.5 h-3.5" />
                                     Stock y Precio
                                 </h3>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
                                     <div>
                                         <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Stock Actual</label>
                                         <input
@@ -346,6 +375,16 @@ export function EditItemModal({ open, onClose, item, onSaved }: EditItemModalPro
                                             min={0}
                                             value={rop}
                                             onChange={(e) => setRop(Math.max(0, parseInt(e.target.value) || 0))}
+                                            className={`${inputCls} font-mono`}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Safety Stock</label>
+                                        <input
+                                            type="number"
+                                            min={0}
+                                            value={safetyStock}
+                                            onChange={(e) => setSafetyStock(Math.max(0, parseInt(e.target.value) || 0))}
                                             className={`${inputCls} font-mono`}
                                         />
                                     </div>
@@ -413,11 +452,17 @@ export function EditItemModal({ open, onClose, item, onSaved }: EditItemModalPro
                                     <Tag className="w-3.5 h-3.5" />
                                     Clasificación
                                 </h3>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                                     <div>
                                         <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Categoría</label>
                                         <input type="text" value={categoria} onChange={(e) => setCategoria(e.target.value)} className={inputCls} />
                                     </div>
+                                    <div>
+                                        <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Tipo de Componente</label>
+                                        <input type="text" value={tipoComponente} onChange={(e) => setTipoComponente(e.target.value)} className={inputCls} />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Marca</label>
                                         <input type="text" value={marca} onChange={(e) => setMarca(e.target.value)} className={inputCls} />

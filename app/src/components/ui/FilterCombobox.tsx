@@ -104,10 +104,10 @@ export function FilterCombobox({
                 <div className="absolute z-50 w-full min-w-[220px] mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200 overflow-hidden">
                     <div className="p-2 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 backdrop-blur-sm sticky top-0 z-10 flex gap-2">
                         <div className="relative flex-1">
-                            <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500" />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500 pointer-events-none" />
                             <input
                                 ref={inputRef}
-                                className="w-full pl-9 pr-3 py-2 text-xs bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-slate-500/50 focus:ring-1 focus:ring-slate-500/20 transition-all font-medium"
+                                className="w-full input-with-icon pr-3 py-2 text-xs bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-slate-500/50 focus:ring-1 focus:ring-slate-500/20 transition-all font-medium"
                                 placeholder={`Buscar...`}
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}

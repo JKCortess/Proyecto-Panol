@@ -1,14 +1,16 @@
 'use client'
+'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { searchInventory, type InventoryItem } from '@/app/requests/search-action';
-import { Search, Package, MapPin, Layers, Loader2 } from 'lucide-react';
+import { Search, Package, PackagePlus, MapPin, Layers, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface InventoryAutocompleteProps {
     value: string;
     onChange: (value: string) => void;
     onSelect: (item: InventoryItem) => void;
+    onAddUnlisted?: (searchTerm: string) => void;
     placeholder?: string;
     className?: string;
     disabled?: boolean;
@@ -18,6 +20,7 @@ export function InventoryAutocomplete({
     value,
     onChange,
     onSelect,
+    onAddUnlisted,
     placeholder = 'Buscar componente...',
     className,
     disabled = false,
@@ -42,7 +45,7 @@ export function InventoryAutocomplete({
         try {
             const items = await searchInventory(query);
             setResults(items);
-            setIsOpen(items.length > 0);
+            setIsOpen(true);
             setHighlightedIndex(-1);
         } catch {
             setResults([]);
@@ -123,7 +126,7 @@ export function InventoryAutocomplete({
                     placeholder={placeholder}
                     disabled={disabled}
                     className={cn(
-                        "w-full bg-slate-900 border border-slate-700 rounded-lg py-2 input-with-icon pr-8 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 placeholder:text-slate-600 transition-colors",
+                        "w-full bg-slate-900 border border-slate-800 rounded-lg py-2.5 input-with-icon pr-8 text-sm text-slate-300 placeholder-slate-500 focus:outline-none focus:bg-slate-900 focus:border-slate-600 focus:ring-1 focus:ring-slate-600 transition-all shadow-sm",
                         disabled && "opacity-50 cursor-not-allowed",
                         className
                     )}
@@ -187,11 +190,35 @@ export function InventoryAutocomplete({
                 </div>
             )}
 
-            {/* No results message */}
+            {/* No results — offer to add unlisted item */}
             {isOpen && results.length === 0 && !isSearching && value.length >= 2 && (
-                <div className="absolute z-50 left-0 right-0 mt-1 bg-slate-900 border border-slate-700 rounded-xl shadow-xl p-4 text-center">
-                    <p className="text-sm text-slate-500">No se encontraron items para &quot;{value}&quot;</p>
-                    <p className="text-xs text-slate-600 mt-1">Puedes escribir el nombre manualmente.</p>
+                <div className="absolute z-50 left-0 right-0 mt-1 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl shadow-black/40 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
+                    <div className="px-4 py-3 text-center border-b border-slate-800">
+                        <p className="text-sm text-slate-400">No se encontraron resultados para <span className="font-medium text-slate-300">&quot;{value}&quot;</span></p>
+                    </div>
+                    {onAddUnlisted && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                onAddUnlisted(value);
+                                setIsOpen(false);
+                                setResults([]);
+                            }}
+                            className="w-full flex items-center gap-3 p-3 hover:bg-blue-600/10 transition-colors group/btn"
+                        >
+                            <div className="p-1.5 bg-amber-500/10 rounded-md shrink-0 group-hover/btn:bg-amber-500/20 transition-colors">
+                                <PackagePlus className="w-4 h-4 text-amber-400" />
+                            </div>
+                            <div className="text-left">
+                                <p className="text-sm font-medium text-amber-400 group-hover/btn:text-amber-300 transition-colors">
+                                    Registrar ítem fuera de inventario
+                                </p>
+                                <p className="text-xs text-slate-600">
+                                    Agrega &quot;{value}&quot; como ítem personalizado sin SKU
+                                </p>
+                            </div>
+                        </button>
+                    )}
                 </div>
             )}
         </div>

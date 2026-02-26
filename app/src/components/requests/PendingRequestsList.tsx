@@ -739,17 +739,17 @@ export function PendingRequestsList({ requests }: PendingRequestsListProps) {
                 detailRequest && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={() => setDetailRequest(null)}>
                         <div
-                            className="bg-slate-950 border border-slate-800 rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col"
+                            className="bg-white dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col"
                             onClick={e => e.stopPropagation()}
                         >
                             {/* Header */}
-                            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-gradient-to-r from-slate-900 to-slate-950 shrink-0">
+                            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-800 bg-gradient-to-r from-gray-50 to-white dark:from-slate-900 dark:to-slate-950 shrink-0">
                                 <div className="flex items-center gap-4">
                                     <div>
-                                        <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                                        <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                                             <span className="font-mono text-blue-400">{detailRequest.request_code}</span>
                                         </h2>
-                                        <p className="text-sm text-slate-400 mt-0.5 flex items-center gap-2">
+                                        <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5 flex items-center gap-2">
                                             <User className="w-3.5 h-3.5" />
                                             {detailRequest.user_name || 'Desconocido'} · {detailRequest.user_email}
                                         </p>
@@ -757,42 +757,42 @@ export function PendingRequestsList({ requests }: PendingRequestsListProps) {
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <StatusChip status={detailRequest.status} size="md" />
-                                    <button onClick={() => setDetailRequest(null)} className="text-slate-500 hover:text-white transition-colors p-1 rounded hover:bg-slate-800">
+                                    <button onClick={() => setDetailRequest(null)} className="text-gray-400 dark:text-slate-500 hover:text-gray-900 dark:hover:text-white transition-colors p-1 rounded hover:bg-gray-100 dark:hover:bg-slate-800">
                                         <X className="w-5 h-5" />
                                     </button>
                                 </div>
                             </div>
 
                             {/* Info bar */}
-                            <div className="px-6 py-3 bg-slate-900/60 border-b border-slate-800 flex flex-wrap gap-4 text-sm shrink-0">
-                                <div className="flex items-center gap-2 text-slate-400">
+                            <div className="px-6 py-3 bg-gray-50 dark:bg-slate-900/60 border-b border-gray-200 dark:border-slate-800 flex flex-wrap gap-4 text-sm shrink-0">
+                                <div className="flex items-center gap-2 text-gray-600 dark:text-slate-400">
                                     <CalendarIcon className="w-4 h-4 text-blue-400" />
                                     <span>{format(new Date(detailRequest.created_at), "dd/MM/yyyy 'a las' HH:mm")}</span>
                                 </div>
-                                <div className="flex items-center gap-2 text-slate-400">
+                                <div className="flex items-center gap-2 text-gray-600 dark:text-slate-400">
                                     <Package className="w-4 h-4 text-blue-400" />
                                     <span>{(detailRequest.items_detail as RequestItem[]).length} ítem(s)</span>
                                 </div>
-                                <div className="flex items-center gap-2 text-slate-400">
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700">
+                                <div className="flex items-center gap-2 text-gray-600 dark:text-slate-400">
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 border border-gray-300 dark:border-slate-700">
                                         {detailRequest.area}
                                     </span>
                                 </div>
                                 {detailRequest.notes && (
-                                    <div className="flex items-center gap-2 text-slate-400">
-                                        <AlertCircle className="w-4 h-4 text-amber-400" />
-                                        <span className="text-amber-300/80 text-xs">{detailRequest.notes}</span>
+                                    <div className="flex items-center gap-2 text-gray-600 dark:text-slate-400">
+                                        <AlertCircle className="w-4 h-4 text-amber-500 dark:text-amber-400" />
+                                        <span className="text-amber-600 dark:text-amber-300/80 text-xs">{detailRequest.notes}</span>
                                     </div>
                                 )}
                             </div>
 
                             {/* Tabs */}
-                            <div className="px-6 pt-3 flex gap-1 border-b border-slate-800 shrink-0">
+                            <div className="px-6 pt-3 flex gap-1 border-b border-gray-200 dark:border-slate-800 shrink-0">
                                 <button
                                     onClick={() => setActiveTab('detail')}
                                     className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-all border-b-2 ${activeTab === 'detail'
-                                        ? 'text-blue-400 border-blue-500 bg-slate-800/50'
-                                        : 'text-slate-500 border-transparent hover:text-slate-300'
+                                        ? 'text-blue-600 dark:text-blue-400 border-blue-500 bg-blue-50 dark:bg-slate-800/50'
+                                        : 'text-gray-500 dark:text-slate-500 border-transparent hover:text-gray-700 dark:hover:text-slate-300'
                                         }`}
                                 >
                                     <Package className="w-4 h-4 inline mr-1.5" />
@@ -801,8 +801,8 @@ export function PendingRequestsList({ requests }: PendingRequestsListProps) {
                                 <button
                                     onClick={() => setActiveTab('history')}
                                     className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-all border-b-2 ${activeTab === 'history'
-                                        ? 'text-blue-400 border-blue-500 bg-slate-800/50'
-                                        : 'text-slate-500 border-transparent hover:text-slate-300'
+                                        ? 'text-blue-600 dark:text-blue-400 border-blue-500 bg-blue-50 dark:bg-slate-800/50'
+                                        : 'text-gray-500 dark:text-slate-500 border-transparent hover:text-gray-700 dark:hover:text-slate-300'
                                         }`}
                                 >
                                     <History className="w-4 h-4 inline mr-1.5" />
@@ -817,16 +817,16 @@ export function PendingRequestsList({ requests }: PendingRequestsListProps) {
                                         {loadingDetail ? (
                                             <div className="flex items-center justify-center py-12">
                                                 <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-                                                <span className="ml-3 text-slate-400">Cargando detalles del inventario...</span>
+                                                <span className="ml-3 text-gray-500 dark:text-slate-400">Cargando detalles del inventario...</span>
                                             </div>
                                         ) : (
                                             (detailRequest.items_detail as RequestItem[]).map((item, idx) => {
                                                 const inv = findInventoryMatch(item.sku, item.talla);
                                                 return (
-                                                    <div key={idx} className="border border-slate-800 rounded-xl overflow-hidden bg-slate-900/40 hover:border-slate-700 transition-colors">
+                                                    <div key={idx} className="border border-gray-200 dark:border-slate-800 rounded-xl overflow-hidden bg-gray-50 dark:bg-slate-900/40 hover:border-gray-300 dark:hover:border-slate-700 transition-colors">
                                                         <div className="flex flex-col sm:flex-row">
                                                             {/* Image */}
-                                                            <div className="sm:w-40 h-40 sm:h-auto bg-slate-800/50 flex items-center justify-center shrink-0 border-b sm:border-b-0 sm:border-r border-slate-800">
+                                                            <div className="sm:w-40 h-40 sm:h-auto bg-gray-100 dark:bg-slate-800/50 flex items-center justify-center shrink-0 border-b sm:border-b-0 sm:border-r border-gray-200 dark:border-slate-800">
                                                                 {inv?.foto ? (
                                                                     <Image
                                                                         src={inv.foto}
@@ -837,7 +837,7 @@ export function PendingRequestsList({ requests }: PendingRequestsListProps) {
                                                                         unoptimized
                                                                     />
                                                                 ) : null}
-                                                                <div className={`flex flex-col items-center justify-center text-slate-600 ${inv?.foto ? 'hidden' : ''}`}>
+                                                                <div className={`flex flex-col items-center justify-center text-gray-400 dark:text-slate-600 ${inv?.foto ? 'hidden' : ''}`}>
                                                                     <ImageIcon className="w-10 h-10 mb-1" />
                                                                     <span className="text-xs">Sin imagen</span>
                                                                 </div>
@@ -847,52 +847,52 @@ export function PendingRequestsList({ requests }: PendingRequestsListProps) {
                                                             <div className="flex-1 p-4">
                                                                 <div className="flex items-start justify-between mb-3">
                                                                     <div>
-                                                                        <h4 className="text-white font-semibold text-base">{item.detail}</h4>
-                                                                        <p className="text-blue-400 font-mono text-xs mt-0.5">{item.sku || 'Sin SKU'}</p>
+                                                                        <h4 className="text-gray-900 dark:text-white font-semibold text-base">{item.detail}</h4>
+                                                                        <p className="text-blue-600 dark:text-blue-400 font-mono text-xs mt-0.5">{item.sku || 'Sin SKU'}</p>
                                                                         {inv?.descripcion_general && (
-                                                                            <p className="text-slate-500 text-xs mt-1 max-w-md">{inv.descripcion_general}</p>
+                                                                            <p className="text-gray-500 dark:text-slate-500 text-xs mt-1 max-w-md">{inv.descripcion_general}</p>
                                                                         )}
                                                                     </div>
                                                                     <div className="text-right">
-                                                                        <span className="text-lg font-bold text-amber-400">
+                                                                        <span className="text-lg font-bold text-amber-500 dark:text-amber-400">
                                                                             {item.quantity}x
                                                                         </span>
-                                                                        <p className="text-xs text-slate-500">solicitado(s)</p>
+                                                                        <p className="text-xs text-gray-500 dark:text-slate-500">solicitado(s)</p>
                                                                     </div>
                                                                 </div>
 
                                                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                                                     {/* Location */}
-                                                                    <div className="bg-slate-800/60 rounded-lg p-2.5 border border-slate-700/50">
-                                                                        <div className="flex items-center gap-1.5 text-slate-500 text-[10px] uppercase tracking-wider mb-1">
+                                                                    <div className="bg-gray-100 dark:bg-slate-800/60 rounded-lg p-2.5 border border-gray-200 dark:border-slate-700/50">
+                                                                        <div className="flex items-center gap-1.5 text-gray-500 dark:text-slate-500 text-[10px] uppercase tracking-wider mb-1">
                                                                             <MapPin className="w-3 h-3" />
                                                                             Estante
                                                                         </div>
-                                                                        <p className="text-white font-bold text-sm">
+                                                                        <p className="text-gray-900 dark:text-white font-bold text-sm">
                                                                             {inv ? `E${inv.estante_nro}` : '—'}
                                                                         </p>
                                                                     </div>
 
-                                                                    <div className="bg-slate-800/60 rounded-lg p-2.5 border border-slate-700/50">
-                                                                        <div className="flex items-center gap-1.5 text-slate-500 text-[10px] uppercase tracking-wider mb-1">
+                                                                    <div className="bg-gray-100 dark:bg-slate-800/60 rounded-lg p-2.5 border border-gray-200 dark:border-slate-700/50">
+                                                                        <div className="flex items-center gap-1.5 text-gray-500 dark:text-slate-500 text-[10px] uppercase tracking-wider mb-1">
                                                                             <Layers className="w-3 h-3" />
                                                                             Nivel
                                                                         </div>
-                                                                        <p className="text-white font-bold text-sm">
+                                                                        <p className="text-gray-900 dark:text-white font-bold text-sm">
                                                                             {inv ? `N${inv.estante_nivel}` : '—'}
                                                                         </p>
                                                                     </div>
 
                                                                     {/* Stock */}
-                                                                    <div className="bg-slate-800/60 rounded-lg p-2.5 border border-slate-700/50">
-                                                                        <div className="flex items-center gap-1.5 text-slate-500 text-[10px] uppercase tracking-wider mb-1">
+                                                                    <div className="bg-gray-100 dark:bg-slate-800/60 rounded-lg p-2.5 border border-gray-200 dark:border-slate-700/50">
+                                                                        <div className="flex items-center gap-1.5 text-gray-500 dark:text-slate-500 text-[10px] uppercase tracking-wider mb-1">
                                                                             <Package className="w-3 h-3" />
                                                                             Stock Actual
                                                                         </div>
-                                                                        <p className={`font-bold text-sm ${inv && inv.stock <= item.quantity ? 'text-red-400' : 'text-emerald-400'}`}>
+                                                                        <p className={`font-bold text-sm ${inv && inv.stock <= item.quantity ? 'text-red-500 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
                                                                             {inv ? inv.stock : '—'}
                                                                             {inv && (
-                                                                                <span className="text-[10px] font-normal text-slate-500 ml-1">
+                                                                                <span className="text-[10px] font-normal text-gray-500 dark:text-slate-500 ml-1">
                                                                                     ({inv.reservado} reserv.)
                                                                                 </span>
                                                                             )}
@@ -900,12 +900,12 @@ export function PendingRequestsList({ requests }: PendingRequestsListProps) {
                                                                     </div>
 
                                                                     {/* Classification */}
-                                                                    <div className="bg-slate-800/60 rounded-lg p-2.5 border border-slate-700/50">
-                                                                        <div className="flex items-center gap-1.5 text-slate-500 text-[10px] uppercase tracking-wider mb-1">
+                                                                    <div className="bg-gray-100 dark:bg-slate-800/60 rounded-lg p-2.5 border border-gray-200 dark:border-slate-700/50">
+                                                                        <div className="flex items-center gap-1.5 text-gray-500 dark:text-slate-500 text-[10px] uppercase tracking-wider mb-1">
                                                                             <ShieldAlert className="w-3 h-3" />
                                                                             Clasificación
                                                                         </div>
-                                                                        <p className={`font-bold text-sm ${inv?.clasificacion === 'Crítico' ? 'text-red-400' : 'text-slate-300'}`}>
+                                                                        <p className={`font-bold text-sm ${inv?.clasificacion === 'Crítico' ? 'text-red-500 dark:text-red-400' : 'text-gray-700 dark:text-slate-300'}`}>
                                                                             {inv?.clasificacion || '—'}
                                                                         </p>
                                                                     </div>
@@ -913,44 +913,44 @@ export function PendingRequestsList({ requests }: PendingRequestsListProps) {
 
                                                                 {/* Values Row */}
                                                                 <div className="mt-3 flex flex-wrap gap-3">
-                                                                    <div className="flex items-center gap-2 bg-amber-500/5 border border-amber-500/20 rounded-lg px-3 py-2">
-                                                                        <DollarSign className="w-4 h-4 text-amber-400" />
+                                                                    <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-500/5 border border-amber-200 dark:border-amber-500/20 rounded-lg px-3 py-2">
+                                                                        <DollarSign className="w-4 h-4 text-amber-500 dark:text-amber-400" />
                                                                         <div>
-                                                                            <p className="text-[10px] text-slate-500 uppercase">V. Unitario</p>
-                                                                            <p className="text-amber-400 font-bold text-sm">
+                                                                            <p className="text-[10px] text-gray-500 dark:text-slate-500 uppercase">V. Unitario</p>
+                                                                            <p className="text-amber-600 dark:text-amber-400 font-bold text-sm">
                                                                                 {inv ? formatCLP(inv.valor || inv.valor_aprox_clp) : '—'}
                                                                             </p>
                                                                         </div>
                                                                     </div>
-                                                                    <div className="flex items-center gap-2 bg-emerald-500/5 border border-emerald-500/20 rounded-lg px-3 py-2">
-                                                                        <DollarSign className="w-4 h-4 text-emerald-400" />
+                                                                    <div className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-500/5 border border-emerald-200 dark:border-emerald-500/20 rounded-lg px-3 py-2">
+                                                                        <DollarSign className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                                                                         <div>
-                                                                            <p className="text-[10px] text-slate-500 uppercase">V. Total</p>
-                                                                            <p className="text-emerald-400 font-bold text-sm">
+                                                                            <p className="text-[10px] text-gray-500 dark:text-slate-500 uppercase">V. Total</p>
+                                                                            <p className="text-emerald-600 dark:text-emerald-400 font-bold text-sm">
                                                                                 {inv ? formatCLP((inv.valor || inv.valor_aprox_clp) * item.quantity) : '—'}
                                                                             </p>
                                                                         </div>
                                                                     </div>
                                                                     {inv?.marca && (
-                                                                        <div className="flex items-center gap-2 bg-slate-800/60 border border-slate-700/50 rounded-lg px-3 py-2">
+                                                                        <div className="flex items-center gap-2 bg-gray-100 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700/50 rounded-lg px-3 py-2">
                                                                             <div>
-                                                                                <p className="text-[10px] text-slate-500 uppercase">Marca</p>
-                                                                                <p className="text-slate-300 font-medium text-sm">{inv.marca}</p>
+                                                                                <p className="text-[10px] text-gray-500 dark:text-slate-500 uppercase">Marca</p>
+                                                                                <p className="text-gray-700 dark:text-slate-300 font-medium text-sm">{inv.marca}</p>
                                                                             </div>
                                                                         </div>
                                                                     )}
                                                                     {inv?.categoria && (
-                                                                        <div className="flex items-center gap-2 bg-slate-800/60 border border-slate-700/50 rounded-lg px-3 py-2">
+                                                                        <div className="flex items-center gap-2 bg-gray-100 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700/50 rounded-lg px-3 py-2">
                                                                             <div>
-                                                                                <p className="text-[10px] text-slate-500 uppercase">Categoría</p>
-                                                                                <p className="text-slate-300 font-medium text-sm">{inv.categoria}</p>
+                                                                                <p className="text-[10px] text-gray-500 dark:text-slate-500 uppercase">Categoría</p>
+                                                                                <p className="text-gray-700 dark:text-slate-300 font-medium text-sm">{inv.categoria}</p>
                                                                             </div>
                                                                         </div>
                                                                     )}
                                                                 </div>
 
                                                                 {item.notes && (
-                                                                    <div className="mt-3 text-xs text-slate-500 italic bg-slate-800/30 rounded px-3 py-2 border border-slate-800">
+                                                                    <div className="mt-3 text-xs text-gray-500 dark:text-slate-500 italic bg-gray-50 dark:bg-slate-800/30 rounded px-3 py-2 border border-gray-200 dark:border-slate-800">
                                                                         📝 {item.notes}
                                                                     </div>
                                                                 )}
@@ -963,10 +963,10 @@ export function PendingRequestsList({ requests }: PendingRequestsListProps) {
 
                                         {/* Total Summary */}
                                         {!loadingDetail && (
-                                            <div className="border border-slate-700 rounded-xl p-4 bg-gradient-to-r from-slate-900/80 to-slate-800/40">
+                                            <div className="border border-gray-200 dark:border-slate-700 rounded-xl p-4 bg-gradient-to-r from-gray-50 to-white dark:from-slate-900/80 dark:to-slate-800/40">
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-slate-400 text-sm font-medium">Valor Total Estimado de la Solicitud</span>
-                                                    <span className="text-xl font-bold text-emerald-400">
+                                                    <span className="text-gray-600 dark:text-slate-400 text-sm font-medium">Valor Total Estimado de la Solicitud</span>
+                                                    <span className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
                                                         {formatCLP(
                                                             (detailRequest.items_detail as RequestItem[]).reduce((sum, item) => {
                                                                 const inv = findInventoryMatch(item.sku, item.talla);
@@ -1034,7 +1034,7 @@ export function PendingRequestsList({ requests }: PendingRequestsListProps) {
                             </div>
 
                             {/* Action Bar */}
-                            <div className="px-6 py-4 border-t border-slate-800 bg-slate-900/60 shrink-0">
+                            <div className="px-6 py-4 border-t border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900/60 shrink-0">
                                 <div className="flex flex-wrap items-center justify-between gap-3">
                                     <div className="flex flex-wrap gap-2">
                                         {/* Aceptar */}
@@ -1078,7 +1078,7 @@ export function PendingRequestsList({ requests }: PendingRequestsListProps) {
                                             <button
                                                 onClick={() => handleStatusChange(detailRequest.id, 'Pendiente')}
                                                 disabled={isPending}
-                                                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-slate-800 border border-slate-700 text-slate-400 hover:bg-slate-700 transition-all disabled:opacity-50"
+                                                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-600 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-700 transition-all disabled:opacity-50"
                                             >
                                                 <Undo2 className="w-3.5 h-3.5" />
                                                 Revertir a Pendiente
@@ -1229,7 +1229,7 @@ export function PendingRequestsList({ requests }: PendingRequestsListProps) {
                                                     value={addItemQuery}
                                                     onChange={(e) => handleAddItemSearch(e.target.value)}
                                                     placeholder="Buscar componente por SKU o nombre..."
-                                                    className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/50"
+                                                    className="w-full bg-slate-900 border border-slate-700 rounded-lg input-with-icon pr-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/50"
                                                     autoFocus
                                                 />
                                             </div>

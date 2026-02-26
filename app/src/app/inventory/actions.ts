@@ -13,8 +13,11 @@ const SPREADSHEET_ID = process.env.PANOL_DB_SPREADSHEET_ID;
  */
 export interface InventoryItemUpdate {
     nombre?: string;          // Column B, index 1
+    sku_new?: string;         // Column A, index 0 (new SKU value)
+    tipo_componente?: string; // Column C, index 2
     stock?: number;
     rop?: number;
+    safety_stock?: number;    // Column W, index 22
     valor_aprox_clp?: number; // Valor aprox CLP (Column Q, index 16)
     valor_spex?: number;      // Valor confirmado SPEX (Column R, index 17)
     estante_nro?: string;     // Column L, index 11
@@ -29,8 +32,11 @@ export interface InventoryItemUpdate {
 // Maps field names to their Google Sheets column letters
 const FIELD_COLUMN_MAP: Record<keyof InventoryItemUpdate, string> = {
     nombre: 'B',              // index 1
+    sku_new: 'A',             // index 0
+    tipo_componente: 'C',     // index 2
     stock: 'J',               // index 9
     rop: 'V',                 // index 21
+    safety_stock: 'W',        // index 22
     valor_aprox_clp: 'Q',     // index 16
     valor_spex: 'R',          // index 17
     estante_nro: 'L',         // index 11
@@ -45,8 +51,11 @@ const FIELD_COLUMN_MAP: Record<keyof InventoryItemUpdate, string> = {
 // Human-readable labels for audit log
 const FIELD_LABELS: Record<string, string> = {
     nombre: "Nombre",
+    sku_new: "SKU",
+    tipo_componente: "Tipo Componente",
     stock: "Stock",
     rop: "Mín. (ROP)",
+    safety_stock: "Safety Stock",
     valor_aprox_clp: "Valor aprox (CLP)",
     valor_spex: "Valor SPEX",
     estante_nro: "Estante Nro",
@@ -64,8 +73,11 @@ const FIELD_LABELS: Record<string, string> = {
  */
 const FIELD_ROW_INDEX: Record<keyof InventoryItemUpdate, number> = {
     nombre: 1,
+    sku_new: 0,
+    tipo_componente: 2,
     stock: 9,
     rop: 21,
+    safety_stock: 22,
     valor_aprox_clp: 16,
     valor_spex: 17,
     estante_nro: 11,

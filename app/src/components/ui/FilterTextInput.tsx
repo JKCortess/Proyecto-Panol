@@ -21,11 +21,22 @@ export function FilterTextInput({
 }: FilterTextInputProps) {
     const [localValue, setLocalValue] = React.useState(value);
     const debounceRef = React.useRef<NodeJS.Timeout | null>(null);
+    const inputRef = React.useRef<HTMLInputElement>(null);
+    const isFocusedRef = React.useRef(false);
 
-    // Sync local state with external value
+    // Sync local state with external value ONLY when not actively typing
     React.useEffect(() => {
-        setLocalValue(value);
+        if (!isFocusedRef.current) {
+            setLocalValue(value);
+        }
     }, [value]);
+
+    // Cleanup debounce on unmount
+    React.useEffect(() => {
+        return () => {
+            if (debounceRef.current) clearTimeout(debounceRef.current);
+        };
+    }, []);
 
     const handleChange = (newValue: string) => {
         setLocalValue(newValue);
@@ -33,7 +44,7 @@ export function FilterTextInput({
         if (debounceRef.current) clearTimeout(debounceRef.current);
         debounceRef.current = setTimeout(() => {
             onChange(newValue);
-        }, 350);
+        }, 800);
     };
 
     const clearValue = () => {
@@ -52,12 +63,15 @@ export function FilterTextInput({
             <div className="relative group">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500 group-focus-within:text-blue-500 transition-colors pointer-events-none" />
                 <input
+                    ref={inputRef}
                     type="text"
                     value={localValue}
                     onChange={(e) => handleChange(e.target.value)}
+                    onFocus={() => { isFocusedRef.current = true; }}
+                    onBlur={() => { isFocusedRef.current = false; }}
                     placeholder={placeholder}
                     className={cn(
-                        "w-full pl-9 pr-8 py-2.5 text-sm bg-white dark:bg-slate-900 border rounded-lg shadow-sm transition-all duration-200",
+                        "w-full input-with-icon pr-8 py-2.5 text-sm bg-white dark:bg-slate-900 border rounded-lg shadow-sm transition-all duration-200",
                         "placeholder:text-slate-400 dark:placeholder:text-slate-600",
                         "focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
                         localValue

@@ -155,6 +155,7 @@ export function InventoryDeck({ groupedItems, isAdmin }: InventoryDeckProps) {
                     item={{
                         sku: editingItem.sku,
                         nombre: editingItem.nombre,
+                        tipo_componente: editingItem.tipo_componente,
                         talla: editVariantInfo?.talla || (editingItem.hasSizes && editingItem.variants.length === 1 ? editingItem.variants[0].talla : undefined),
                         foto: editingItem.fotos.length > 0 ? editingItem.fotos[0] : undefined,
                         marca: editingItem.marca || undefined,
@@ -169,6 +170,7 @@ export function InventoryDeck({ groupedItems, isAdmin }: InventoryDeckProps) {
                                 ? editingItem.variants[0].rop
                                 : editingItem.maxRop
                         ),
+                        safety_stock: editingItem.safety_stock,
                         valor_aprox_clp: editingItem.valor_aprox_clp,
                         valor_spex: editingItem.valor_confirmado_spex,
                         estante_nro: editingItem.estante_nro,

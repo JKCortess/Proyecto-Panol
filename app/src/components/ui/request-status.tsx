@@ -50,9 +50,9 @@ const STATUS_META: Record<string, StatusMeta> = {
     Entregada: {
         label: 'Entregada',
         icon: PackageCheck,
-        textClass: 'text-blue-300',
-        bgClass: 'bg-blue-500/10',
-        borderClass: 'border-blue-500/40',
+        textClass: 'text-green-300',
+        bgClass: 'bg-green-500/10',
+        borderClass: 'border-green-500/40',
     },
     Eliminada: {
         label: 'Eliminada',

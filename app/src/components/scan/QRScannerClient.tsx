@@ -417,7 +417,7 @@ export function QRScannerClient() {
                                     value={code}
                                     onChange={(e) => setCode(e.target.value)}
                                     placeholder="Ej: 482917"
-                                    className="w-full h-12 pl-10 pr-4 rounded-xl border border-slate-700 bg-slate-900 text-white text-lg font-mono placeholder:text-slate-600 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                                    className="w-full h-12 input-with-icon pr-4 rounded-xl border border-slate-700 bg-slate-900 text-white text-lg font-mono placeholder:text-slate-600 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
                                     autoComplete="off"
                                     inputMode="numeric"
                                 />

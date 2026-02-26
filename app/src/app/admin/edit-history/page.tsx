@@ -1,7 +1,9 @@
 import { createClient } from "@/utils/supabase/server";
 import { getUserProfile } from "@/app/profile/actions";
+import { getInventory } from "@/lib/data";
 import { redirect } from "next/navigation";
-import { History, ArrowRight, Search, Package, Calendar, User, Filter } from "lucide-react";
+import { History, Search, Filter } from "lucide-react";
+import { EditHistoryCard } from "@/components/admin/EditHistoryCard";
 
 interface EditRecord {
     id: string;
@@ -50,10 +52,22 @@ export default async function EditHistoryPage({ searchParams }: { searchParams: 
     const from = (page - 1) * PAGE_SIZE;
     query = query.range(from, from + PAGE_SIZE - 1);
 
-    const { data: records, count, error } = await query;
+    // Fetch edit history and inventory (for images) in parallel
+    const [{ data: records, count, error }, inventoryItems] = await Promise.all([
+        query,
+        getInventory(),
+    ]);
 
     if (error) {
         console.error("Error fetching edit history:", error);
+    }
+
+    // Build SKU → first image URL map
+    const imageMap = new Map<string, string>();
+    for (const item of inventoryItems) {
+        if (item.fotos.length > 0 && !imageMap.has(item.sku)) {
+            imageMap.set(item.sku, item.fotos[0]);
+        }
     }
 
     const totalPages = Math.ceil((count || 0) / PAGE_SIZE);
@@ -109,7 +123,7 @@ export default async function EditHistoryPage({ searchParams }: { searchParams: 
                         type="text"
                         defaultValue={search}
                         placeholder="Buscar por SKU, nombre o editor..."
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500 transition-all"
+                        className="w-full input-with-icon pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500 transition-all"
                     />
                 </div>
             </form>
@@ -123,57 +137,13 @@ export default async function EditHistoryPage({ searchParams }: { searchParams: 
                 </div>
             ) : (
                 <div className="space-y-4">
-                    {groups.map((group) => {
-                        const date = new Date(group.createdAt);
-                        const formattedDate = date.toLocaleDateString("es-CL", { day: "2-digit", month: "short", year: "numeric" });
-                        const formattedTime = date.toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" });
-
-                        return (
-                            <div key={group.key} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
-                                {/* Card Header */}
-                                <div className="flex flex-wrap items-center gap-3 px-5 py-3.5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50">
-                                    <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center shrink-0">
-                                        <Package className="w-4 h-4 text-violet-400" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="font-bold text-sm text-slate-900 dark:text-white truncate">
-                                            {group.itemName}
-                                            {group.talla && <span className="ml-1 text-purple-400 font-mono text-xs">({group.talla})</span>}
-                                        </p>
-                                        <p className="text-xs font-mono text-slate-400">SKU: {group.sku}</p>
-                                    </div>
-                                    <div className="flex items-center gap-4 text-xs text-slate-500 shrink-0">
-                                        <span className="flex items-center gap-1">
-                                            <User className="w-3 h-3" />
-                                            {group.editedBy}
-                                        </span>
-                                        <span className="flex items-center gap-1">
-                                            <Calendar className="w-3 h-3" />
-                                            {formattedDate} {formattedTime}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                {/* Changes Table */}
-                                <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                                    {group.changes.map((change) => (
-                                        <div key={change.id} className="flex items-center gap-3 px-5 py-2.5">
-                                            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 min-w-[100px] shrink-0">
-                                                {change.field_label}
-                                            </span>
-                                            <span className="text-xs font-mono text-red-400/80 line-through truncate max-w-[200px]" title={change.old_value}>
-                                                {change.old_value || "(vacío)"}
-                                            </span>
-                                            <ArrowRight className="w-3 h-3 text-slate-400 shrink-0" />
-                                            <span className="text-xs font-mono text-emerald-400 font-semibold truncate max-w-[200px]" title={change.new_value}>
-                                                {change.new_value || "(vacío)"}
-                                            </span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        );
-                    })}
+                    {groups.map((group) => (
+                        <EditHistoryCard
+                            key={group.key}
+                            group={group}
+                            imageUrl={imageMap.get(group.sku) || null}
+                        />
+                    ))}
                 </div>
             )}
 

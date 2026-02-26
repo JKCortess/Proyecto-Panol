@@ -208,7 +208,7 @@ export function InventoryControls({ allItems, filterConfig }: InventoryControlsP
         } else {
             params.delete(key);
         }
-        router.push(`/inventory?${params.toString()}`);
+        router.replace(`/inventory?${params.toString()}`, { scroll: false });
     };
 
     const updateTextFilter = (key: string, value: string) => {
@@ -218,7 +218,7 @@ export function InventoryControls({ allItems, filterConfig }: InventoryControlsP
         } else {
             params.delete(key);
         }
-        router.push(`/inventory?${params.toString()}`);
+        router.replace(`/inventory?${params.toString()}`, { scroll: false });
     };
 
     const clearAllFilters = () => {
@@ -229,7 +229,7 @@ export function InventoryControls({ allItems, filterConfig }: InventoryControlsP
         if (q) params.set("q", q);
         if (view) params.set("view", view);
         if (sort) params.set("sort", sort);
-        router.push(`/inventory?${params.toString()}`);
+        router.replace(`/inventory?${params.toString()}`, { scroll: false });
     };
 
     // Prepare Options (cascaded)

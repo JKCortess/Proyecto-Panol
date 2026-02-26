@@ -63,11 +63,19 @@ function ItemDetailField({ control, index, setValue }: {
         setValue(`items.${index}.imagen`, item.imagen || '');
     };
 
+    const handleAddUnlisted = (searchTerm: string) => {
+        setValue(`items.${index}.detail`, searchTerm, { shouldValidate: true });
+        setValue(`items.${index}.sku`, 'SIN-SKU', { shouldValidate: true });
+        setValue(`items.${index}.value`, 0);
+        setValue(`items.${index}.imagen`, '');
+    };
+
     return (
         <InventoryAutocomplete
             value={detailValue}
             onChange={(val) => setValue(`items.${index}.detail`, val, { shouldValidate: true })}
             onSelect={handleSelect}
+            onAddUnlisted={handleAddUnlisted}
             placeholder="Buscar componente..."
         />
     );

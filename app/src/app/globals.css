@@ -222,7 +222,10 @@ textarea {
   background-color: color-mix(in oklab, var(--surface) 92%, transparent);
   border: 1px solid var(--border);
   border-radius: 0.9rem;
-  padding: 0.5rem 0.75rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
   transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
   outline: none;
   color: var(--foreground);
@@ -619,6 +622,52 @@ td {
 :root.theme-light div.text-white,
 :root.theme-light label.text-white {
   color: #0b1220 !important;
+}
+
+/* Form elements with text-white – force dark text in light mode */
+:root.theme-light input.text-white,
+:root.theme-light select.text-white,
+:root.theme-light textarea.text-white,
+:root.theme-light input,
+:root.theme-light select,
+:root.theme-light textarea {
+  color: #0f172a !important;
+}
+
+:root.theme-light input::placeholder,
+:root.theme-light select::placeholder,
+:root.theme-light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Form elements inside dark-bg parents (slate-800, slate-900, slate-950) in light mode */
+:root.theme-light .bg-slate-900 input,
+:root.theme-light .bg-slate-800 input,
+:root.theme-light .bg-slate-950 input,
+:root.theme-light .bg-slate-900 select,
+:root.theme-light .bg-slate-800 select,
+:root.theme-light .bg-slate-950 select,
+:root.theme-light .bg-slate-900 textarea,
+:root.theme-light .bg-slate-800 textarea,
+:root.theme-light .bg-slate-950 textarea {
+  color: #0f172a !important;
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* Inputs with dark-mode bg classes directly on them in light mode */
+:root.theme-light input.bg-slate-900,
+:root.theme-light input.bg-slate-800,
+:root.theme-light input.bg-slate-950,
+:root.theme-light select.bg-slate-900,
+:root.theme-light select.bg-slate-800,
+:root.theme-light select.bg-slate-950,
+:root.theme-light textarea.bg-slate-900,
+:root.theme-light textarea.bg-slate-800,
+:root.theme-light textarea.bg-slate-950 {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
 }
 
 /* Very light text colors used in dark-themed panels – need darker equivalents in light mode */
