@@ -1983,16 +1983,35 @@ function ProductCard({ data }: { data: ProductCardData }) {
                 />
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "6px", minWidth: 0 }}>
-                <p style={{
-                    fontSize: "12px",
-                    fontWeight: 600,
-                    color: "var(--foreground)",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                }}>
+                <a
+                    href={`/inventory?filterSku=${encodeURIComponent(data.sku)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                        fontSize: "12px",
+                        fontWeight: 600,
+                        color: "var(--foreground)",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        display: "block",
+                        textDecoration: "none",
+                        cursor: "pointer",
+                        transition: "color 0.15s",
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = "#f59e0b")}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = "var(--foreground)")}
+                    title={`Ver "${data.name}" en inventario`}
+                >
                     {data.name}
-                </p>
+                    <span style={{
+                        display: "inline-block",
+                        marginLeft: "4px",
+                        fontSize: "10px",
+                        opacity: 0.5,
+                        verticalAlign: "middle",
+                    }}>↗</span>
+                </a>
                 <p style={{ fontSize: "10px", color: "var(--muted)" }}>
                     SKU: {data.sku}{data.cat ? ` · ${data.cat}` : ""}
                 </p>

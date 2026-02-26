@@ -42,6 +42,7 @@ const BOTTOM_TABS = [
 export function MobileNav({ user, profile, permissions }: MobileNavProps) {
     const pathname = usePathname();
     const [drawerOpen, setDrawerOpen] = useState(false);
+    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
     const drawerRef = useRef<HTMLDivElement>(null);
 
     const isAdmin = profile?.role === "Administrador";
@@ -70,6 +71,19 @@ export function MobileNav({ user, profile, permissions }: MobileNavProps) {
 
     const handleSignOut = async () => {
         await signOut();
+    };
+
+    const handleLogoutClick = () => {
+        setShowLogoutConfirm(true);
+    };
+
+    const handleLogoutCancel = () => {
+        setShowLogoutConfirm(false);
+    };
+
+    const handleLogoutConfirm = async () => {
+        setShowLogoutConfirm(false);
+        await handleSignOut();
     };
 
     // Admin items filtered by permissions
@@ -247,12 +261,46 @@ export function MobileNav({ user, profile, permissions }: MobileNavProps) {
                         {/* Sign Out */}
                         <div className="p-3 border-t border-slate-200 dark:border-slate-800">
                             <button
-                                onClick={handleSignOut}
+                                onClick={handleLogoutClick}
                                 className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-red-50 dark:hover:bg-red-950/30 text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors text-sm font-medium border border-slate-200 dark:border-slate-800"
                             >
                                 <LogOut className="w-4 h-4" />
                                 Cerrar Sesión
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Logout Confirmation Modal */}
+            {showLogoutConfirm && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center">
+                    <div
+                        className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
+                        onClick={handleLogoutCancel}
+                    />
+                    <div className="relative z-10 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-6 w-[340px] max-w-[90vw] animate-in zoom-in-95 fade-in duration-200">
+                        <div className="flex flex-col items-center text-center">
+                            <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-500/20 flex items-center justify-center mb-4">
+                                <LogOut className="w-6 h-6 text-red-600 dark:text-red-400" />
+                            </div>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">¿Cerrar sesión?</h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+                                Estás a punto de salir de tu cuenta. ¿Deseas continuar?
+                            </p>
+                            <div className="flex gap-3 w-full">
+                                <button
+                                    onClick={handleLogoutCancel}
+                                    className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={handleLogoutConfirm}
+                                    className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-500 shadow-lg shadow-red-500/25 transition-colors"
+                                >
+                                    Sí, cerrar sesión
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

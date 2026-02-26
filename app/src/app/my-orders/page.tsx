@@ -1,20 +1,8 @@
 ﻿import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import {
-    ArrowRight,
-    Calendar,
-    CheckCircle,
-    Clock,
-    FileText,
-    PackageCheck,
-    ShieldAlert,
-    Trash2,
-    XCircle,
-} from "lucide-react";
-import Image from "next/image";
-import { IndustrialCard } from "@/components/ui/IndustrialCard";
-import { StatusChip, getRequestStatusMeta } from "@/components/ui/request-status";
+import { ArrowRight, FileText } from "lucide-react";
+import DateGroupedRequests from "@/components/requests/DateGroupedRequests";
 
 type MyOrdersPageProps = {
     searchParams?: Promise<Record<string, string | string[] | undefined>> | Record<string, string | string[] | undefined>;
@@ -133,82 +121,7 @@ export default async function MyOrdersPage({ searchParams }: MyOrdersPageProps) 
                             </Link>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 gap-4">
-                            {filteredRequests.length === 0 ? (
-                                <div className="py-12 text-center text-slate-500 border border-slate-800 rounded-xl bg-slate-900/40">
-                                    No hay solicitudes para el filtro seleccionado.
-                                </div>
-                            ) : filteredRequests.map((req) => (
-                                <Link
-                                    key={req.id}
-                                    href={`/my-orders/${req.id}`}
-                                    className="block group"
-                                >
-                                    <IndustrialCard className="p-0 overflow-hidden hover:border-slate-600 transition-colors bg-slate-900/80">
-                                        <div className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                            <div className="flex items-start md:items-center gap-4">
-                                                <div className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 border ${getRequestStatusMeta(req.status).bgClass} ${getRequestStatusMeta(req.status).textClass} ${getRequestStatusMeta(req.status).borderClass}`}>
-                                                    {req.status === 'Pendiente' && <Clock className="w-6 h-6" />}
-                                                    {req.status === 'Aceptada' && <CheckCircle className="w-6 h-6" />}
-                                                    {req.status === 'Alerta' && <ShieldAlert className="w-6 h-6" />}
-                                                    {req.status === 'Cancelada' && <XCircle className="w-6 h-6" />}
-                                                    {req.status === 'Entregada' && <PackageCheck className="w-6 h-6" />}
-                                                    {req.status === 'Eliminada' && <Trash2 className="w-6 h-6" />}
-                                                    {!['Pendiente', 'Aceptada', 'Alerta', 'Cancelada', 'Entregada', 'Eliminada'].includes(req.status) && <FileText className="w-6 h-6" />}
-                                                </div>
-
-                                                <div>
-                                                    <div className="flex items-center gap-2 mb-1">
-                                                        <span className="text-lg font-bold text-white font-mono">{req.request_code}</span>
-                                                        <StatusChip status={req.status} />
-                                                    </div>
-                                                    <div className="flex items-center gap-3 text-sm text-slate-500">
-                                                        <span className="flex items-center gap-1">
-                                                            <Calendar className="w-3.5 h-3.5" />
-                                                            {formatDate(req.created_at)}
-                                                        </span>
-                                                        <span>·</span>
-                                                        <span>{req.items_detail?.length || 0} ítems</span>
-                                                        <span>·</span>
-                                                        <span className="text-slate-400">{req.area}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex items-center justify-between md:justify-end gap-6 w-full md:w-auto mt-2 md:mt-0 pt-4 md:pt-0 border-t md:border-t-0 border-slate-800/50">
-                                                <div className="flex -space-x-2">
-                                                    {(req.items_detail && Array.isArray(req.items_detail) ? req.items_detail.slice(0, 4) : []).map((item: any, i: number) => (
-                                                        <div key={i} className="w-8 h-8 rounded-full bg-slate-800 border-2 border-slate-900 flex items-center justify-center text-[10px] text-slate-500 overflow-hidden relative shadow-sm">
-                                                            {item.imagen ? (
-                                                                <Image
-                                                                    src={item.imagen}
-                                                                    alt=""
-                                                                    fill
-                                                                    className="object-cover"
-                                                                    sizes="32px"
-                                                                    unoptimized
-                                                                />
-                                                            ) : (
-                                                                <div className="w-1.5 h-1.5 bg-slate-600 rounded-full" />
-                                                            )}
-                                                        </div>
-                                                    ))}
-                                                    {(req.items_detail?.length || 0) > 4 && (
-                                                        <div className="w-8 h-8 rounded-full bg-slate-800 border-2 border-slate-900 flex items-center justify-center text-[10px] text-slate-500 font-medium">
-                                                            +{req.items_detail.length - 4}
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                <div className="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 text-sm font-medium group-hover:bg-blue-600 group-hover:text-white transition-colors flex items-center gap-2">
-                                                    Ver Detalles <ArrowRight className="w-4 h-4" />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </IndustrialCard>
-                                </Link>
-                            ))}
-                        </div>
+                        <DateGroupedRequests requests={filteredRequests} />
                     )}
                 </div>
             </div>

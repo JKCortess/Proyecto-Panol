@@ -4,6 +4,7 @@ import { getInventory } from "@/lib/data";
 import { redirect } from "next/navigation";
 import { History, Search, Filter } from "lucide-react";
 import { EditHistoryCard } from "@/components/admin/EditHistoryCard";
+import DateGroupedEditHistory from "@/components/admin/DateGroupedEditHistory";
 
 interface EditRecord {
     id: string;
@@ -62,11 +63,11 @@ export default async function EditHistoryPage({ searchParams }: { searchParams: 
         console.error("Error fetching edit history:", error);
     }
 
-    // Build SKU → first image URL map
-    const imageMap = new Map<string, string>();
+    // Build SKU → first image URL map (plain object for serialization to client)
+    const imageMapObj: Record<string, string> = {};
     for (const item of inventoryItems) {
-        if (item.fotos.length > 0 && !imageMap.has(item.sku)) {
-            imageMap.set(item.sku, item.fotos[0]);
+        if (item.fotos.length > 0 && !imageMapObj[item.sku]) {
+            imageMapObj[item.sku] = item.fotos[0];
         }
     }
 
@@ -136,15 +137,7 @@ export default async function EditHistoryPage({ searchParams }: { searchParams: 
                     <p className="text-sm mt-1">Los cambios que se realicen al inventario aparecerán aquí.</p>
                 </div>
             ) : (
-                <div className="space-y-4">
-                    {groups.map((group) => (
-                        <EditHistoryCard
-                            key={group.key}
-                            group={group}
-                            imageUrl={imageMap.get(group.sku) || null}
-                        />
-                    ))}
-                </div>
+                <DateGroupedEditHistory groups={groups} imageMap={imageMapObj} />
             )}
 
             {/* Pagination */}

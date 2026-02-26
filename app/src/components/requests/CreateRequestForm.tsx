@@ -7,6 +7,7 @@ import { requestSchema, RequestFormValues } from '@/app/requests/schema';
 import { createRequest } from '@/app/requests/actions';
 import { useCart, type CartItem } from '@/context/cart-context';
 import { InventoryAutocomplete } from './InventoryAutocomplete';
+import { FrequentItems } from './FrequentItems';
 import { type InventoryItem } from '@/app/requests/search-action';
 import Image from 'next/image';
 import {
@@ -43,6 +44,7 @@ const formatCLP = (value: number | undefined) => {
 interface CreateRequestFormProps {
     userEmail: string;
     userId: string;
+
     userName?: string | null;
     userArea?: string | null;
     userRole?: string;
@@ -318,6 +320,23 @@ export function CreateRequestForm({ userEmail, userId, userName, userArea, userR
                     </div>
                 </div>
             </div>
+
+            {/* Frequent Items Section */}
+            <FrequentItems
+                userId={userId}
+                onAddItem={(item) => {
+                    append({
+                        sku: item.sku,
+                        detail: item.detail,
+                        quantity: item.quantity,
+                        notes: '',
+                        value: item.value,
+                        imagen: item.imagen,
+                        talla: item.talla || '',
+                        marca: item.marca || '',
+                    });
+                }}
+            />
 
             {/* Items List - Shopping Cart Style */}
             <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800 shadow-sm">

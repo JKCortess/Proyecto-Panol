@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.5.8 - 2026-02-25
+
+### ✨ Funcionalidades
+- **Agrupación por fecha en Mis Solicitudes**: Nuevo selector Día/Semana/Mes que agrupa solicitudes bajo encabezados de fecha con contadores
+- **Agrupación por fecha en Historial de Ediciones**: Mismo selector Día/Semana/Mes para organizar ediciones de inventario por período
+- **Ítems frecuentes en carrito**: Sección de ítems frecuentemente solicitados basada en historial de pedidos
+
+### 🔧 Mantenimiento
+- Nuevos componentes cliente: `DateGroupedRequests`, `DateGroupedEditHistory`, `FrequentItems`
+- Limpieza de imports en `my-orders/page.tsx` y `edit-history/page.tsx`
+
 ## v0.5.7 - 2026-02-25
 
 ### ✨ Funcionalidades
