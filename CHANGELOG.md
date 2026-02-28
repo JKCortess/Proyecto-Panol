@@ -1,5 +1,28 @@
 # Changelog
 
+## v0.6.2 - 2026-02-28
+
+### 🔒 Seguridad
+- **API Key Gemini protegida**: Movida de URL query string a header `x-goog-api-key` — ya no aparece en logs ni historiales
+- **Admin guard en `/api/ai/config` PATCH**: Solo administradores pueden cambiar modelo/proveedor IA
+- **Admin guard en `/api/ai/api-keys`**: GET, POST y PATCH restringidos a administradores
+- **Open redirect prevenido**: Validación del parámetro `next` en auth callback para evitar redirecciones maliciosas
+- **RLS restrictivas**: 4 políticas de Supabase endurecidas — `ai_api_keys`, `inventory_edit_history`, `openrouter_saved_models` ahora restringidas solo a admins
+
+### 🔧 Mantenimiento
+- Supabase security advisors: 5 → 2 alertas (3 RLS permisivas eliminadas)
+- Build verificado sin errores de TypeScript
+
+## v0.6.1 - 2026-02-28
+
+### ✨ Funcionalidades
+- **Página Features independiente**: Sección de características extraída a `/features` con navegación desde `/inicio`
+- **Mejora Ver Similares**: Botón "Ver similares" en asistente IA navega a inventario filtrado por categoría
+
+### 🐛 Correcciones
+- **Fix imagen producto card IA**: Corregido bug donde el asistente mostraba la tarjeta de producto incorrecta al buscar ítems
+- **Fix product cards OpenRouter**: Validación de SKU en tarjetas de producto para evitar cards irrelevantes
+
 ## v0.6.0 - 2026-02-28
 
 ### ✨ Funcionalidades

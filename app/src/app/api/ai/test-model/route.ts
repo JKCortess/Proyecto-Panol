@@ -50,10 +50,10 @@ export async function POST(req: NextRequest) {
 
         try {
             const response = await fetch(
-                `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+                `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
                 {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
                     body: JSON.stringify({
                         contents: [
                             {

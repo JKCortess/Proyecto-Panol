@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import { isCurrentUserAdmin } from "@/app/(app)/profile/actions";
 
 /**
  * GET /api/ai/api-keys
@@ -7,14 +8,12 @@ import { createClient } from "@/utils/supabase/server";
  */
 export async function GET() {
     try {
-        const supabase = await createClient();
-        const {
-            data: { user },
-        } = await supabase.auth.getUser();
-
-        if (!user) {
-            return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+        const isAdmin = await isCurrentUserAdmin();
+        if (!isAdmin) {
+            return NextResponse.json({ error: "No autorizado" }, { status: 403 });
         }
+
+        const supabase = await createClient();
 
         // Get the current active key from app_settings
         const { data: currentSetting } = await supabase
@@ -58,14 +57,15 @@ export async function GET() {
  */
 export async function POST(req: NextRequest) {
     try {
+        const isAdmin = await isCurrentUserAdmin();
+        if (!isAdmin) {
+            return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+        }
+
         const supabase = await createClient();
         const {
             data: { user },
         } = await supabase.auth.getUser();
-
-        if (!user) {
-            return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-        }
 
         const { apiKey, label } = await req.json();
 
@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
             api_key: apiKey.trim(),
             label: keyLabel,
             key_preview: keyPreview,
-            created_by: user.id,
+            created_by: user?.id,
         });
 
         if (insertError) {
@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
             .from("app_settings")
             .update({
                 value: apiKey.trim(),
-                updated_by: user.id,
+                updated_by: user?.id,
                 updated_at: new Date().toISOString(),
             })
             .eq("key", "ai_api_key");
@@ -129,14 +129,15 @@ export async function POST(req: NextRequest) {
  */
 export async function PATCH(req: NextRequest) {
     try {
+        const isAdmin = await isCurrentUserAdmin();
+        if (!isAdmin) {
+            return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+        }
+
         const supabase = await createClient();
         const {
             data: { user },
         } = await supabase.auth.getUser();
-
-        if (!user) {
-            return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-        }
 
         const { keyId } = await req.json();
 
@@ -160,7 +161,7 @@ export async function PATCH(req: NextRequest) {
             .from("app_settings")
             .update({
                 value: keyData.api_key,
-                updated_by: user.id,
+                updated_by: user?.id,
                 updated_at: new Date().toISOString(),
             })
             .eq("key", "ai_api_key");

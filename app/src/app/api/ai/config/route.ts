@@ -118,14 +118,15 @@ export async function PUT(req: NextRequest) {
  */
 export async function PATCH(req: NextRequest) {
     try {
+        const isAdmin = await isCurrentUserAdmin();
+        if (!isAdmin) {
+            return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+        }
+
         const supabase = await createClient();
         const {
             data: { user },
         } = await supabase.auth.getUser();
-
-        if (!user) {
-            return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-        }
 
         const { model, provider } = await req.json();
 
@@ -141,7 +142,7 @@ export async function PATCH(req: NextRequest) {
             .from("app_settings")
             .update({
                 value: model,
-                updated_by: user.id,
+                updated_by: user?.id,
                 updated_at: new Date().toISOString(),
             })
             .eq("key", "ai_model");
@@ -160,7 +161,7 @@ export async function PATCH(req: NextRequest) {
                 .from("app_settings")
                 .update({
                     value: provider,
-                    updated_by: user.id,
+                    updated_by: user?.id,
                     updated_at: new Date().toISOString(),
                 })
                 .eq("key", "ai_provider");
