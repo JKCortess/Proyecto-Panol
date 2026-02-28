@@ -2,7 +2,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { searchInventory, type InventoryItem } from '@/app/requests/search-action';
+import { searchInventory, type InventoryItem } from '@/app/(app)/requests/search-action';
 import { Search, Package, PackagePlus, MapPin, Layers, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 

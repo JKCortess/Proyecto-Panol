@@ -7,7 +7,7 @@ import {
     Camera, Truck, Hash, CameraOff, ExternalLink, ChevronDown, RefreshCw
 } from 'lucide-react';
 import Image from 'next/image';
-import { lookupRequestByCode, deliverRequest } from '@/app/requests/actions';
+import { lookupRequestByCode, deliverRequest } from '@/app/(app)/requests/actions';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 

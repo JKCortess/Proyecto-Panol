@@ -10,8 +10,8 @@ import {
     Calendar as CalendarIcon, Trash2, Plus, Minus, Edit3, Search
 } from 'lucide-react';
 import { ModernDatePicker } from '@/components/ui/ModernDatePicker';
-import { deliverRequest, updateRequestStatus, getRequestStatusLog, deleteRequest, bulkDeleteRequests, bulkDeliverRequests } from '@/app/requests/actions';
-import { getInventoryBySKUs, InventoryDetailItem, searchInventory, InventoryItem } from '@/app/requests/search-action';
+import { deliverRequest, updateRequestStatus, getRequestStatusLog, deleteRequest, bulkDeleteRequests, bulkDeliverRequests } from '@/app/(app)/requests/actions';
+import { getInventoryBySKUs, InventoryDetailItem, searchInventory, InventoryItem } from '@/app/(app)/requests/search-action';
 import { toast } from 'sonner';
 import Image from 'next/image';
 import { createClient } from '@/utils/supabase/client';

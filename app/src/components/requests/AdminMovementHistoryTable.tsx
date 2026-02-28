@@ -11,8 +11,8 @@ import {
     X,
     Undo2,
 } from 'lucide-react';
-import { getRequestDetailForAdmin, restoreRequest, updateRequestStatus } from '@/app/requests/actions';
-import { getInventoryBySKUs, type InventoryDetailItem } from '@/app/requests/search-action';
+import { getRequestDetailForAdmin, restoreRequest, updateRequestStatus } from '@/app/(app)/requests/actions';
+import { getInventoryBySKUs, type InventoryDetailItem } from '@/app/(app)/requests/search-action';
 import { StatusChip } from '@/components/ui/request-status';
 
 type AdminMovement = {

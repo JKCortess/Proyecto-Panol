@@ -3,12 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useForm, useFieldArray, useWatch, type Control, type UseFormSetValue } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { requestSchema, RequestFormValues } from '@/app/requests/schema';
-import { createRequest } from '@/app/requests/actions';
+import { requestSchema, RequestFormValues } from '@/app/(app)/requests/schema';
+import { createRequest } from '@/app/(app)/requests/actions';
 import { useCart, type CartItem } from '@/context/cart-context';
 import { InventoryAutocomplete } from './InventoryAutocomplete';
 import { FrequentItems } from './FrequentItems';
-import { type InventoryItem } from '@/app/requests/search-action';
+import { type InventoryItem } from '@/app/(app)/requests/search-action';
 import Image from 'next/image';
 import {
     Plus,

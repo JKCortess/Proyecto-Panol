@@ -1,6 +1,6 @@
 import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
-import { getUserProfile } from '@/app/profile/actions';
+import { getUserProfile } from '@/app/(app)/profile/actions';
 import { QRScannerClient } from '@/components/scan/QRScannerClient';
 
 export default async function ScanPage() {

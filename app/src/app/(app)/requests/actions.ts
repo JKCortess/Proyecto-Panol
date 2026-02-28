@@ -6,7 +6,7 @@ import { syncStockToSheets, restoreStockInSheets } from '@/lib/sheets-mutations'
 import { invalidateInventoryCache } from '@/lib/data';
 import { revalidatePath } from 'next/cache';
 import { Resend } from 'resend';
-import { getActiveWebhookUrl } from '@/app/admin/webhook-actions';
+import { getActiveWebhookUrl } from '@/app/(app)/admin/webhook-actions';
 import { generateQRCodeDataUrl, uploadQRToStorage, deleteQRFromStorage } from '@/lib/qr-utils';
 
 // Generate a random 6-digit numeric code
@@ -1119,7 +1119,7 @@ export async function lookupRequestByCode(code: string) {
         talla?: string; marca?: string; notes?: string; value?: number;
     }[];
 
-    const { getInventoryBySKUs } = await import('@/app/requests/search-action');
+    const { getInventoryBySKUs } = await import('@/app/(app)/requests/search-action');
     const skuRequests = items.map(i => ({ sku: i.sku || '', talla: i.talla }));
     const inventoryMap = await getInventoryBySKUs(skuRequests);
 

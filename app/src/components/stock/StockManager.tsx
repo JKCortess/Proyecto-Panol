@@ -16,8 +16,8 @@ import {
 } from 'lucide-react';
 import { InventoryAutocomplete } from '@/components/requests/InventoryAutocomplete';
 import { ModernDatePicker } from '@/components/ui/ModernDatePicker';
-import { type InventoryItem } from '@/app/requests/search-action';
-import { addStockEntry, processStockExit } from '@/app/stock/actions';
+import { type InventoryItem } from '@/app/(app)/requests/search-action';
+import { addStockEntry, processStockExit } from '@/app/(app)/stock/actions';
 import { toast } from 'sonner';
 import Image from 'next/image';
 import Link from 'next/link';

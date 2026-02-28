@@ -1,7 +1,7 @@
 import { createClient } from '@/utils/supabase/server';
 import { CreateRequestForm } from '@/components/requests/CreateRequestForm';
 import { redirect } from 'next/navigation';
-import { getUserProfile } from '@/app/profile/actions';
+import { getUserProfile } from '@/app/(app)/profile/actions';
 
 export default async function NewRequestPage() {
     const supabase = await createClient();

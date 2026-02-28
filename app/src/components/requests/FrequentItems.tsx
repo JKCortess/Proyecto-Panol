@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import { getFrequentItems, type FrequentItem } from '@/app/requests/frequent-items-action';
+import { getFrequentItems, type FrequentItem } from '@/app/(app)/requests/frequent-items-action';
 import Image from 'next/image';
 import {
     Flame,

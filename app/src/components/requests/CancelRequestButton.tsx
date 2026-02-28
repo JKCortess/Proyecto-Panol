@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Loader2, XCircle, AlertTriangle } from 'lucide-react';
-import { cancelOwnRequest } from '@/app/requests/actions';
+import { cancelOwnRequest } from '@/app/(app)/requests/actions';
 
 interface CancelRequestButtonProps {
     requestId: string;
