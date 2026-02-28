@@ -1,4 +1,4 @@
-import { getUserProfile } from "@/app/profile/actions";
+import { getUserProfile } from "@/app/(app)/profile/actions";
 import { createClient } from "@/utils/supabase/server";
 import AssistantClient from "./AssistantClient";
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
-import { isCurrentUserAdmin } from "@/app/profile/actions";
+import { isCurrentUserAdmin } from "@/app/(app)/profile/actions";
 
 /**
  * GET /api/ai/config
@@ -127,7 +127,7 @@ export async function PATCH(req: NextRequest) {
             return NextResponse.json({ error: "No autenticado" }, { status: 401 });
         }
 
-        const { model } = await req.json();
+        const { model, provider } = await req.json();
 
         if (!model || typeof model !== "string") {
             return NextResponse.json(
@@ -136,6 +136,7 @@ export async function PATCH(req: NextRequest) {
             );
         }
 
+        // Update model
         const { error } = await supabase
             .from("app_settings")
             .update({
@@ -153,9 +154,26 @@ export async function PATCH(req: NextRequest) {
             );
         }
 
+        // Update provider if specified
+        if (provider && typeof provider === "string" && ["gemini", "openrouter"].includes(provider)) {
+            const { error: providerError } = await supabase
+                .from("app_settings")
+                .update({
+                    value: provider,
+                    updated_by: user.id,
+                    updated_at: new Date().toISOString(),
+                })
+                .eq("key", "ai_provider");
+
+            if (providerError) {
+                console.error("[AI Config] Error updating provider:", providerError);
+            }
+        }
+
         return NextResponse.json({
             success: true,
             model,
+            provider: provider || undefined,
             message: `Modelo cambiado a ${model}`,
         });
     } catch (error) {

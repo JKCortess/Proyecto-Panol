@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 // Map routes to their permission page_key
 const routePermissionMap: Record<string, string> = {
     // Navigation pages
-    '/': 'dashboard',
+    '/dashboard': 'dashboard',
     '/inventory': 'inventory',
     '/requests/new': 'requests_new',
     '/my-orders': 'my_orders',
@@ -15,6 +15,9 @@ const routePermissionMap: Record<string, string> = {
     '/stock': 'stock',
     '/admin': 'admin',
 };
+
+// Routes that don't require authentication
+const publicRoutes = ['/', '/login', '/auth'];
 
 export async function updateSession(request: NextRequest) {
     let response = NextResponse.next({
@@ -48,30 +51,31 @@ export async function updateSession(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser()
 
-    if (
-        !user &&
-        !request.nextUrl.pathname.startsWith('/login') &&
-        !request.nextUrl.pathname.startsWith('/auth')
-    ) {
+    const pathname = request.nextUrl.pathname;
+
+    // Allow public routes without authentication
+    const isPublicRoute = publicRoutes.some(route =>
+        route === '/' ? pathname === '/' : pathname.startsWith(route)
+    ) || pathname === '/inicio';
+
+    if (!user && !isPublicRoute) {
         const url = request.nextUrl.clone()
         url.pathname = '/login'
         return NextResponse.redirect(url)
     }
 
-    // Redirect authenticated users from /login to home
-    if (user && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname.startsWith('/login/'))) {
+    // Redirect authenticated users from /login to inventory
+    if (user && (pathname === '/login' || pathname.startsWith('/login/'))) {
         const url = request.nextUrl.clone()
-        url.pathname = '/'
+        url.pathname = '/inventory'
         return NextResponse.redirect(url)
     }
 
     // If user is authenticated, check role-based access
     if (user) {
-        const pathname = request.nextUrl.pathname;
-
-        // Find matching route (exact match for '/', prefix match for others)
+        // Find matching route (exact match for '/dashboard', prefix match for others)
         const matchedRoute = Object.keys(routePermissionMap).find(route => {
-            if (route === '/') return pathname === '/';
+            if (route === '/dashboard') return pathname === '/dashboard';
             return pathname === route || pathname.startsWith(route + '/');
         });
 

@@ -315,7 +315,7 @@ export default async function Dashboard({
 
       {/* ── DATE FILTER ── */}
       <form
-        action="/"
+        action="/dashboard"
         method="GET"
         className="rounded-2xl ui-card p-4 flex flex-col md:flex-row md:items-end gap-3"
       >
@@ -336,7 +336,7 @@ export default async function Dashboard({
           </button>
           {hasDateFilter && (
             <Link
-              href="/"
+              href="/dashboard"
               className="inline-flex items-center gap-1 px-3 py-2 rounded-lg ui-btn-secondary text-sm transition-colors"
             >
               <FilterX className="w-3.5 h-3.5" />

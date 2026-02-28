@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { invalidateInventoryCache, getInventory, getCacheStatus } from '@/lib/data';
-import { isCurrentUserAdmin } from '@/app/profile/actions';
+import { isCurrentUserAdmin } from '@/app/(app)/profile/actions';
 import { revalidatePath } from 'next/cache';
 
 /**

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { type UserProfile, updateUserRole } from "@/app/profile/actions";
+import { type UserProfile, updateUserRole } from "@/app/(app)/profile/actions";
 import { IndustrialCard } from "@/components/ui/IndustrialCard";
 import { Shield, User, ChevronDown, Loader2, Check, X } from "lucide-react";
 import { AvatarDisplay } from "@/components/profile/AvatarSelector";

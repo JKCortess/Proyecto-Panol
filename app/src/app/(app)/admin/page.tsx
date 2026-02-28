@@ -1,4 +1,4 @@
-import { getAllProfiles, getRolePermissions, isCurrentUserAdmin } from "@/app/profile/actions";
+import { getAllProfiles, getRolePermissions, isCurrentUserAdmin } from "@/app/(app)/profile/actions";
 import { ArrowLeft, Users, Shield, Lock } from "lucide-react";
 import { IndustrialCard } from "@/components/ui/IndustrialCard";
 import Link from "next/link";
@@ -34,7 +34,7 @@ export default async function AdminPage() {
 
                 <header className="flex items-center justify-between pb-6 border-b border-slate-200 dark:border-slate-800">
                     <div>
-                        <Link href="/" className="flex items-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors mb-2 gap-2 text-sm font-mono uppercase tracking-wider">
+                        <Link href="/dashboard" className="flex items-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors mb-2 gap-2 text-sm font-mono uppercase tracking-wider">
                             <ArrowLeft className="w-4 h-4" /> Volver al Dashboard
                         </Link>
                         <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Administración</h1>

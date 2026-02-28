@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.6.0 - 2026-02-28
+
+### ✨ Funcionalidades
+- **Landing page con Spline 3D**: Nueva página de inicio en `/inicio` con robot 3D interactivo, hero section split-layout, y features section en 4 columnas
+- **Reestructura de rutas**: Route groups `(app)` y `(landing)` separan rutas autenticadas de públicas
+- **Menú "Inicio"**: Nuevo item de navegación con ícono de casa, arriba de Inventario
+- **Tabs de modelos IA**: Selector por pestañas para Gemini y OpenRouter con soporte de modelos custom
+- **API Keys en grid**: Vista compacta de API keys en la configuración del asistente IA
+- **Dashboard movido a admin**: Panel de Control ahora solo visible para administradores
+
+### 🐛 Correcciones
+- **Fix flujo OAuth Google**: Corregido bug crítico donde el código de autenticación aterrizaba en `/` sin intercambiarse — ahora se reenvía a `/auth/callback`
+- **Fix redirect post-login**: Login con email y OAuth ahora redirigen a `/inventory` en vez de `/`
+- **Fix redirect `0.0.0.0`**: Corregido uso de `host` header en dev para evitar redirect a `0.0.0.0:3000`
+- **Fix producto cards OpenRouter**: Garantizada extracción de tags `[PRODUCT_CARD]` server-side
+
+### 🔧 Mantenimiento
+- Actualizado middleware para rutas públicas `/inicio`
+- Import paths corregidos para route groups `(app)` en 15+ archivos
+- Instaladas dependencias `@splinetool/react-spline` y `@splinetool/runtime`
+
 ## v0.5.8 - 2026-02-25
 
 ### ✨ Funcionalidades

@@ -20,7 +20,7 @@ import {
 import { type User } from "@supabase/supabase-js";
 import { signOut } from "@/app/auth/actions";
 import { cn } from "@/lib/utils";
-import { type UserProfile, type RolePermission } from "@/app/profile/actions";
+import { type UserProfile, type RolePermission } from "@/app/(app)/profile/actions";
 import { AvatarDisplay } from "@/components/profile/AvatarSelector";
 import { ThemeToggle } from "./ThemeToggle";
 import { ALL_MENU_ITEMS } from "@/constants/navigation";
@@ -33,7 +33,7 @@ interface MobileNavProps {
 
 // Bottom tab items (max 5 for thumb reach)
 const BOTTOM_TABS = [
-    { key: "dashboard", label: "Inicio", href: "/", icon: LayoutDashboard },
+    { key: "dashboard", label: "Inicio", href: "/dashboard", icon: LayoutDashboard },
     { key: "inventory", label: "Inventario", href: "/inventory", icon: Package },
     { key: "requests_new", label: "Carrito", href: "/requests/new", icon: ShoppingCart },
     { key: "my_orders", label: "Solicitudes", href: "/my-orders", icon: FileText },
@@ -100,7 +100,7 @@ export function MobileNav({ user, profile, permissions }: MobileNavProps) {
 
     // Check if current path matches any bottom tab
     const isTabActive = (href: string) => {
-        if (href === "/") return pathname === "/";
+        if (href === "/dashboard") return pathname === "/dashboard";
         return pathname.startsWith(href);
     };
 

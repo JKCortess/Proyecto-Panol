@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { type RolePermission, updatePermission } from "@/app/profile/actions";
+import { type RolePermission, updatePermission } from "@/app/(app)/profile/actions";
 import { IndustrialCard } from "@/components/ui/IndustrialCard";
 import {
     LayoutDashboard,

@@ -22,7 +22,7 @@ import {
     Type,
 } from "lucide-react";
 import Image from "next/image";
-import { updateInventoryItem, type InventoryItemUpdate } from "@/app/inventory/actions";
+import { updateInventoryItem, type InventoryItemUpdate } from "@/app/(app)/inventory/actions";
 
 // Human-readable labels for change summary
 const FIELD_LABELS: Record<string, string> = {

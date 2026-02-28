@@ -2,7 +2,7 @@
 
 import { getSheets } from "@/lib/google";
 import { invalidateInventoryCache } from "@/lib/data";
-import { isCurrentUserAdmin, getUserProfile } from "@/app/profile/actions";
+import { isCurrentUserAdmin, getUserProfile } from "@/app/(app)/profile/actions";
 import { createClient } from "@/utils/supabase/server";
 
 const SPREADSHEET_ID = process.env.PANOL_DB_SPREADSHEET_ID;

@@ -1,6 +1,6 @@
 ﻿
 import { getInventory, groupItemsByIdentity } from "@/lib/data";
-import { getFilterConfig } from "@/app/admin/filter-config-actions";
+import { getFilterConfig } from "@/app/(app)/admin/filter-config-actions";
 
 // Force dynamic rendering — never serve stale cached pages.
 // Google Sheets is the source of truth; every navigation should show fresh data.
@@ -15,7 +15,7 @@ import { InventoryDeck } from "@/components/inventory/InventoryDeck";
 import { Search, AlertCircle, Package, FileSpreadsheet, MapPin, DollarSign, Ruler, ExternalLink, Tag } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { getUserProfile } from "@/app/profile/actions";
+import { getUserProfile } from "@/app/(app)/profile/actions";
 
 const DATASHEET_URL = "https://docs.google.com/spreadsheets/d/1JuZ-9eh9DlNVdqBrs-wutlY3JRQAdzLlx6RGdRzqG5Q/edit?usp=sharing";
 

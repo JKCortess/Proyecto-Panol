@@ -7,6 +7,11 @@
 
 ## Log de Cambios (Reciente)
 
+### [2026-02-28] - 🚀 Ejecución Local: Servidor iniciado
+- **Tarea**: Ejecutar el proyecto en localhost:3000.
+- **Acción**: Se ejecutó `npm run dev` desde el directorio `app/`.
+- **Estado**: Servidor activo y escuchando peticiones en `http://localhost:3000`.
+
 ### [2026-02-23] - 🔧 Fix: Sidebar duplicaba highlight en /admin y /admin/edit-history
 - **Problema**: Al navegar a `/admin/edit-history`, tanto "Historial Ediciones" como "Configuración avanzada" (`/admin`) quedaban resaltados simultáneamente en la barra lateral.
 - **Causa raíz**: `renderMenuLink` usaba `pathname.startsWith(item.href)`, y `/admin/edit-history` empieza con `/admin`.

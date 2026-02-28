@@ -316,6 +316,97 @@ export const AI_TOOLS = [
 ];
 
 /**
+ * Tool definitions in OpenAI-compatible format for OpenRouter.
+ */
+export const AI_TOOLS_OPENAI = [
+    {
+        type: "function" as const,
+        function: {
+            name: "buscar_inventario",
+            description: "Busca ítems en el inventario del pañol por nombre, categoría, marca o SKU. Retorna detalles de stock, ubicación y descripción.",
+            parameters: {
+                type: "object",
+                properties: {
+                    query: {
+                        type: "string",
+                        description: "Texto de búsqueda: nombre del ítem, descripción o palabras clave (ej: 'guantes', 'rodamiento', 'soldadura')",
+                    },
+                    categoria: {
+                        type: "string",
+                        description: "Filtrar por categoría (ej: 'Ropa', 'EPP', 'Herramientas', 'Rodamientos')",
+                    },
+                    marca: {
+                        type: "string",
+                        description: "Filtrar por marca (ej: 'MSA', '3M', 'SKF')",
+                    },
+                },
+            },
+        },
+    },
+    {
+        type: "function" as const,
+        function: {
+            name: "contar_stock",
+            description: "Cuenta el stock total, disponible y valor por categoría o de todo el inventario. Útil para resúmenes y totales numéricos precisos.",
+            parameters: {
+                type: "object",
+                properties: {
+                    categoria: {
+                        type: "string",
+                        description: "Categoría a contar (ej: 'Ropa', 'EPP'). Dejar vacío para todo el inventario.",
+                    },
+                    agrupacion: {
+                        type: "string",
+                        description: "Cómo agrupar los resultados: 'categoria' o 'marca'",
+                        enum: ["categoria", "marca"],
+                    },
+                },
+            },
+        },
+    },
+    {
+        type: "function" as const,
+        function: {
+            name: "detalle_item",
+            description: "Obtiene información completa y detallada de un ítem específico por su código SKU.",
+            parameters: {
+                type: "object",
+                properties: {
+                    sku: {
+                        type: "string",
+                        description: "Código SKU del ítem (ej: '401-GPAZ-01')",
+                    },
+                },
+                required: ["sku"],
+            },
+        },
+    },
+    {
+        type: "function" as const,
+        function: {
+            name: "listar_categorias",
+            description: "Lista todas las categorías disponibles en el inventario con cantidad de ítems y stock total por categoría.",
+            parameters: {
+                type: "object",
+                properties: {},
+            },
+        },
+    },
+    {
+        type: "function" as const,
+        function: {
+            name: "items_stock_bajo",
+            description: "Encuentra todos los ítems con stock por debajo de su punto de reorden (ROP). Útil para alertas de reabastecimiento.",
+            parameters: {
+                type: "object",
+                properties: {},
+            },
+        },
+    },
+];
+
+
+/**
  * Executes a tool call from the AI agent.
  */
 export async function executeToolCall(

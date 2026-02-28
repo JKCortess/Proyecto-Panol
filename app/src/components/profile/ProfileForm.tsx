@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react';
-import { updateUserProfile, type UserProfile } from '@/app/profile/actions';
+import { updateUserProfile, type UserProfile } from '@/app/(app)/profile/actions';
 import {
     User,
     Briefcase,

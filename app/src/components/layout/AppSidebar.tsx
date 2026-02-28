@@ -24,7 +24,7 @@ import {
 import { type User } from "@supabase/supabase-js";
 import { signOut } from "@/app/auth/actions";
 import { cn } from "@/lib/utils";
-import { type UserProfile, type RolePermission } from "@/app/profile/actions";
+import { type UserProfile, type RolePermission } from "@/app/(app)/profile/actions";
 import { AvatarDisplay } from "@/components/profile/AvatarSelector";
 import { ThemeToggle } from "./ThemeToggle";
 

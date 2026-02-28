@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
-import { isCurrentUserAdmin } from "@/app/profile/actions";
+import { isCurrentUserAdmin } from "@/app/(app)/profile/actions";
 import { getInventory, invalidateInventoryCache } from "@/lib/data";
 
 /**

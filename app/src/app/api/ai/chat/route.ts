@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
-import { buildSystemPrompt, AI_TOOLS, executeToolCall } from "@/lib/ai-data";
+import { buildSystemPrompt, AI_TOOLS, AI_TOOLS_OPENAI, executeToolCall } from "@/lib/ai-data";
 
 /**
  * POST /api/ai/chat
@@ -101,11 +101,12 @@ export async function POST(req: NextRequest) {
                 attachments
             );
         } else {
-            responseText = await callOpenRouterSimple(
+            responseText = await callOpenRouterWithTools(
                 apiKey,
                 model,
                 systemPrompt,
-                conversationMessages
+                conversationMessages,
+                attachments
             );
         }
 
@@ -373,45 +374,235 @@ async function callGeminiWithTools(
 }
 
 /**
- * Fallback for OpenRouter (no function calling support).
- * Uses the old text-dump approach for non-Gemini providers.
+ * Calls OpenRouter API with function calling support (OpenAI-compatible format).
+ * Implements a tool loop: if the model requests a function call,
+ * we execute it and feed the result back until the model produces text.
+ * Also supports multimodal content (images) via content array format.
+ *
+ * Context management strategy (mirrors Gemini):
+ * - Tool results are truncated to ~4000 chars to prevent context bloat.
+ * - After round 7, older tool rounds are compacted into a brief summary.
  */
-async function callOpenRouterSimple(
+async function callOpenRouterWithTools(
     apiKey: string,
     model: string,
     systemPrompt: string,
-    messages: { role: string; content: string }[]
+    messages: { role: string; content: string }[],
+    attachments?: { base64: string; mimeType: string; fileName: string }[]
 ): Promise<string> {
-    const openRouterMessages = [
-        { role: "system", content: systemPrompt + "\n\nNOTA: No tienes acceso a herramientas SQL en este modo. Responde basándote en tu conocimiento general y sugiere al usuario sincronizar datos si necesitan info precisa." },
-        ...messages,
+    // Build initial messages in OpenAI-compatible format
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const openRouterMessages: any[] = [
+        { role: "system", content: systemPrompt },
     ];
 
-    const response = await fetch(
-        "https://openrouter.ai/api/v1/chat/completions",
-        {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${apiKey}`,
-                "Content-Type": "application/json",
-                "HTTP-Referer": "https://panol-dole.vercel.app",
-                "X-Title": "Pañol Dole Molina - Asistente IA",
-            },
-            body: JSON.stringify({
-                model,
-                messages: openRouterMessages,
-                temperature: 0.7,
-                max_tokens: 4096,
-            }),
-        }
-    );
+    messages.forEach((m, idx) => {
+        const isLastUserMessage = m.role === "user" && idx === messages.length - 1;
 
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error("[OpenRouter] API Error:", response.status, errorText);
-        throw new Error(`Error de API OpenRouter: ${response.status}`);
+        // Attach images to the last user message using OpenAI content array format
+        if (isLastUserMessage && attachments && attachments.length > 0) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const contentParts: any[] = [
+                { type: "text", text: m.content },
+            ];
+
+            for (const att of attachments) {
+                if (att.mimeType.startsWith("image/")) {
+                    contentParts.push({
+                        type: "image_url",
+                        image_url: {
+                            url: `data:${att.mimeType};base64,${att.base64}`,
+                        },
+                    });
+                }
+            }
+
+            openRouterMessages.push({ role: "user", content: contentParts });
+        } else {
+            openRouterMessages.push({ role: m.role === "assistant" ? "assistant" : "user", content: m.content });
+        }
+    });
+
+    const MAX_TOOL_ROUNDS = 15;
+    const COMPACT_AFTER_ROUND = 7;
+    // Collect PRODUCT_CARD tags from tool results — models often strip them
+    const collectedProductCards: string[] = [];
+    // Track where original messages end for compaction
+    const originalMessageCount = openRouterMessages.length;
+
+    for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
+        // Progressive compaction: after COMPACT_AFTER_ROUND, summarize old tool rounds
+        if (round >= COMPACT_AFTER_ROUND) {
+            compactOpenRouterToolHistory(openRouterMessages, originalMessageCount, 4);
+        }
+
+        const response = await fetch(
+            "https://openrouter.ai/api/v1/chat/completions",
+            {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${apiKey}`,
+                    "Content-Type": "application/json",
+                    "HTTP-Referer": "https://panol-dole.vercel.app",
+                    "X-Title": "Pañol Dole Molina - Asistente IA",
+                },
+                body: JSON.stringify({
+                    model,
+                    messages: openRouterMessages,
+                    tools: AI_TOOLS_OPENAI,
+                    temperature: 0.7,
+                    max_tokens: 4096,
+                }),
+            }
+        );
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("[OpenRouter] API Error:", response.status, errorText);
+            if (response.status === 429) {
+                throw new Error("Se agotó el límite de solicitudes de OpenRouter. Espere un momento e intente de nuevo, o cambie a otro modelo.");
+            }
+            if (response.status === 401 || response.status === 403) {
+                throw new Error("La API Key de OpenRouter es inválida o fue revocada. Un administrador debe verificarla en Configuración Avanzada > Asistente IA.");
+            }
+            throw new Error(`Error de API OpenRouter: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const choice = data.choices?.[0];
+
+        if (!choice?.message) {
+            throw new Error("Respuesta vacía de OpenRouter");
+        }
+
+        const assistantMessage = choice.message;
+        const toolCalls = assistantMessage.tool_calls;
+
+        if (toolCalls && toolCalls.length > 0) {
+            // Add the assistant's message (with tool_calls) to the conversation
+            openRouterMessages.push(assistantMessage);
+
+            // Execute each tool call and add results
+            for (const tc of toolCalls) {
+                const fnName = tc.function.name;
+                let fnArgs = {};
+                try {
+                    fnArgs = JSON.parse(tc.function.arguments || "{}");
+                } catch {
+                    console.warn(`[OpenRouter Tool] Failed to parse args for ${fnName}`);
+                }
+
+                console.log(`[AI Tool] Round ${round + 1}/${MAX_TOOL_ROUNDS} — Executing: ${fnName}(${JSON.stringify(fnArgs)})`);
+
+                const rawResult = await executeToolCall(fnName, fnArgs as Record<string, unknown>);
+                const result = truncateToolResult(rawResult);
+
+                if (rawResult.length !== result.length) {
+                    console.log(`[AI Tool] Result truncated: ${rawResult.length} → ${result.length} chars`);
+                }
+
+                // Extract PRODUCT_CARD tags from the tool result (use non-greedy match for robustness)
+                const cardMatches = rawResult.match(/\[PRODUCT_CARD:.*?\]/g);
+                if (cardMatches) {
+                    for (const card of cardMatches) {
+                        if (!collectedProductCards.includes(card)) {
+                            collectedProductCards.push(card);
+                        }
+                    }
+                }
+
+                // Add tool result as a "tool" role message
+                openRouterMessages.push({
+                    role: "tool",
+                    tool_call_id: tc.id,
+                    content: result,
+                });
+            }
+
+            // Continue the loop — model will now generate text using the tool results
+            continue;
+        }
+
+        // No tool calls — extract text response
+        console.log(`[AI Tool] OpenRouter completed in ${round + 1} round(s)`);
+        let responseText = assistantMessage.content || "No pude generar una respuesta.";
+
+        // Warn if model ran out of tokens mid-response
+        if (choice.finish_reason === "length") {
+            console.warn("[AI Tool] OpenRouter response truncated by max_tokens");
+            responseText += "\n\n⚠️ *La respuesta fue cortada por límite de tokens. Intente una pregunta más específica.*";
+        }
+
+        // Append any product cards the model didn't include in its response
+        if (collectedProductCards.length > 0) {
+            const missingCards = collectedProductCards.filter(card => !responseText.includes(card));
+            if (missingCards.length > 0) {
+                console.log(`[AI Tool] Appending ${missingCards.length} product cards stripped by model`);
+                responseText += "\n\n" + missingCards.join("\n");
+            }
+        }
+
+        return responseText;
     }
 
-    const data = await response.json();
-    return data.choices?.[0]?.message?.content || "No pude generar una respuesta.";
+    console.warn(`[AI Tool] OpenRouter hit MAX_TOOL_ROUNDS (${MAX_TOOL_ROUNDS})`);
+    return "He realizado muchas consultas internas para responder tu pregunta. Por favor, intenta hacer una pregunta más específica o dividirla en partes más pequeñas.";
+}
+
+/**
+ * Compacts older tool call rounds in OpenRouter (OpenAI) format.
+ * Mutates the messages array in-place: replaces old tool rounds with
+ * a summary to free context space. Keeps the last `keepRecent` rounds intact.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function compactOpenRouterToolHistory(messages: any[], originalMessageCount: number, keepRecent: number = 4): void {
+    // Tool entries come after original messages.
+    // A round in OpenAI format = 1 assistant message (with tool_calls) + N tool messages
+    // We need to identify round boundaries.
+    const toolStartIdx = originalMessageCount;
+    const toolEntries = messages.slice(toolStartIdx);
+
+    // Count rounds: each assistant message with tool_calls starts a new round
+    const roundBoundaries: number[] = []; // indices within toolEntries where each round starts
+    for (let i = 0; i < toolEntries.length; i++) {
+        if (toolEntries[i].role === "assistant" && toolEntries[i].tool_calls) {
+            roundBoundaries.push(i);
+        }
+    }
+
+    const totalRounds = roundBoundaries.length;
+    if (totalRounds <= keepRecent) return; // Nothing to compact
+
+    const roundsToCompact = totalRounds - keepRecent;
+    const compactEndIdx = roundBoundaries[roundsToCompact]; // Index within toolEntries
+
+    // Build a summary of compacted rounds
+    const summaryLines: string[] = [];
+    for (let r = 0; r < roundsToCompact; r++) {
+        const startIdx = roundBoundaries[r];
+        const endIdx = r + 1 < roundBoundaries.length ? roundBoundaries[r + 1] : toolEntries.length;
+        const roundEntries = toolEntries.slice(startIdx, endIdx);
+
+        // Extract function names from assistant message
+        const assistantMsg = roundEntries[0];
+        const callNames = (assistantMsg.tool_calls || []).map((tc: { function: { name: string } }) => tc.function.name);
+
+        // Extract brief snippets from tool results
+        const toolResults = roundEntries.slice(1).filter((m: { role: string }) => m.role === "tool");
+        const snippets = toolResults.map((m: { content: string }) => {
+            const content = m.content || "";
+            return content.length > 200 ? content.substring(0, 200) + "..." : content;
+        });
+
+        summaryLines.push(`Consulta ${r + 1}: [${callNames.join(", ")}] → ${snippets.join(" | ")}`);
+    }
+
+    const summaryText = `[Resumen de consultas anteriores al inventario]\n${summaryLines.join("\n")}`;
+
+    // Rebuild messages in-place: keep originals + summary pair + recent tool rounds
+    const recentToolEntries = toolEntries.slice(compactEndIdx);
+    messages.length = originalMessageCount; // Truncate to original messages
+    messages.push({ role: "user", content: summaryText });
+    messages.push({ role: "assistant", content: "Entendido. Tengo el contexto de las consultas anteriores. Continúo analizando." });
+    messages.push(...recentToolEntries);
 }

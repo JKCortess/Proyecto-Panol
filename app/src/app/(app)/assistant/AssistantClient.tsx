@@ -103,6 +103,11 @@ export default function AssistantClient({
     const [isRefreshingData, setIsRefreshingData] = useState(false);
     const [modelPanelOpen, setModelPanelOpen] = useState(false);
     const [currentModel, setCurrentModel] = useState("gemini-2.5-flash");
+    const [activeProvider, setActiveProvider] = useState<"gemini" | "openrouter">("gemini");
+    const [openRouterModel, setOpenRouterModel] = useState("");
+    const [savingOpenRouterModel, setSavingOpenRouterModel] = useState(false);
+    const [savedORModels, setSavedORModels] = useState<{ id: string; model_id: string; label: string | null }[]>([]);
+    const [deletingORModel, setDeletingORModel] = useState<string | null>(null);
     const [modelStatuses, setModelStatuses] = useState<Record<string, ModelStatus>>({});
     const [switchingModel, setSwitchingModel] = useState<string | null>(null);
     const [newApiKey, setNewApiKey] = useState("");
@@ -126,7 +131,7 @@ export default function AssistantClient({
     const fileInputRef = useRef<HTMLInputElement>(null);
     const modelSelectorRef = useRef<HTMLDivElement>(null);
 
-    // Fetch bot name and current model from config
+    // Fetch bot name, current model, and provider from config
     useEffect(() => {
         fetch("/api/ai/config")
             .then((r) => r.json())
@@ -136,6 +141,14 @@ export default function AssistantClient({
                 }
                 if (data.config?.ai_model) {
                     setCurrentModel(data.config.ai_model);
+                    // If model is not in GEMINI_MODELS, set it as OpenRouter model
+                    const isGeminiModel = GEMINI_MODELS.some(m => m.value === data.config.ai_model);
+                    if (!isGeminiModel) {
+                        setOpenRouterModel(data.config.ai_model);
+                    }
+                }
+                if (data.config?.ai_provider) {
+                    setActiveProvider(data.config.ai_provider === "openrouter" ? "openrouter" : "gemini");
                 }
             })
             .catch(() => { });
@@ -642,17 +655,18 @@ export default function AssistantClient({
         await Promise.all(GEMINI_MODELS.map((m) => testModel(m.value)));
     };
 
-    const switchModel = async (modelValue: string) => {
+    const switchModel = async (modelValue: string, provider?: "gemini" | "openrouter") => {
         setSwitchingModel(modelValue);
         try {
             const res = await fetch("/api/ai/config", {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ model: modelValue }),
+                body: JSON.stringify({ model: modelValue, provider: provider || undefined }),
             });
 
             if (res.ok) {
                 setCurrentModel(modelValue);
+                if (provider) setActiveProvider(provider);
                 setError(null);
                 // Auto-close panel after short delay
                 setTimeout(() => setModelPanelOpen(false), 600);
@@ -662,6 +676,89 @@ export default function AssistantClient({
             }
         } catch {
             setError("Error de conexión al cambiar modelo");
+        } finally {
+            setSwitchingModel(null);
+        }
+    };
+
+    const saveOpenRouterModel = async () => {
+        if (!openRouterModel.trim()) return;
+        setSavingOpenRouterModel(true);
+        try {
+            // 1. Set as active model
+            const res = await fetch("/api/ai/config", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ model: openRouterModel.trim(), provider: "openrouter" }),
+            });
+            if (res.ok) {
+                setCurrentModel(openRouterModel.trim());
+                setActiveProvider("openrouter");
+                setError(null);
+            } else {
+                const data = await res.json();
+                setError(data.error || "Error al guardar modelo");
+                setSavingOpenRouterModel(false);
+                return;
+            }
+
+            // 2. Persist to saved models (ignore 409 = already exists)
+            const saveRes = await fetch("/api/ai/openrouter-models", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ model_id: openRouterModel.trim() }),
+            });
+            if (saveRes.ok) {
+                await loadSavedORModels();
+            }
+        } catch {
+            setError("Error de conexión");
+        } finally {
+            setSavingOpenRouterModel(false);
+        }
+    };
+
+    const loadSavedORModels = async () => {
+        try {
+            const res = await fetch("/api/ai/openrouter-models");
+            const data = await res.json();
+            setSavedORModels(data.models || []);
+        } catch {
+            console.error("Error loading saved OR models");
+        }
+    };
+
+    const deleteSavedORModel = async (id: string) => {
+        setDeletingORModel(id);
+        try {
+            const res = await fetch(`/api/ai/openrouter-models?id=${id}`, { method: "DELETE" });
+            if (res.ok) {
+                setSavedORModels((prev) => prev.filter((m) => m.id !== id));
+            }
+        } catch {
+            console.error("Error deleting saved OR model");
+        } finally {
+            setDeletingORModel(null);
+        }
+    };
+
+    const selectSavedORModel = async (modelId: string) => {
+        setSwitchingModel(modelId);
+        try {
+            const res = await fetch("/api/ai/config", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ model: modelId, provider: "openrouter" }),
+            });
+            if (res.ok) {
+                setCurrentModel(modelId);
+                setActiveProvider("openrouter");
+                setOpenRouterModel(modelId);
+                setError(null);
+                setTimeout(() => setModelPanelOpen(false), 600);
+            }
+        } catch {
+            setError("Error de conexión");
         } finally {
             setSwitchingModel(null);
         }
@@ -1039,8 +1136,9 @@ export default function AssistantClient({
                         <button
                             onClick={() => {
                                 setModelPanelOpen(!modelPanelOpen);
-                                if (!modelPanelOpen && Object.keys(modelStatuses).length === 0) {
-                                    testAllModels();
+                                if (!modelPanelOpen) {
+                                    if (Object.keys(modelStatuses).length === 0) testAllModels();
+                                    loadSavedORModels();
                                 }
                             }}
                             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg
@@ -1088,21 +1186,23 @@ export default function AssistantClient({
                                                 Modelo IA
                                             </h3>
                                             <span className="text-[10px] px-2 py-0.5 rounded-md bg-white/[0.06] text-[var(--muted)] font-mono">
-                                                {GEMINI_MODELS.find((m) => m.value === currentModel)?.label || currentModel}
+                                                {activeProvider === "openrouter" ? "🌐 " : ""}{GEMINI_MODELS.find((m) => m.value === currentModel)?.label || currentModel}
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <button
-                                                onClick={testAllModels}
-                                                className="flex items-center gap-1.5 px-2.5 py-1 rounded-md
-                                                text-[11px] font-medium
-                                                bg-white/[0.04] hover:bg-white/[0.08] text-[var(--muted)] hover:text-[var(--foreground)]
-                                                transition-all"
-                                            >
-                                                <RefreshCw className={`w-3 h-3 ${Object.values(modelStatuses).some((s) => s.checking) ? "animate-spin" : ""
-                                                    }`} />
-                                                Verificar
-                                            </button>
+                                            {activeProvider === "gemini" && (
+                                                <button
+                                                    onClick={testAllModels}
+                                                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-md
+                                                    text-[11px] font-medium
+                                                    bg-white/[0.04] hover:bg-white/[0.08] text-[var(--muted)] hover:text-[var(--foreground)]
+                                                    transition-all"
+                                                >
+                                                    <RefreshCw className={`w-3 h-3 ${Object.values(modelStatuses).some((s) => s.checking) ? "animate-spin" : ""
+                                                        }`} />
+                                                    Verificar
+                                                </button>
+                                            )}
                                             <button
                                                 onClick={() => setModelPanelOpen(false)}
                                                 className="p-1 rounded-md hover:bg-white/[0.06] text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
@@ -1113,94 +1213,233 @@ export default function AssistantClient({
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1.5">
-                                        {GEMINI_MODELS.map((m) => {
-                                            const status = modelStatuses[m.value];
-                                            const isCurrent = m.value === currentModel;
-                                            const isSwitching = switchingModel === m.value;
-
-                                            return (
-                                                <div
-                                                    key={m.value}
-                                                    className={`relative p-3 rounded-lg transition-all duration-200 cursor-pointer
-                                                    ${isCurrent
-                                                            ? "bg-white/[0.08]"
-                                                            : "bg-white/[0.02] hover:bg-white/[0.05]"
-                                                        }`}
-                                                    onClick={() => !isCurrent && status?.available && switchModel(m.value)}
-                                                >
-                                                    <div className="flex items-start justify-between mb-1">
-                                                        <div className="min-w-0">
-                                                            <p className={`text-[13px] font-medium truncate ${isCurrent ? "text-[var(--foreground)]" : "text-[var(--foreground)] opacity-80"
-                                                                }`}>
-                                                                {m.label}
-                                                            </p>
-                                                            <p className="text-[10px] text-[var(--muted)] opacity-60">{m.desc}</p>
-                                                        </div>
-                                                        {isCurrent && (
-                                                            <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0 mt-1.5 ml-1" />
-                                                        )}
-                                                    </div>
-
-                                                    {/* Status indicator */}
-                                                    <div className="flex items-center justify-between mt-1.5">
-                                                        <div className="flex items-center gap-1">
-                                                            {!status ? (
-                                                                <button
-                                                                    onClick={(e) => { e.stopPropagation(); testModel(m.value); }}
-                                                                    className="text-[10px] text-[var(--muted)] hover:text-[var(--foreground)] underline transition-colors"
-                                                                >
-                                                                    Verificar
-                                                                </button>
-                                                            ) : status.checking ? (
-                                                                <span className="flex items-center gap-1 text-[10px] text-[var(--muted)]">
-                                                                    <Loader2 className="w-3 h-3 animate-spin" />
-                                                                    Verificando...
-                                                                </span>
-                                                            ) : status.available ? (
-                                                                <span className="flex items-center gap-1 text-[10px] text-emerald-500">
-                                                                    <CheckCircle2 className="w-3 h-3" />
-                                                                    OK
-                                                                    {status.latency && (
-                                                                        <span className="text-[var(--muted)] opacity-60">{status.latency}ms</span>
-                                                                    )}
-                                                                </span>
-                                                            ) : (
-                                                                <span className="flex items-center gap-1 text-[10px] text-red-400/80" title={status.error}>
-                                                                    <XCircle className="w-3 h-3" />
-                                                                    {status.error || "No disponible"}
-                                                                </span>
-                                                            )}
-                                                        </div>
-
-                                                        {!isCurrent && status?.available && (
-                                                            <button
-                                                                onClick={(e) => { e.stopPropagation(); switchModel(m.value); }}
-                                                                disabled={isSwitching}
-                                                                className="flex items-center gap-1 px-2 py-0.5 rounded-md
-                                                                text-[10px] font-medium
-                                                                bg-white/[0.06] hover:bg-white/[0.1]
-                                                                text-[var(--foreground)] transition-all
-                                                                disabled:opacity-50 disabled:cursor-not-allowed"
-                                                            >
-                                                                {isSwitching ? (
-                                                                    <Loader2 className="w-3 h-3 animate-spin" />
-                                                                ) : (
-                                                                    <>
-                                                                        Usar <ArrowRight className="w-2.5 h-2.5" />
-                                                                    </>
-                                                                )}
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
+                                    {/* Provider Tabs */}
+                                    <div className="flex gap-1.5 mb-3 p-0.5 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+                                        <button
+                                            onClick={() => setActiveProvider("gemini")}
+                                            className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${activeProvider === "gemini"
+                                                ? "bg-white/[0.1] text-[var(--foreground)] shadow-sm"
+                                                : "text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-white/[0.04]"
+                                                }`}
+                                        >
+                                            <Zap className="w-3.5 h-3.5" />
+                                            Gemini
+                                        </button>
+                                        <button
+                                            onClick={() => setActiveProvider("openrouter")}
+                                            className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${activeProvider === "openrouter"
+                                                ? "bg-white/[0.1] text-[var(--foreground)] shadow-sm"
+                                                : "text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-white/[0.04]"
+                                                }`}
+                                        >
+                                            🌐
+                                            OpenRouter
+                                        </button>
                                     </div>
 
-                                    <p className="text-[10px] text-[var(--muted)] mt-2.5 opacity-40">
-                                        Si un modelo muestra error de cuota, prueba otro.
-                                    </p>
+                                    {/* Gemini Models Grid */}
+                                    {activeProvider === "gemini" && (
+                                        <>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1.5">
+                                                {GEMINI_MODELS.map((m) => {
+                                                    const status = modelStatuses[m.value];
+                                                    const isCurrent = m.value === currentModel;
+                                                    const isSwitching = switchingModel === m.value;
+
+                                                    return (
+                                                        <div
+                                                            key={m.value}
+                                                            className={`relative p-3 rounded-lg transition-all duration-200 cursor-pointer
+                                                            ${isCurrent
+                                                                    ? "bg-white/[0.08]"
+                                                                    : "bg-white/[0.02] hover:bg-white/[0.05]"
+                                                                }`}
+                                                            onClick={() => !isCurrent && status?.available && switchModel(m.value, "gemini")}
+                                                        >
+                                                            <div className="flex items-start justify-between mb-1">
+                                                                <div className="min-w-0">
+                                                                    <p className={`text-[13px] font-medium truncate ${isCurrent ? "text-[var(--foreground)]" : "text-[var(--foreground)] opacity-80"
+                                                                        }`}>
+                                                                        {m.label}
+                                                                    </p>
+                                                                    <p className="text-[10px] text-[var(--muted)] opacity-60">{m.desc}</p>
+                                                                </div>
+                                                                {isCurrent && (
+                                                                    <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0 mt-1.5 ml-1" />
+                                                                )}
+                                                            </div>
+
+                                                            {/* Status indicator */}
+                                                            <div className="flex items-center justify-between mt-1.5">
+                                                                <div className="flex items-center gap-1">
+                                                                    {!status ? (
+                                                                        <button
+                                                                            onClick={(e) => { e.stopPropagation(); testModel(m.value); }}
+                                                                            className="text-[10px] text-[var(--muted)] hover:text-[var(--foreground)] underline transition-colors"
+                                                                        >
+                                                                            Verificar
+                                                                        </button>
+                                                                    ) : status.checking ? (
+                                                                        <span className="flex items-center gap-1 text-[10px] text-[var(--muted)]">
+                                                                            <Loader2 className="w-3 h-3 animate-spin" />
+                                                                            Verificando...
+                                                                        </span>
+                                                                    ) : status.available ? (
+                                                                        <span className="flex items-center gap-1 text-[10px] text-emerald-500">
+                                                                            <CheckCircle2 className="w-3 h-3" />
+                                                                            OK
+                                                                            {status.latency && (
+                                                                                <span className="text-[var(--muted)] opacity-60">{status.latency}ms</span>
+                                                                            )}
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span className="flex items-center gap-1 text-[10px] text-red-400/80" title={status.error}>
+                                                                            <XCircle className="w-3 h-3" />
+                                                                            {status.error || "No disponible"}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+
+                                                                {!isCurrent && status?.available && (
+                                                                    <button
+                                                                        onClick={(e) => { e.stopPropagation(); switchModel(m.value, "gemini"); }}
+                                                                        disabled={isSwitching}
+                                                                        className="flex items-center gap-1 px-2 py-0.5 rounded-md
+                                                                        text-[10px] font-medium
+                                                                        bg-white/[0.06] hover:bg-white/[0.1]
+                                                                        text-[var(--foreground)] transition-all
+                                                                        disabled:opacity-50 disabled:cursor-not-allowed"
+                                                                    >
+                                                                        {isSwitching ? (
+                                                                            <Loader2 className="w-3 h-3 animate-spin" />
+                                                                        ) : (
+                                                                            <>
+                                                                                Usar <ArrowRight className="w-2.5 h-2.5" />
+                                                                            </>
+                                                                        )}
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                            <p className="text-[10px] text-[var(--muted)] mt-2.5 opacity-40">
+                                                Si un modelo muestra error de cuota, prueba otro.
+                                            </p>
+                                        </>
+                                    )}
+
+                                    {/* OpenRouter Custom Model */}
+                                    {activeProvider === "openrouter" && (
+                                        <div className="space-y-3">
+                                            {/* Saved models grid */}
+                                            {savedORModels.length > 0 && (
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1.5">
+                                                    {savedORModels.map((m) => {
+                                                        const isCurrent = m.model_id === currentModel && activeProvider === "openrouter";
+                                                        const isSwitching = switchingModel === m.model_id;
+                                                        const isDeleting = deletingORModel === m.id;
+                                                        return (
+                                                            <div
+                                                                key={m.id}
+                                                                className={`relative group p-3 rounded-lg transition-all duration-200 cursor-pointer
+                                                                ${isCurrent
+                                                                        ? "bg-white/[0.08] ring-1 ring-emerald-500/30"
+                                                                        : "bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.06]"
+                                                                    }`}
+                                                                onClick={() => !isCurrent && !isDeleting && selectSavedORModel(m.model_id)}
+                                                            >
+                                                                {/* Delete button */}
+                                                                <button
+                                                                    onClick={(e) => { e.stopPropagation(); deleteSavedORModel(m.id); }}
+                                                                    disabled={isDeleting}
+                                                                    className="absolute top-1.5 right-1.5 p-1 rounded-md opacity-0 group-hover:opacity-100
+                                                                    hover:bg-red-500/20 text-[var(--muted)] hover:text-red-400
+                                                                    transition-all disabled:opacity-50"
+                                                                    title="Eliminar modelo"
+                                                                >
+                                                                    {isDeleting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                                                                </button>
+                                                                <div className="flex items-start gap-2 pr-6">
+                                                                    <div className="min-w-0 flex-1">
+                                                                        <p className={`text-[12px] font-mono truncate ${isCurrent ? "text-[var(--foreground)]" : "text-[var(--foreground)] opacity-80"}`}>
+                                                                            {m.model_id}
+                                                                        </p>
+                                                                        {m.label && (
+                                                                            <p className="text-[10px] text-[var(--muted)] opacity-60 truncate">{m.label}</p>
+                                                                        )}
+                                                                    </div>
+                                                                    {isCurrent && (
+                                                                        <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0 mt-1.5" />
+                                                                    )}
+                                                                </div>
+                                                                {!isCurrent && (
+                                                                    <div className="flex items-center mt-1.5">
+                                                                        {isSwitching ? (
+                                                                            <span className="flex items-center gap-1 text-[10px] text-[var(--muted)]">
+                                                                                <Loader2 className="w-3 h-3 animate-spin" /> Cambiando...
+                                                                            </span>
+                                                                        ) : (
+                                                                            <span className="text-[10px] text-[var(--muted)] opacity-50">Click para usar</span>
+                                                                        )}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+
+                                            {/* Add new model input */}
+                                            <div className="p-4 rounded-xl bg-white/[0.03] border border-dashed border-white/[0.08]">
+                                                <p className="text-[11px] font-medium text-[var(--muted)] uppercase tracking-wider mb-2.5">
+                                                    Agregar modelo
+                                                </p>
+                                                <div className="flex gap-2">
+                                                    <input
+                                                        type="text"
+                                                        value={openRouterModel}
+                                                        onChange={(e) => setOpenRouterModel(e.target.value)}
+                                                        className="flex-1 rounded-lg px-3 py-2 text-xs font-mono
+                                                        bg-white/[0.04] border border-white/[0.08]
+                                                        text-[var(--foreground)] placeholder-[var(--muted)]
+                                                        focus:border-white/[0.2] focus:ring-1 focus:ring-white/[0.1]
+                                                        transition-all outline-none"
+                                                        placeholder="ej: minimax/minimax-m2.5"
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === "Enter") {
+                                                                e.preventDefault();
+                                                                saveOpenRouterModel();
+                                                            }
+                                                        }}
+                                                    />
+                                                    <button
+                                                        onClick={saveOpenRouterModel}
+                                                        disabled={savingOpenRouterModel || !openRouterModel.trim()}
+                                                        className="flex items-center gap-1.5 px-4 py-2 rounded-lg
+                                                        text-xs font-medium
+                                                        bg-white/[0.08] hover:bg-white/[0.12]
+                                                        text-[var(--foreground)] transition-all
+                                                        disabled:opacity-40 disabled:cursor-not-allowed"
+                                                    >
+                                                        {savingOpenRouterModel ? (
+                                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                        ) : (
+                                                            <Save className="w-3.5 h-3.5" />
+                                                        )}
+                                                        {savingOpenRouterModel ? "Guardando..." : "Guardar y usar"}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <p className="text-[10px] text-[var(--muted)] opacity-40">
+                                                Usa cualquier modelo disponible en{" "}
+                                                <a href="https://openrouter.ai/models" target="_blank" rel="noopener noreferrer" className="underline hover:text-[var(--foreground)]">
+                                                    openrouter.ai/models
+                                                </a>. La API Key se configura en Administración.
+                                            </p>
+                                        </div>
+                                    )}
 
                                     {/* API Key Management Section */}
                                     <div className="mt-4 pt-3 border-t border-white/[0.06]">
@@ -1231,33 +1470,30 @@ export default function AssistantClient({
                                                 >
                                                     <div className="mt-3 space-y-3">
                                                         {apiKeys.length > 0 && (
-                                                            <div className="space-y-1">
+                                                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5">
                                                                 {apiKeys.map((k) => (
                                                                     <div
                                                                         key={k.id}
-                                                                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all ${k.is_active
-                                                                            ? "bg-white/[0.06]"
-                                                                            : "bg-white/[0.02] hover:bg-white/[0.04]"
+                                                                        onClick={() => !k.is_active && activateApiKey(k.id)}
+                                                                        className={`relative p-2.5 rounded-lg text-xs transition-all cursor-pointer
+                                                                        ${k.is_active
+                                                                                ? "bg-white/[0.08] ring-1 ring-emerald-500/30"
+                                                                                : "bg-white/[0.02] hover:bg-white/[0.06] border border-white/[0.06] hover:border-white/[0.12]"
                                                                             }`}
                                                                     >
-                                                                        <Key className={`w-3 h-3 shrink-0 ${k.is_active ? "text-[var(--foreground)]" : "text-[var(--muted)] opacity-50"}`} />
-                                                                        <div className="flex-1 min-w-0">
-                                                                            <p className={`font-medium truncate ${k.is_active ? "text-[var(--foreground)]" : "text-[var(--foreground)] opacity-80"}`}>
-                                                                                {k.label}
+                                                                        {k.is_active && (
+                                                                            <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-emerald-500" />
+                                                                        )}
+                                                                        <p className={`font-medium truncate text-[11px] ${k.is_active ? "text-[var(--foreground)]" : "text-[var(--foreground)] opacity-80"}`}>
+                                                                            {k.label}
+                                                                        </p>
+                                                                        <p className="text-[9px] text-[var(--muted)] font-mono opacity-50 truncate mt-0.5">
+                                                                            {k.key_preview}
+                                                                        </p>
+                                                                        {!k.is_active && (
+                                                                            <p className="text-[9px] text-[var(--muted)] mt-1 opacity-60">
+                                                                                Click para usar
                                                                             </p>
-                                                                            <p className="text-[10px] text-[var(--muted)] font-mono opacity-50">{k.key_preview}</p>
-                                                                        </div>
-                                                                        {k.is_active ? (
-                                                                            <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-                                                                        ) : (
-                                                                            <button
-                                                                                onClick={() => activateApiKey(k.id)}
-                                                                                className="px-2 py-0.5 rounded-md text-[10px] font-medium
-                                                                                bg-white/[0.06] hover:bg-white/[0.1] text-[var(--foreground)]
-                                                                                transition-all"
-                                                                            >
-                                                                                Usar
-                                                                            </button>
                                                                         )}
                                                                     </div>
                                                                 ))}

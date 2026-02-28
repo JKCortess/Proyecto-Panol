@@ -7,7 +7,7 @@ import { FilterCombobox, Option } from "@/components/ui/FilterCombobox";
 import { FilterTextInput } from "@/components/ui/FilterTextInput";
 import { FilterVisibilityManager } from "./FilterVisibilityManager";
 import type { InventoryItem } from "@/lib/data";
-import type { FilterConfig } from "@/app/admin/filter-config-actions";
+import type { FilterConfig } from "@/app/(app)/admin/filter-config-actions";
 
 interface InventoryControlsProps {
     allItems: InventoryItem[];

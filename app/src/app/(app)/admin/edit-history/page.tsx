@@ -1,5 +1,5 @@
 import { createClient } from "@/utils/supabase/server";
-import { getUserProfile } from "@/app/profile/actions";
+import { getUserProfile } from "@/app/(app)/profile/actions";
 import { getInventory } from "@/lib/data";
 import { redirect } from "next/navigation";
 import { History, Search, Filter } from "lucide-react";
