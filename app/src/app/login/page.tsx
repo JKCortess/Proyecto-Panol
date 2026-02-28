@@ -5,12 +5,16 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { login, signup } from './actions'
 import { createClient } from '@/utils/supabase/client'
 import {
-    Package,
+    Warehouse,
     ArrowRight,
     Mail,
     Lock,
     AlertCircle,
-    Loader2
+    Loader2,
+    ShieldCheck,
+    UserPlus,
+    Info,
+    KeyRound
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -66,36 +70,41 @@ function AuthForm() {
             <div className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
 
                 {/* Header */}
-                <div className="p-8 text-center border-b border-slate-800 bg-slate-900/50">
-                    <div className="mx-auto w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-blue-900/20 transform rotate-3 transition-transform hover:rotate-0">
-                        <Package className="w-7 h-7 text-white" />
+                <div className="px-6 py-5 text-center border-b border-slate-800 bg-gradient-to-b from-slate-800/40 to-transparent">
+                    <div className="mx-auto w-11 h-11 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center mb-3 shadow-lg shadow-blue-900/30 transform rotate-3 transition-transform hover:rotate-0 hover:scale-105">
+                        {isLogin ? (
+                            <KeyRound className="w-5 h-5 text-white" />
+                        ) : (
+                            <UserPlus className="w-5 h-5 text-white" />
+                        )}
                     </div>
-                    <h2 className="text-2xl font-bold text-white tracking-tight">
-                        {isLogin ? 'Welcome Back' : 'Create Account'}
+                    <h2 className="text-xl font-bold text-white tracking-tight">
+                        {isLogin ? 'Bienvenido al Pañol' : 'Registro de Usuario'}
                     </h2>
-                    <p className="text-slate-400 text-sm mt-2">
+                    <p className="text-slate-400 text-sm mt-1.5 max-w-xs mx-auto">
                         {isLogin
-                            ? 'Enter your credentials to access the workspace.'
-                            : 'Sign up to start managing your inventory.'}
+                            ? 'Ingresa tus credenciales para acceder al sistema de gestión de inventario.'
+                            : 'Crea tu cuenta para gestionar repuestos y consumibles del pañol.'}
                     </p>
                 </div>
 
                 {/* Error Alert */}
                 {error && (
-                    <div className="bg-red-500/10 border-l-4 border-red-500 p-4 m-6 mb-0 rounded-r-md flex items-start gap-3 animate-in slide-in-from-top-2">
+                    <div className="bg-red-500/10 border-l-4 border-red-500 p-3 mx-5 mt-4 rounded-r-md flex items-start gap-2.5 animate-in slide-in-from-top-2">
                         <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
                         <div className="flex-1">
-                            <h3 className="text-sm font-medium text-red-500">Authentication Error</h3>
+                            <h3 className="text-sm font-medium text-red-500">Error de Autenticación</h3>
                             <p className="text-xs text-red-400/90 mt-1">{decodeURIComponent(error)}</p>
                         </div>
                     </div>
                 )}
 
-                <div className="p-8 pt-6">
-                    <form onSubmit={handleSubmit} className="space-y-5">
-                        <div className="space-y-1.5">
+                <div className="px-6 py-4">
+                    <form onSubmit={handleSubmit} className="space-y-3">
+
+                        <div className="space-y-1">
                             <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider ml-1">
-                                Email Address
+                                Correo Electrónico
                             </label>
                             <div className="relative group">
                                 <Mail className="icon-left icon-left-md text-slate-500 group-focus-within:text-blue-500 transition-colors" />
@@ -103,15 +112,15 @@ function AuthForm() {
                                     name="email"
                                     type="email"
                                     required
-                                    placeholder="name@company.com"
-                                    className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 input-with-icon pr-4 text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-medium"
+                                    placeholder="usuario@dolemolina.com"
+                                    className="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 input-with-icon pr-4 text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-medium text-sm"
                                 />
                             </div>
                         </div>
 
-                        <div className="space-y-1.5">
+                        <div className="space-y-1">
                             <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider ml-1">
-                                Password
+                                Contraseña
                             </label>
                             <div className="relative group">
                                 <Lock className="icon-left icon-left-md text-slate-500 group-focus-within:text-blue-500 transition-colors" />
@@ -119,20 +128,27 @@ function AuthForm() {
                                     name="password"
                                     type="password"
                                     required
+                                    minLength={6}
                                     placeholder="••••••••"
-                                    className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 input-with-icon pr-4 text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-medium"
+                                    className="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 input-with-icon pr-4 text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-medium text-sm"
                                 />
                             </div>
+                            {!isLogin && (
+                                <div className="flex items-center gap-1.5 mt-1 ml-1 animate-in fade-in duration-300">
+                                    <Info className="w-3 h-3 text-slate-600" />
+                                    <span className="text-[11px] text-slate-600">Mínimo 6 caracteres</span>
+                                </div>
+                            )}
                         </div>
 
                         <button
                             type="submit"
                             disabled={isLoading}
                             className={cn(
-                                "w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all duration-200 shadow-lg",
+                                "w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all duration-200 shadow-lg mt-1",
                                 isLogin
-                                    ? "bg-blue-600 hover:bg-blue-500 text-white shadow-blue-900/20"
-                                    : "bg-slate-100 hover:bg-white text-slate-900 shadow-slate-900/10",
+                                    ? "bg-blue-600 hover:bg-blue-500 text-white shadow-blue-900/30 hover:shadow-blue-900/50"
+                                    : "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-white shadow-blue-900/30",
                                 isLoading && "opacity-70 cursor-not-allowed"
                             )}
                         >
@@ -140,31 +156,31 @@ function AuthForm() {
                                 <Loader2 className="w-5 h-5 animate-spin" />
                             ) : (
                                 <>
-                                    {isLogin ? 'Sign In' : 'Create Account'}
+                                    {isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}
                                     <ArrowRight className="w-4 h-4" />
                                 </>
                             )}
                         </button>
                     </form>
 
-                    <div className="my-6 flex items-center gap-4">
-                        <div className="h-px flex-1 bg-slate-800" />
-                        <span className="text-xs font-medium text-slate-500 uppercase">Or continue with</span>
-                        <div className="h-px flex-1 bg-slate-800" />
+                    <div className="my-4 flex items-center gap-3">
+                        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-700 to-transparent" />
+                        <span className="text-[11px] font-medium text-slate-500 uppercase whitespace-nowrap">O continuar con</span>
+                        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-700 to-transparent" />
                     </div>
 
                     <button
                         onClick={handleGoogleLogin}
                         type="button"
-                        className="w-full py-3 rounded-xl border border-white/10 bg-[#121212] hover:bg-[#1a1a1a] text-white font-medium flex items-center justify-center gap-3 transition-all duration-200 shadow-sm"
+                        className="w-full py-2.5 rounded-xl border border-white/10 bg-[#121212] hover:bg-[#1a1a1a] text-white font-medium flex items-center justify-center gap-3 transition-all duration-200 shadow-sm hover:border-white/20 text-sm"
                     >
                         <GoogleLogo />
                         Continuar con Google
                     </button>
 
-                    <div className="mt-8 text-center">
+                    <div className="mt-4 text-center">
                         <p className="text-sm text-slate-500">
-                            {isLogin ? "Don't have an account?" : "Already have an account?"}
+                            {isLogin ? '¿No tienes una cuenta?' : '¿Ya tienes una cuenta?'}
                             <button
                                 onClick={() => {
                                     setIsLogin(!isLogin)
@@ -173,7 +189,7 @@ function AuthForm() {
                                 }}
                                 className="ml-2 font-bold text-blue-500 hover:text-blue-400 transition-colors focus:outline-none focus:underline"
                             >
-                                {isLogin ? 'Sign up' : 'Sign in'}
+                                {isLogin ? 'Regístrate' : 'Inicia sesión'}
                             </button>
                         </p>
                     </div>
@@ -181,10 +197,11 @@ function AuthForm() {
             </div>
 
             {/* Footer */}
-            <div className="mt-8 text-center space-y-2">
-                <p className="text-xs text-slate-600">
-                    Protected by Supabase Auth & Next.js Security
-                </p>
+            <div className="mt-4 text-center">
+                <div className="flex items-center justify-center gap-1.5 text-xs text-slate-600">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>Sistema Pañol — Dole Molina · Acceso seguro</span>
+                </div>
             </div>
         </div>
     )
@@ -192,12 +209,22 @@ function AuthForm() {
 
 export default function LoginPage() {
     return (
-        <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black flex items-center justify-center p-4 relative overflow-hidden">
+        <div className="min-h-dvh bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black flex items-center justify-center px-4 py-6 relative overflow-y-auto">
             {/* Background Effects */}
-            <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none animate-pulse" style={{ animationDuration: '4s' }} />
+            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none animate-pulse" style={{ animationDuration: '6s' }} />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/5 rounded-full blur-3xl pointer-events-none" />
 
-            <Suspense fallback={<div className="text-slate-500 animate-pulse">Loading secure environment...</div>}>
+            {/* Subtle grid pattern */}
+            <div
+                className="absolute inset-0 pointer-events-none opacity-[0.03]"
+                style={{
+                    backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
+                    backgroundSize: '40px 40px'
+                }}
+            />
+
+            <Suspense fallback={<div className="text-slate-500 animate-pulse">Cargando entorno seguro...</div>}>
                 <AuthForm />
             </Suspense>
         </div>

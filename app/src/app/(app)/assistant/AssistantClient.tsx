@@ -2164,16 +2164,8 @@ function ProductCard({ data }: { data: ProductCardData }) {
     };
 
     const handleSearchSimilar = () => {
-        const textarea = document.querySelector('textarea') as HTMLTextAreaElement;
-        if (textarea) {
-            const query = `Buscar items similares a "${data.name}" en categoría ${data.cat || "general"}`;
-            const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-                window.HTMLTextAreaElement.prototype, 'value'
-            )?.set;
-            nativeInputValueSetter?.call(textarea, query);
-            textarea.dispatchEvent(new Event('input', { bubbles: true }));
-            textarea.focus();
-        }
+        const categoryParam = data.cat ? `?category=${encodeURIComponent(data.cat)}` : '';
+        window.open(`/inventory${categoryParam}`, '_blank');
     };
 
     return (

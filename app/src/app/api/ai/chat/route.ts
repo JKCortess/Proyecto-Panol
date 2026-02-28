@@ -533,11 +533,81 @@ async function callOpenRouterWithTools(
             responseText += "\n\n⚠️ *La respuesta fue cortada por límite de tokens. Intente una pregunta más específica.*";
         }
 
-        // Append any product cards the model didn't include in its response
+        // POST-PROCESSING: Validate inline PRODUCT_CARD tags in the model's response.
+        // Models like Grok sometimes pick the wrong PRODUCT_CARD from tool results
+        // (e.g., showing "Cinta teflonada" card when talking about "Agorex 60").
+        // We validate each inline card against the SKUs mentioned in the text.
         if (collectedProductCards.length > 0) {
-            const missingCards = collectedProductCards.filter(card => !responseText.includes(card));
+            // Extract all SKUs mentioned in the response text (format: SKU: XXX or (SKU: XXX))
+            const skuMentions = responseText.match(/SKU:\s*([A-Za-z0-9\-_ ]+)/gi) || [];
+            const mentionedSkus = skuMentions.map((m: string) => {
+                // Clean up: extract just the SKU value, normalize
+                const sku = m.replace(/^SKU:\s*/i, '').trim();
+                return sku.replace(/\s+/g, '-'); // Normalize spaces to hyphens
+            });
+
+            // Find inline PRODUCT_CARD tags in the response
+            const inlineCards = responseText.match(/\[PRODUCT_CARD:[^\]]+\]/g) || [];
+
+            for (const inlineCard of inlineCards) {
+                try {
+                    const jsonStr = inlineCard.match(/^\[PRODUCT_CARD:(.+)\]$/)?.[1];
+                    if (!jsonStr) continue;
+                    const cardData = JSON.parse(jsonStr);
+                    const cardSku = cardData.sku || "";
+
+                    // Check if this card's SKU is actually mentioned in the text
+                    const isRelevant = mentionedSkus.some((sku: string) => {
+                        const normalizedCardSku = cardSku.replace(/\s+/g, '-');
+                        return normalizedCardSku === sku.replace(/\s+/g, '-') ||
+                            normalizedCardSku.replace(/-/g, ' ') === sku.replace(/-/g, ' ');
+                    }) || responseText.replace(/\[PRODUCT_CARD:[^\]]+\]/g, '').includes(cardSku);
+
+                    if (!isRelevant) {
+                        // This card doesn't belong — remove it
+                        console.log(`[AI Tool] Removing irrelevant inline PRODUCT_CARD for SKU: ${cardSku}`);
+                        responseText = responseText.replace(inlineCard, '');
+                    }
+                } catch {
+                    // If parsing fails, leave the card as-is
+                }
+            }
+
+            // Clean up any empty lines left by removed cards
+            responseText = responseText.replace(/\n{3,}/g, '\n\n');
+        }
+
+        // Append only product cards whose SKU is mentioned in the model's response text.
+        // This prevents showing unrelated product cards (e.g., "Cinta teflonada" when the
+        // model is talking about "Agorex 60") that happened to be in the same search results.
+        if (collectedProductCards.length > 0) {
+            const missingCards = collectedProductCards.filter(card => {
+                if (responseText.includes(card)) return false; // Already included
+                // Extract SKU from the card JSON and check if it's mentioned in the response
+                try {
+                    const jsonStr = card.match(/^\[PRODUCT_CARD:(.+)\]$/)?.[1];
+                    if (jsonStr) {
+                        const cardData = JSON.parse(jsonStr);
+                        if (cardData.sku && responseText.includes(cardData.sku)) {
+                            return true; // SKU is mentioned → this card is relevant
+                        }
+                        // Also check if the product name is mentioned (partial match, at least 10 chars)
+                        if (cardData.name && cardData.name.length >= 10) {
+                            const nameWords = cardData.name.toLowerCase().split(/\s+/).filter((w: string) => w.length > 3);
+                            const responseLower = responseText.toLowerCase();
+                            const matchCount = nameWords.filter((w: string) => responseLower.includes(w)).length;
+                            if (matchCount >= Math.min(3, nameWords.length)) {
+                                return true; // Enough name words match → card is relevant
+                            }
+                        }
+                    }
+                } catch {
+                    // If JSON parsing fails, skip this card
+                }
+                return false;
+            });
             if (missingCards.length > 0) {
-                console.log(`[AI Tool] Appending ${missingCards.length} product cards stripped by model`);
+                console.log(`[AI Tool] Appending ${missingCards.length} relevant product cards stripped by model`);
                 responseText += "\n\n" + missingCards.join("\n");
             }
         }
