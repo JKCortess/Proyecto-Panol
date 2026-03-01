@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.7.0 - 2026-03-01
+
+### ✨ Funcionalidades
+- **Vista Kanban para solicitudes** (#16): Board con 4 columnas (Pendiente → Aceptada → Entregada → Cancelada) con drag & drop nativo y actualización optimista de estados
+- **Toggle Tabla/Kanban**: Selector de vista en la página de solicitudes pendientes
+- **Analytics avanzados** (#8): 4 gráficos en dashboard — consumo por categoría, valor por categoría (pie), top 10 solicitados, alertas ROP
+- **PWA** (#6): `manifest.json`, service worker (`sw.js`) con cache-first para estáticos y network-first para APIs, íconos 192/512px
+- **Modo offline** (#10): `OfflineBanner` con detección de conexión y cache de inventario en SW
+- **Favoritos** (#15): `FavoriteButton` con server actions y animaciones, tabla `user_favorites` en Supabase (migración SQL lista)
+- **Testing** (#23): Vitest configurado con 24 tests unitarios para funciones puras en `data.ts`
+
+### 🔧 Mantenimiento
+- **Refactorización PendingRequestsList** (#1): De 103KB monolítico a ~250 líneas + 6 sub-componentes (`RequestStatusFilters`, `RequestBulkActions`, `RequestTable`, `RequestDetailModal`, `DeliveryModal`, `request-types`)
+- **RequestViewToggle**: Componente de alternancia tabla/kanban reutilizable
+- **KanbanBoard**: Componente genérico de tablero con validación de transiciones de estado
+- **Migraciones SQL** preparadas: `user_favorites`, `item_audit_log`, columnas compliance (`deleted_at`, `created_by`, etc.)
+
 ## v0.6.2 - 2026-02-28
 
 ### 🔒 Seguridad

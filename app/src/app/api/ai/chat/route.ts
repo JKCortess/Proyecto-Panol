@@ -271,6 +271,8 @@ async function callGeminiWithTools(
     const MAX_TOOL_ROUNDS = 15;
     const COMPACT_AFTER_ROUND = 7; // Start compacting older rounds after this
     const originalMessageCount = geminiContents.length;
+    // Collect PRODUCT_CARD tags from tool results — models often strip them
+    const collectedProductCards: string[] = [];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let currentContents: any[] = [...geminiContents];
 
@@ -345,6 +347,16 @@ async function callGeminiWithTools(
                     console.log(`[AI Tool] Result truncated: ${rawResult.length} → ${result.length} chars`);
                 }
 
+                // Extract PRODUCT_CARD tags from the tool result
+                const cardMatches = rawResult.match(/\[PRODUCT_CARD:.*?\]/g);
+                if (cardMatches) {
+                    for (const card of cardMatches) {
+                        if (!collectedProductCards.includes(card)) {
+                            collectedProductCards.push(card);
+                        }
+                    }
+                }
+
                 functionResponses.push({
                     functionResponse: {
                         name: name,
@@ -366,7 +378,61 @@ async function callGeminiWithTools(
         // No function calls — extract text response
         const textParts = parts.filter((p: { text?: string }) => p.text);
         console.log(`[AI Tool] Completed in ${round + 1} round(s)`);
-        return textParts.map((p: { text: string }) => p.text).join("") || "No pude generar una respuesta.";
+        let responseText = textParts.map((p: { text: string }) => p.text).join("") || "No pude generar una respuesta.";
+
+        // POST-PROCESSING: Append missing PRODUCT_CARD tags that the model stripped
+        if (collectedProductCards.length > 0) {
+            // Validate inline PRODUCT_CARD tags
+            const inlineCards = responseText.match(/\[PRODUCT_CARD:[^\]]+\]/g) || [];
+            const skuMentions = responseText.match(/SKU:\s*([A-Za-z0-9\-_ ]+)/gi) || [];
+            const mentionedSkus = skuMentions.map((m: string) =>
+                m.replace(/^SKU:\s*/i, '').trim().replace(/\s+/g, '-')
+            );
+
+            for (const inlineCard of inlineCards) {
+                try {
+                    const jsonStr = inlineCard.match(/^\[PRODUCT_CARD:(.+)\]$/)?.[1];
+                    if (!jsonStr) continue;
+                    const cardData = JSON.parse(jsonStr);
+                    const cardSku = cardData.sku || "";
+                    const isRelevant = mentionedSkus.some((sku: string) => {
+                        const normalizedCardSku = cardSku.replace(/\s+/g, '-');
+                        return normalizedCardSku === sku.replace(/\s+/g, '-') ||
+                            normalizedCardSku.replace(/-/g, ' ') === sku.replace(/-/g, ' ');
+                    }) || responseText.replace(/\[PRODUCT_CARD:[^\]]+\]/g, '').includes(cardSku);
+                    if (!isRelevant) {
+                        console.log(`[AI Tool] Removing irrelevant inline PRODUCT_CARD for SKU: ${cardSku}`);
+                        responseText = responseText.replace(inlineCard, '');
+                    }
+                } catch { /* skip */ }
+            }
+            responseText = responseText.replace(/\n{3,}/g, '\n\n');
+
+            // Append relevant cards that are missing from the response
+            const missingCards = collectedProductCards.filter(card => {
+                if (responseText.includes(card)) return false;
+                try {
+                    const jsonStr = card.match(/^\[PRODUCT_CARD:(.+)\]$/)?.[1];
+                    if (jsonStr) {
+                        const cardData = JSON.parse(jsonStr);
+                        if (cardData.sku && responseText.includes(cardData.sku)) return true;
+                        if (cardData.name && cardData.name.length >= 10) {
+                            const nameWords = cardData.name.toLowerCase().split(/\s+/).filter((w: string) => w.length > 3);
+                            const responseLower = responseText.toLowerCase();
+                            const matchCount = nameWords.filter((w: string) => responseLower.includes(w)).length;
+                            if (matchCount >= Math.min(3, nameWords.length)) return true;
+                        }
+                    }
+                } catch { /* skip */ }
+                return false;
+            });
+            if (missingCards.length > 0) {
+                console.log(`[AI Tool] Appending ${missingCards.length} relevant product cards stripped by Gemini`);
+                responseText += "\n\n" + missingCards.join("\n");
+            }
+        }
+
+        return responseText;
     }
 
     console.warn(`[AI Tool] Hit MAX_TOOL_ROUNDS (${MAX_TOOL_ROUNDS})`);

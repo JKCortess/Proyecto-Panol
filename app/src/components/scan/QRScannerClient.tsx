@@ -42,11 +42,11 @@ type RequestResult = {
 type ViewState = 'scanner' | 'result' | 'delivered';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-    'Pendiente': { label: 'Pendiente', color: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30', icon: <Clock className="w-3.5 h-3.5" /> },
-    'Aceptada': { label: 'Aceptada', color: 'text-blue-400 bg-blue-500/10 border-blue-500/30', icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
-    'Alerta': { label: 'Contactar', color: 'text-orange-400 bg-orange-500/10 border-orange-500/30', icon: <AlertTriangle className="w-3.5 h-3.5" /> },
-    'Entregada': { label: 'Entregada', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30', icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
-    'Cancelada': { label: 'Cancelada', color: 'text-red-400 bg-red-500/10 border-red-500/30', icon: <XCircle className="w-3.5 h-3.5" /> },
+    'Pendiente': { label: 'Pendiente', color: 'text-yellow-700 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-500/10 border-yellow-300 dark:border-yellow-500/30', icon: <Clock className="w-3.5 h-3.5" /> },
+    'Aceptada': { label: 'Aceptada', color: 'text-blue-700 dark:text-blue-400 bg-blue-100 dark:bg-blue-500/10 border-blue-300 dark:border-blue-500/30', icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
+    'Alerta': { label: 'Contactar', color: 'text-orange-700 dark:text-orange-400 bg-orange-100 dark:bg-orange-500/10 border-orange-300 dark:border-orange-500/30', icon: <AlertTriangle className="w-3.5 h-3.5" /> },
+    'Entregada': { label: 'Entregada', color: 'text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-500/10 border-emerald-300 dark:border-emerald-500/30', icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
+    'Cancelada': { label: 'Cancelada', color: 'text-red-700 dark:text-red-400 bg-red-100 dark:bg-red-500/10 border-red-300 dark:border-red-500/30', icon: <XCircle className="w-3.5 h-3.5" /> },
 };
 
 const CAMERA_PREF_KEY = 'preferred-camera-id';

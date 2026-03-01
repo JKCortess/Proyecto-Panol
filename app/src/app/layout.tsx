@@ -1,6 +1,7 @@
 ﻿
 import type { Metadata } from "next";
 import "./globals.css";
+import { OfflineBanner } from "@/components/layout/OfflineBanner";
 
 export const metadata: Metadata = {
   title: "Gestión de Pañol | Dole Molina",
@@ -15,6 +16,11 @@ export default function RootLayout({
   return (
     <html lang="es" className="theme-dark h-full" suppressHydrationWarning>
       <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#0d59f2" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -34,6 +40,12 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased h-full overflow-hidden flex flex-col">
+        <OfflineBanner />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(()=>{});}`,
+          }}
+        />
         {children}
       </body>
     </html>

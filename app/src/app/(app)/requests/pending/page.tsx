@@ -3,9 +3,10 @@ import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
 import { getUserProfile } from '@/app/(app)/profile/actions';
 import { getPendingRequests, getRecentAdminMovements } from '@/app/(app)/requests/actions';
-import { PendingRequestsList } from '@/components/requests/PendingRequestsList';
+import { RequestViewToggle } from '@/components/requests/RequestViewToggle';
 import { AdminMovementHistoryTable } from '@/components/requests/AdminMovementHistoryTable';
 import { ModernDatePicker } from '@/components/ui/ModernDatePicker';
+
 
 type PendingRequestsPageProps = {
     searchParams?: Promise<Record<string, string | string[] | undefined>> | Record<string, string | string[] | undefined>;
@@ -103,7 +104,7 @@ export default async function PendingRequestsPage({ searchParams }: PendingReque
                         </div>
                     </div>
                 </div>
-                <PendingRequestsList requests={allRequests} />
+                <RequestViewToggle requests={allRequests} />
             </div>
 
             {/* ═══════════ SEPARADOR VISUAL ═══════════ */}

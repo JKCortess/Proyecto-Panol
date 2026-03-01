@@ -594,7 +594,7 @@ export function ImageCarousel({ fotos, alt, marca, sizesCount }: ImageCarouselPr
                 {/* Prev Button */}
                 <button
                     onClick={goPrev}
-                    className="absolute left-1.5 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-black/70 transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 active:scale-90"
+                    className="absolute left-1.5 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/70 dark:bg-white/15 backdrop-blur-md border border-transparent dark:border-white/15 flex items-center justify-center text-gray-500 dark:text-white/80 hover:text-blue-600 dark:hover:text-white hover:bg-white/90 dark:hover:bg-white/25 hover:scale-110 hover:shadow-lg hover:shadow-blue-500/20 dark:hover:shadow-blue-400/10 dark:hover:border-white/25 transition-all duration-200 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 active:scale-90"
                     aria-label="Foto anterior"
                 >
                     <ChevronLeft className="w-4 h-4" />
@@ -603,7 +603,7 @@ export function ImageCarousel({ fotos, alt, marca, sizesCount }: ImageCarouselPr
                 {/* Next Button */}
                 <button
                     onClick={goNext}
-                    className="absolute right-1.5 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-black/70 transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 active:scale-90"
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/70 dark:bg-white/15 backdrop-blur-md border border-transparent dark:border-white/15 flex items-center justify-center text-gray-500 dark:text-white/80 hover:text-blue-600 dark:hover:text-white hover:bg-white/90 dark:hover:bg-white/25 hover:scale-110 hover:shadow-lg hover:shadow-blue-500/20 dark:hover:shadow-blue-400/10 dark:hover:border-white/25 transition-all duration-200 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 active:scale-90"
                     aria-label="Foto siguiente"
                 >
                     <ChevronRight className="w-4 h-4" />

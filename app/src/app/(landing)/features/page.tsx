@@ -610,31 +610,6 @@ export default function FeaturesPage() {
                 </div>
             </section>
 
-            {/* ═══ CTA SECTION ═══ */}
-            <section className="relative py-24 px-6 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 via-transparent to-cyan-600/10" />
-                <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.7 }}
-                    className="relative max-w-3xl mx-auto text-center"
-                >
-                    <h2 className="text-3xl sm:text-4xl font-bold mb-6">
-                        ¿Listo para optimizar tu pañol?
-                    </h2>
-                    <p className="text-white/50 text-lg mb-10 max-w-xl mx-auto">
-                        Accede al sistema para gestionar inventario, crear solicitudes y monitorear entregas en tiempo real.
-                    </p>
-                    <Link
-                        href="/inventory"
-                        className="inline-flex items-center gap-3 px-10 py-5 rounded-2xl bg-white text-black font-bold text-lg shadow-2xl shadow-white/10 hover:shadow-white/20 transition-all duration-300 hover:scale-[1.02]"
-                    >
-                        Comenzar Ahora
-                        <ArrowRight className="w-5 h-5" />
-                    </Link>
-                </motion.div>
-            </section>
 
             {/* ═══ FOOTER ═══ */}
             <footer className="border-t border-white/[0.06] py-8 px-6">

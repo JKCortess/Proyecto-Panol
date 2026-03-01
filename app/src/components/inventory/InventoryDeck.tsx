@@ -1,12 +1,15 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, Ruler, DollarSign, MapPin, Tag, Package } from "lucide-react";
+import { AlertCircle, Ruler, DollarSign, MapPin, Tag, Package, Loader2 } from "lucide-react";
 import { ImageCarousel } from "@/components/inventory/ImageCarousel";
 import { InventoryCardActions } from "@/components/inventory/InventoryCardActions";
 import { EditItemModal } from "@/components/inventory/EditItemModal";
 import type { GroupedInventoryItem } from "@/lib/data";
+
+const INITIAL_LOAD = 60;
+const LOAD_MORE = 20;
 
 interface InventoryDeckProps {
     groupedItems: GroupedInventoryItem[];
@@ -17,6 +20,34 @@ export function InventoryDeck({ groupedItems, isAdmin }: InventoryDeckProps) {
     const router = useRouter();
     const [editingItem, setEditingItem] = useState<GroupedInventoryItem | null>(null);
     const [editVariantInfo, setEditVariantInfo] = useState<{ talla?: string; stock: number; rop: number } | null>(null);
+    const [displayCount, setDisplayCount] = useState(INITIAL_LOAD);
+    const sentinelRef = useRef<HTMLDivElement>(null);
+
+    // Reset display count when items change (filters, search, sort)
+    useEffect(() => {
+        setDisplayCount(INITIAL_LOAD);
+    }, [groupedItems]);
+
+    // IntersectionObserver to load more items on scroll
+    useEffect(() => {
+        const sentinel = sentinelRef.current;
+        if (!sentinel) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting) {
+                    setDisplayCount((prev) => Math.min(prev + LOAD_MORE, groupedItems.length));
+                }
+            },
+            { rootMargin: "200px" }
+        );
+
+        observer.observe(sentinel);
+        return () => observer.disconnect();
+    }, [groupedItems.length]);
+
+    const visibleItems = groupedItems.slice(0, displayCount);
+    const hasMore = displayCount < groupedItems.length;
 
     const handleSaved = useCallback(() => {
         // Re-fetch the page after a successful save to reflect Google Sheets changes
@@ -26,7 +57,7 @@ export function InventoryDeck({ groupedItems, isAdmin }: InventoryDeckProps) {
     return (
         <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {groupedItems.map((item, index) => {
+                {visibleItems.map((item, index) => {
                     const effectiveRop = item.hasSizes && item.variants.length === 1
                         ? item.variants[0].rop
                         : item.maxRop;
@@ -147,6 +178,16 @@ export function InventoryDeck({ groupedItems, isAdmin }: InventoryDeckProps) {
                 })}
             </div>
 
+            {/* Infinite scroll sentinel + loading indicator */}
+            <div ref={sentinelRef} className="w-full py-1" />
+            {hasMore && (
+                <div className="flex flex-col items-center gap-2 py-6">
+                    <Loader2 className="w-5 h-5 text-slate-500 animate-spin" />
+                    <span className="text-xs text-slate-500 font-mono">
+                        Mostrando {visibleItems.length} de {groupedItems.length} ítems...
+                    </span>
+                </div>
+            )}
             {/* Edit Modal — rendered outside the grid */}
             {editingItem && (
                 <EditItemModal

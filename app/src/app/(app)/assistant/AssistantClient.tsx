@@ -2193,22 +2193,39 @@ function ProductCard({ data }: { data: ProductCardData }) {
                 }}>
                     Producto
                 </p>
-                <img
-                    src={data.img}
-                    alt={data.name}
-                    loading="lazy"
-                    style={{
+                {data.img ? (
+                    <img
+                        src={data.img}
+                        alt={data.name}
+                        loading="lazy"
+                        style={{
+                            width: "100px",
+                            height: "100px",
+                            objectFit: "cover",
+                            borderRadius: "8px",
+                            border: "1px solid var(--border)",
+                            background: "var(--glass)",
+                        }}
+                        onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = "none";
+                        }}
+                    />
+                ) : (
+                    <div style={{
                         width: "100px",
                         height: "100px",
-                        objectFit: "cover",
                         borderRadius: "8px",
                         border: "1px solid var(--border)",
                         background: "var(--glass)",
-                    }}
-                    onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = "none";
-                    }}
-                />
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "28px",
+                        opacity: 0.4,
+                    }}>
+                        📦
+                    </div>
+                )}
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "6px", minWidth: 0 }}>
                 <a
@@ -2308,13 +2325,32 @@ function MarkdownContent({ content }: {
         const flushList = () => {
             if (listItems.length > 0 && listType) {
                 const Tag = listType;
+                // Separate list items that contain PRODUCT_CARD tags
+                const pendingCards: ProductCardData[] = [];
+                const cleanedItems = listItems.map(item => {
+                    const cardMatches = item.match(/\[PRODUCT_CARD:\{.*?\}\]/g);
+                    if (cardMatches) {
+                        for (const match of cardMatches) {
+                            try {
+                                const jsonStr = match.match(/^\[PRODUCT_CARD:(.+)\]$/)?.[1];
+                                if (jsonStr) pendingCards.push(JSON.parse(jsonStr));
+                            } catch { /* skip */ }
+                        }
+                        return item.replace(/\[PRODUCT_CARD:\{.*?\}\]/g, '').trim();
+                    }
+                    return item;
+                });
                 elements.push(
                     <Tag key={key++} className={`${listType === "ul" ? "list-disc" : "list-decimal"} pl-5 my-1.5 space-y-0.5`}>
-                        {listItems.map((item, i) => (
+                        {cleanedItems.map((item, i) => (
                             <li key={i} dangerouslySetInnerHTML={{ __html: inlineFormat(item) }} />
                         ))}
                     </Tag>
                 );
+                // Render any product cards that were embedded in list items
+                for (const cardData of pendingCards) {
+                    elements.push(<ProductCard key={key++} data={cardData} />);
+                }
                 listItems = [];
                 listType = null;
             }
@@ -2433,12 +2469,34 @@ function MarkdownContent({ content }: {
                     );
                 }
             }
-            // Paragraph
+            // Paragraph (also extract inline PRODUCT_CARD tags)
             else {
                 flushList();
-                elements.push(
-                    <p key={key++} className="my-1" dangerouslySetInnerHTML={{ __html: inlineFormat(line) }} />
-                );
+                // Check if this line contains PRODUCT_CARD tags mixed with text
+                const productCardMatches = line.match(/\[PRODUCT_CARD:\{.*?\}\]/g);
+                if (productCardMatches && productCardMatches.length > 0) {
+                    // Remove PRODUCT_CARD tags and render remaining text
+                    const textWithout = line.replace(/\[PRODUCT_CARD:\{.*?\}\]/g, '').trim();
+                    if (textWithout) {
+                        elements.push(
+                            <p key={key++} className="my-1" dangerouslySetInnerHTML={{ __html: inlineFormat(textWithout) }} />
+                        );
+                    }
+                    // Render each PRODUCT_CARD as a component
+                    for (const match of productCardMatches) {
+                        try {
+                            const jsonStr = match.match(/^\[PRODUCT_CARD:(.+)\]$/)?.[1];
+                            if (jsonStr) {
+                                const data: ProductCardData = JSON.parse(jsonStr);
+                                elements.push(<ProductCard key={key++} data={data} />);
+                            }
+                        } catch { /* skip malformed cards */ }
+                    }
+                } else {
+                    elements.push(
+                        <p key={key++} className="my-1" dangerouslySetInnerHTML={{ __html: inlineFormat(line) }} />
+                    );
+                }
             }
         }
 

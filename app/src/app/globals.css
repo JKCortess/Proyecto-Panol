@@ -196,6 +196,39 @@ main {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* ─── Recharts: Remove focus outlines on chart elements ─── */
+.recharts-wrapper,
+.recharts-surface,
+.recharts-wrapper svg,
+.recharts-wrapper path,
+.recharts-wrapper rect,
+.recharts-wrapper circle,
+.recharts-wrapper line,
+.recharts-wrapper g,
+.recharts-sector,
+.recharts-bar-rectangle,
+.recharts-active-shape,
+.recharts-pie,
+.recharts-pie-sector,
+.recharts-layer {
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+.recharts-wrapper *:focus,
+.recharts-wrapper *:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.recharts-wrapper svg:focus,
+.recharts-wrapper svg:focus-visible,
+.recharts-surface:focus,
+.recharts-surface:focus-visible {
+  outline: none !important;
+}
+
 /* Scrollbars */
 ::-webkit-scrollbar {
   width: 8px;

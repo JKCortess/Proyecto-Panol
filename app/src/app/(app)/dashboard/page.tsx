@@ -44,6 +44,7 @@ import {
   type MovementData,
   type TimelineData,
 } from "@/components/dashboard/DashboardCharts";
+import { AnalyticsSection } from "@/components/dashboard/AnalyticsSection";
 
 /* ── Types ── */
 type MaterialRequestRow = {
@@ -901,6 +902,24 @@ export default async function Dashboard({
           </div>
         </div>
       )}
+      {/* ═══════════════════════════════════════════════
+           ANALYTICS SECTION
+         ═══════════════════════════════════════════════ */}
+      <AnalyticsSection
+        inventoryItems={allInventoryItems.map(i => ({
+          nombre: i.nombre,
+          sku: i.sku,
+          categoria: i.categoria,
+          stock: i.stock,
+          rop: i.rop,
+          valor: i.valor,
+        }))}
+        requests={requestRows.map(r => ({
+          items_detail: (r.items_detail as { sku: string; detail: string; quantity: number }[] || []),
+          created_at: r.created_at,
+          status: r.status,
+        }))}
+      />
     </div>
   );
 }

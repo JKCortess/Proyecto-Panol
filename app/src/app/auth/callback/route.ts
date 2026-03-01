@@ -1,32 +1,64 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server'
+import { createServerClient } from '@supabase/ssr'
+import type { NextRequest } from 'next/server'
 
-export async function GET(request: Request) {
-    const { searchParams, origin } = new URL(request.url)
+export async function GET(request: NextRequest) {
+    const { searchParams } = new URL(request.url)
     const code = searchParams.get('code')
-    // if "next" is in param, use it as the redirect URL
-    // Security: validate that next is a relative path to prevent open redirects
     const rawNext = searchParams.get('next') ?? '/inventory'
     const next = rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : '/inventory'
 
+    // Build the redirect URL using the host header (handles 0.0.0.0 in dev)
+    const host = request.headers.get('host') || 'localhost:3000'
+    const isLocalEnv = process.env.NODE_ENV === 'development'
+    const forwardedHost = request.headers.get('x-forwarded-host')
+
+    let redirectBase: string
+    if (isLocalEnv) {
+        redirectBase = `http://${host}`
+    } else if (forwardedHost) {
+        redirectBase = `https://${forwardedHost}`
+    } else {
+        redirectBase = `http://${host}`
+    }
+
     if (code) {
-        const supabase = await createClient()
-        const { error } = await supabase.auth.exchangeCodeForSession(code)
-        if (!error) {
-            const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
-            const isLocalEnv = process.env.NODE_ENV === 'development'
-            if (isLocalEnv) {
-                // Use host header for correct origin (request.url may resolve to 0.0.0.0)
-                const host = request.headers.get('host') || 'localhost:3000'
-                return NextResponse.redirect(`http://${host}${next}`)
-            } else if (forwardedHost) {
-                return NextResponse.redirect(`https://${forwardedHost}${next}`)
-            } else {
-                return NextResponse.redirect(`${origin}${next}`)
+        // Track cookies that Supabase sets during exchangeCodeForSession
+        // and explicitly forward them on the redirect response
+        const cookiesToForward: { name: string; value: string; options: Record<string, unknown> }[] = []
+
+        const supabase = createServerClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+            {
+                cookies: {
+                    getAll() {
+                        return request.cookies.getAll()
+                    },
+                    setAll(cookies) {
+                        cookies.forEach((cookie) => {
+                            cookiesToForward.push(cookie)
+                        })
+                    },
+                },
             }
+        )
+
+        const { error } = await supabase.auth.exchangeCodeForSession(code)
+
+        if (!error) {
+            const response = NextResponse.redirect(`${redirectBase}${next}`)
+
+            // Set all auth cookies on the redirect response
+            cookiesToForward.forEach(({ name, value, options }) => {
+                response.cookies.set(name, value, options as Parameters<typeof response.cookies.set>[2])
+            })
+
+            return response
+        } else {
+            console.error('[Auth Callback] exchangeCodeForSession error:', error.message)
         }
     }
 
-    // return the user to an error page with instructions
-    return NextResponse.redirect(`${origin}/auth/auth-code-error`)
+    return NextResponse.redirect(`${redirectBase}/login?error=${encodeURIComponent('Error al intercambiar código de autenticación')}`)
 }
