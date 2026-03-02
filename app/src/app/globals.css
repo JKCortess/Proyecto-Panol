@@ -1090,3 +1090,358 @@ aside {
 #qr-reader img[alt="Info icon"] {
   display: none !important;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Force Dark Mode — .force-dark-mode container
+   Neutralizes ALL theme-light overrides for pages that
+   must always render in dark mode (e.g. /features).
+   ═══════════════════════════════════════════════════════════ */
+
+/* Background & text baseline */
+.force-dark-mode {
+  --background: #000000 !important;
+  --surface: #1e1e1e !important;
+  --surface-hover: #2a2a2a !important;
+  --border: rgba(255, 255, 255, 0.1) !important;
+  --foreground: #e0e0e0 !important;
+  --muted: #8a8a8a !important;
+  --glass: rgba(30, 30, 30, 0.72) !important;
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+/* Prevent theme-light from turning white text dark */
+:root.theme-light .force-dark-mode h1,
+:root.theme-light .force-dark-mode h2,
+:root.theme-light .force-dark-mode h3,
+:root.theme-light .force-dark-mode h4,
+:root.theme-light .force-dark-mode p,
+:root.theme-light .force-dark-mode span,
+:root.theme-light .force-dark-mode div,
+:root.theme-light .force-dark-mode label,
+:root.theme-light .force-dark-mode a {
+  color: inherit;
+}
+
+/* Re-assert .text-white inside force-dark-mode */
+:root.theme-light .force-dark-mode .text-white {
+  color: #ffffff !important;
+}
+
+:root.theme-light .force-dark-mode h1.text-white,
+:root.theme-light .force-dark-mode h2.text-white,
+:root.theme-light .force-dark-mode h3.text-white,
+:root.theme-light .force-dark-mode h4.text-white,
+:root.theme-light .force-dark-mode p.text-white,
+:root.theme-light .force-dark-mode span.text-white,
+:root.theme-light .force-dark-mode div.text-white,
+:root.theme-light .force-dark-mode label.text-white {
+  color: #ffffff !important;
+}
+
+/* Colored text accents — preserve original Tailwind colors */
+:root.theme-light .force-dark-mode .text-emerald-400 {
+  color: #34d399 !important;
+}
+
+:root.theme-light .force-dark-mode .text-green-400 {
+  color: #4ade80 !important;
+}
+
+:root.theme-light .force-dark-mode .text-purple-400 {
+  color: #c084fc !important;
+}
+
+:root.theme-light .force-dark-mode .text-orange-400 {
+  color: #fb923c !important;
+}
+
+:root.theme-light .force-dark-mode .text-yellow-400 {
+  color: #facc15 !important;
+}
+
+:root.theme-light .force-dark-mode .text-cyan-400 {
+  color: #22d3ee !important;
+}
+
+:root.theme-light .force-dark-mode .text-blue-400 {
+  color: #60a5fa !important;
+}
+
+:root.theme-light .force-dark-mode .text-violet-400 {
+  color: #a78bfa !important;
+}
+
+:root.theme-light .force-dark-mode .text-red-400 {
+  color: #f87171 !important;
+}
+
+:root.theme-light .force-dark-mode .text-pink-400 {
+  color: #f472b6 !important;
+}
+
+:root.theme-light .force-dark-mode .text-amber-400 {
+  color: #fbbf24 !important;
+}
+
+:root.theme-light .force-dark-mode .text-rose-400 {
+  color: #fb7185 !important;
+}
+
+:root.theme-light .force-dark-mode .text-sky-400 {
+  color: #38bdf8 !important;
+}
+
+:root.theme-light .force-dark-mode .text-teal-400 {
+  color: #2dd4bf !important;
+}
+
+:root.theme-light .force-dark-mode .text-indigo-400 {
+  color: #818cf8 !important;
+}
+
+:root.theme-light .force-dark-mode .text-blue-500 {
+  color: #3b82f6 !important;
+}
+
+:root.theme-light .force-dark-mode .text-blue-300 {
+  color: #93c5fd !important;
+}
+
+/* Gradients — re-assert original Tailwind gradient stops */
+:root.theme-light .force-dark-mode .from-blue-500 {
+  --tw-gradient-from: #3b82f6 !important;
+}
+
+:root.theme-light .force-dark-mode .from-blue-600 {
+  --tw-gradient-from: #2563eb !important;
+}
+
+:root.theme-light .force-dark-mode .to-cyan-400 {
+  --tw-gradient-to: #22d3ee !important;
+}
+
+:root.theme-light .force-dark-mode .to-blue-400 {
+  --tw-gradient-to: #60a5fa !important;
+}
+
+:root.theme-light .force-dark-mode .to-blue-500 {
+  --tw-gradient-to: #3b82f6 !important;
+}
+
+:root.theme-light .force-dark-mode .to-indigo-400 {
+  --tw-gradient-to: #818cf8 !important;
+}
+
+:root.theme-light .force-dark-mode .to-indigo-500 {
+  --tw-gradient-to: #6366f1 !important;
+}
+
+:root.theme-light .force-dark-mode .to-indigo-600 {
+  --tw-gradient-to: #4f46e5 !important;
+}
+
+:root.theme-light .force-dark-mode .from-violet-500 {
+  --tw-gradient-from: #8b5cf6 !important;
+}
+
+:root.theme-light .force-dark-mode .from-emerald-500 {
+  --tw-gradient-from: #10b981 !important;
+}
+
+:root.theme-light .force-dark-mode .from-amber-500 {
+  --tw-gradient-from: #f59e0b !important;
+}
+
+:root.theme-light .force-dark-mode .from-rose-500 {
+  --tw-gradient-from: #f43f5e !important;
+}
+
+:root.theme-light .force-dark-mode .from-sky-500 {
+  --tw-gradient-from: #0ea5e9 !important;
+}
+
+:root.theme-light .force-dark-mode .from-green-500 {
+  --tw-gradient-from: #22c55e !important;
+}
+
+:root.theme-light .force-dark-mode .from-orange-500 {
+  --tw-gradient-from: #f97316 !important;
+}
+
+:root.theme-light .force-dark-mode .to-purple-400 {
+  --tw-gradient-to: #c084fc !important;
+}
+
+:root.theme-light .force-dark-mode .to-teal-400 {
+  --tw-gradient-to: #2dd4bf !important;
+}
+
+:root.theme-light .force-dark-mode .to-orange-400 {
+  --tw-gradient-to: #fb923c !important;
+}
+
+:root.theme-light .force-dark-mode .to-pink-400 {
+  --tw-gradient-to: #f472b6 !important;
+}
+
+:root.theme-light .force-dark-mode .to-emerald-400 {
+  --tw-gradient-to: #34d399 !important;
+}
+
+:root.theme-light .force-dark-mode .to-amber-400 {
+  --tw-gradient-to: #fbbf24 !important;
+}
+
+/* Backgrounds — prevent light-mode bg overrides */
+:root.theme-light .force-dark-mode .bg-black {
+  background-color: #000000 !important;
+}
+
+:root.theme-light .force-dark-mode .bg-blue-600 {
+  background-color: #2563eb !important;
+}
+
+:root.theme-light .force-dark-mode .bg-blue-500 {
+  background-color: #3b82f6 !important;
+}
+
+/* Borders — keep dark-mode style borders */
+:root.theme-light .force-dark-mode .border-slate-800,
+:root.theme-light .force-dark-mode .border-slate-700,
+:root.theme-light .force-dark-mode .border-slate-900 {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Buttons inside force-dark-mode */
+:root.theme-light .force-dark-mode button {
+  color: inherit;
+}
+
+/* Shadows — use dark-mode shadows */
+:root.theme-light .force-dark-mode .shadow-lg,
+:root.theme-light .force-dark-mode .shadow-xl,
+:root.theme-light .force-dark-mode .shadow-2xl {
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Dark-mode: prevent neutral gray remapping inside force-dark-mode */
+:root.theme-dark .force-dark-mode .bg-blue-600 {
+  background-color: #2563eb !important;
+}
+
+:root.theme-dark .force-dark-mode .bg-blue-500 {
+  background-color: #3b82f6 !important;
+}
+
+:root.theme-dark .force-dark-mode .from-blue-600 {
+  --tw-gradient-from: #2563eb !important;
+}
+
+:root.theme-dark .force-dark-mode .from-blue-500 {
+  --tw-gradient-from: #3b82f6 !important;
+}
+
+:root.theme-dark .force-dark-mode .to-blue-500 {
+  --tw-gradient-to: #3b82f6 !important;
+}
+
+:root.theme-dark .force-dark-mode .to-blue-400 {
+  --tw-gradient-to: #60a5fa !important;
+}
+
+:root.theme-dark .force-dark-mode .to-cyan-400 {
+  --tw-gradient-to: #22d3ee !important;
+}
+
+:root.theme-dark .force-dark-mode .to-indigo-400 {
+  --tw-gradient-to: #818cf8 !important;
+}
+
+:root.theme-dark .force-dark-mode .to-indigo-500 {
+  --tw-gradient-to: #6366f1 !important;
+}
+
+:root.theme-dark .force-dark-mode .to-indigo-600 {
+  --tw-gradient-to: #4f46e5 !important;
+}
+
+:root.theme-dark .force-dark-mode .from-violet-500 {
+  --tw-gradient-from: #8b5cf6 !important;
+}
+
+:root.theme-dark .force-dark-mode .from-emerald-500 {
+  --tw-gradient-from: #10b981 !important;
+}
+
+:root.theme-dark .force-dark-mode .from-amber-500 {
+  --tw-gradient-from: #f59e0b !important;
+}
+
+:root.theme-dark .force-dark-mode .from-rose-500 {
+  --tw-gradient-from: #f43f5e !important;
+}
+
+:root.theme-dark .force-dark-mode .from-sky-500 {
+  --tw-gradient-from: #0ea5e9 !important;
+}
+
+:root.theme-dark .force-dark-mode .from-green-500 {
+  --tw-gradient-from: #22c55e !important;
+}
+
+:root.theme-dark .force-dark-mode .from-orange-500 {
+  --tw-gradient-from: #f97316 !important;
+}
+
+:root.theme-dark .force-dark-mode .to-purple-400 {
+  --tw-gradient-to: #c084fc !important;
+}
+
+:root.theme-dark .force-dark-mode .to-teal-400 {
+  --tw-gradient-to: #2dd4bf !important;
+}
+
+:root.theme-dark .force-dark-mode .to-orange-400 {
+  --tw-gradient-to: #fb923c !important;
+}
+
+:root.theme-dark .force-dark-mode .to-pink-400 {
+  --tw-gradient-to: #f472b6 !important;
+}
+
+:root.theme-dark .force-dark-mode .to-emerald-400 {
+  --tw-gradient-to: #34d399 !important;
+}
+
+:root.theme-dark .force-dark-mode .to-amber-400 {
+  --tw-gradient-to: #fbbf24 !important;
+}
+
+:root.theme-dark .force-dark-mode .text-blue-400 {
+  color: #60a5fa !important;
+}
+
+:root.theme-dark .force-dark-mode .text-blue-500 {
+  color: #3b82f6 !important;
+}
+
+:root.theme-dark .force-dark-mode .text-blue-300 {
+  color: #93c5fd !important;
+}
+
+:root.theme-dark .force-dark-mode .text-blue-100 {
+  color: #dbeafe !important;
+}
+
+:root.theme-dark .force-dark-mode .text-indigo-400 {
+  color: #818cf8 !important;
+}
+
+:root.theme-dark .force-dark-mode .text-indigo-500 {
+  color: #6366f1 !important;
+}
+
+:root.theme-dark .force-dark-mode .hover\:bg-blue-500:hover {
+  background-color: #3b82f6 !important;
+}

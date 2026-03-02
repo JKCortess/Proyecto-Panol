@@ -234,7 +234,7 @@ const architectureFlow = [
 
 export default function FeaturesPage() {
     return (
-        <div className="relative min-h-screen bg-black text-white overflow-y-auto overflow-x-hidden">
+        <div className="force-dark-mode relative min-h-screen bg-black text-white overflow-y-auto overflow-x-hidden">
             {/* ═══ FIXED NAV BAR ═══ */}
             <div className="fixed top-0 left-0 right-0 z-50 px-6 sm:px-10 py-4 bg-black/60 backdrop-blur-xl border-b border-white/[0.06]">
                 <div className="max-w-6xl mx-auto flex items-center justify-between">

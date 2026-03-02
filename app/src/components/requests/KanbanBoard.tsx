@@ -2,13 +2,12 @@
 
 import { useState, useCallback, useRef, useEffect, useTransition } from 'react';
 import {
-    Clock, CheckCircle, PackageCheck, XCircle, AlertTriangle,
-    GripVertical, User, Calendar, Package, ChevronRight, Eye,
-    Columns3, List, ArrowLeftRight,
+    Clock, CheckCircle2, PackageCheck, XCircle,
+    GripVertical, User, Calendar, Package, Eye,
+    Columns3, ArrowRight,
 } from 'lucide-react';
 import { updateRequestStatus } from '@/app/(app)/requests/actions';
 import { toast } from 'sonner';
-import { StatusChip } from '@/components/ui/request-status';
 
 /* ── Types ── */
 interface RequestItem {
@@ -37,55 +36,59 @@ interface KanbanBoardProps {
     onRequestClick?: (request: KanbanRequest) => void;
 }
 
-/* ── Column Config ── */
+/* ── Column definitions with DISTINCT colors ── */
 const KANBAN_COLUMNS = [
     {
         key: 'Pendiente',
         label: 'Pendiente',
         icon: Clock,
-        color: 'amber',
-        borderColor: 'border-amber-500/40',
-        bgColor: 'bg-amber-500/5',
-        headerBg: 'bg-amber-500/10',
-        dotColor: 'bg-amber-400',
-        iconColor: 'text-amber-400',
+        accent: '#f59e0b',        // amber
+        bgColumn: 'rgba(245, 158, 11, 0.04)',
+        bgHeader: 'rgba(245, 158, 11, 0.08)',
+        borderCol: 'rgba(245, 158, 11, 0.25)',
+        badgeBg: 'rgba(245, 158, 11, 0.15)',
+        badgeText: '#f59e0b',
+        cardHover: 'rgba(245, 158, 11, 0.06)',
     },
     {
         key: 'Aceptada',
         label: 'Aceptada',
-        icon: CheckCircle,
-        color: 'blue',
-        borderColor: 'border-blue-500/40',
-        bgColor: 'bg-blue-500/5',
-        headerBg: 'bg-blue-500/10',
-        dotColor: 'bg-blue-400',
-        iconColor: 'text-blue-400',
+        icon: CheckCircle2,
+        accent: '#3b82f6',        // blue — clearly different from green
+        bgColumn: 'rgba(59, 130, 246, 0.04)',
+        bgHeader: 'rgba(59, 130, 246, 0.08)',
+        borderCol: 'rgba(59, 130, 246, 0.25)',
+        badgeBg: 'rgba(59, 130, 246, 0.15)',
+        badgeText: '#3b82f6',
+        cardHover: 'rgba(59, 130, 246, 0.06)',
     },
     {
         key: 'Entregada',
         label: 'Entregada',
         icon: PackageCheck,
-        color: 'emerald',
-        borderColor: 'border-emerald-500/40',
-        bgColor: 'bg-emerald-500/5',
-        headerBg: 'bg-emerald-500/10',
-        dotColor: 'bg-emerald-400',
-        iconColor: 'text-emerald-400',
+        accent: '#10b981',        // emerald green — distinct from blue
+        bgColumn: 'rgba(16, 185, 129, 0.04)',
+        bgHeader: 'rgba(16, 185, 129, 0.08)',
+        borderCol: 'rgba(16, 185, 129, 0.25)',
+        badgeBg: 'rgba(16, 185, 129, 0.15)',
+        badgeText: '#10b981',
+        cardHover: 'rgba(16, 185, 129, 0.06)',
     },
     {
         key: 'Cancelada',
         label: 'Cancelada',
         icon: XCircle,
-        color: 'red',
-        borderColor: 'border-red-500/40',
-        bgColor: 'bg-red-500/5',
-        headerBg: 'bg-red-500/10',
-        dotColor: 'bg-red-400',
-        iconColor: 'text-red-400',
+        accent: '#ef4444',        // red
+        bgColumn: 'rgba(239, 68, 68, 0.04)',
+        bgHeader: 'rgba(239, 68, 68, 0.08)',
+        borderCol: 'rgba(239, 68, 68, 0.25)',
+        badgeBg: 'rgba(239, 68, 68, 0.15)',
+        badgeText: '#ef4444',
+        cardHover: 'rgba(239, 68, 68, 0.06)',
     },
 ] as const;
 
-/* ── Valid transitions ── */
+/* ── Valid transitions (from actions.ts) ── */
 const VALID_TRANSITIONS: Record<string, string[]> = {
     'Pendiente': ['Aceptada', 'Cancelada', 'Alerta'],
     'Aceptada': ['Pendiente', 'Cancelada', 'Alerta'],
@@ -98,82 +101,107 @@ function canTransition(from: string, to: string) {
     return VALID_TRANSITIONS[from]?.includes(to) ?? false;
 }
 
-/* ── Kanban Card ── */
+/* ═══════════ Kanban Card ═══════════ */
 function KanbanCard({
     request,
+    accentColor,
     onDragStart,
     onClick,
     isPending,
 }: {
     request: KanbanRequest;
+    accentColor: string;
     onDragStart: (e: React.DragEvent, request: KanbanRequest) => void;
     onClick?: () => void;
     isPending: boolean;
 }) {
     const items = request.items_detail || [];
     const date = new Date(request.created_at);
-    const formattedDate = date.toLocaleDateString('es-CL', { day: '2-digit', month: 'short' });
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = date.toLocaleDateString('es-CL', { month: 'short' });
 
     return (
         <div
             draggable={!isPending}
             onDragStart={(e) => onDragStart(e, request)}
             onClick={onClick}
-            className={`group relative bg-white dark:bg-slate-900/80 rounded-xl border border-gray-200 dark:border-slate-700/60 p-3.5 cursor-grab active:cursor-grabbing
-                hover:border-blue-400/50 dark:hover:border-blue-400/40 hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-200
-                ${isPending ? 'opacity-50 pointer-events-none' : ''}
+            style={{ borderLeftColor: accentColor }}
+            className={`
+                group relative rounded-lg border-l-[3px]
+                bg-white dark:bg-slate-800/90
+                border border-slate-200 dark:border-slate-700/50
+                shadow-sm hover:shadow-md
+                transition-all duration-200 cursor-grab active:cursor-grabbing
+                hover:translate-y-[-1px]
+                ${isPending ? 'opacity-40 pointer-events-none animate-pulse' : ''}
             `}
         >
-            {/* Drag handle indicator */}
-            <div className="absolute top-3 right-2 opacity-0 group-hover:opacity-60 transition-opacity">
-                <GripVertical className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500" />
+            {/* Grip handle */}
+            <div className="absolute top-2.5 right-2 opacity-0 group-hover:opacity-40 transition-opacity pointer-events-none">
+                <GripVertical className="w-3.5 h-3.5 text-slate-400" />
             </div>
 
-            {/* Header: Code + Date */}
-            <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-bold font-mono text-gray-900 dark:text-white">
-                    #{request.request_code}
-                </span>
-                <span className="text-[10px] text-gray-500 dark:text-slate-500 flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
-                    {formattedDate}
-                </span>
-            </div>
-
-            {/* User */}
-            <div className="flex items-center gap-1.5 mb-2">
-                <User className="w-3 h-3 text-gray-400 dark:text-slate-500" />
-                <span className="text-xs text-gray-600 dark:text-slate-400 truncate">
-                    {request.user_name || request.user_email || 'Sin nombre'}
-                </span>
-            </div>
-
-            {/* Area badge */}
-            {request.area && (
-                <span className="inline-block text-[10px] px-2 py-0.5 rounded-full bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400 border border-gray-200 dark:border-slate-700 mb-2">
-                    {request.area}
-                </span>
-            )}
-
-            {/* Items preview */}
-            <div className="space-y-1">
-                {items.slice(0, 2).map((item, i) => (
-                    <div key={i} className="flex items-center gap-1.5 text-[11px]">
-                        <Package className="w-3 h-3 text-gray-400 dark:text-slate-600 shrink-0" />
-                        <span className="text-gray-700 dark:text-slate-300 truncate">{item.quantity}x {item.detail}</span>
-                    </div>
-                ))}
-                {items.length > 2 && (
-                    <span className="text-[10px] text-gray-400 dark:text-slate-500 italic">
-                        +{items.length - 2} más
+            {/* Card body */}
+            <div className="p-3 space-y-2">
+                {/* Row 1: Code + Date */}
+                <div className="flex items-center justify-between gap-2 min-w-0">
+                    <span
+                        className="text-[13px] font-bold font-mono tracking-tight truncate"
+                        style={{ color: accentColor }}
+                    >
+                        #{request.request_code}
                     </span>
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500 whitespace-nowrap flex items-center gap-0.5 shrink-0">
+                        <Calendar className="w-2.5 h-2.5" />
+                        {day} {month}
+                    </span>
+                </div>
+
+                {/* Row 2: User */}
+                <div className="flex items-center gap-1.5 min-w-0">
+                    <div className="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center shrink-0">
+                        <User className="w-3 h-3 text-slate-400 dark:text-slate-500" />
+                    </div>
+                    <span className="text-xs text-slate-600 dark:text-slate-300 truncate font-medium">
+                        {request.user_name || request.user_email?.split('@')[0] || 'Sin nombre'}
+                    </span>
+                </div>
+
+                {/* Row 3: Area badge */}
+                {request.area && (
+                    <div className="flex">
+                        <span className="inline-block text-[10px] leading-tight px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700/60 text-slate-500 dark:text-slate-400 truncate max-w-full">
+                            {request.area}
+                        </span>
+                    </div>
                 )}
+
+                {/* Row 4: Items list (compact) */}
+                <div className="space-y-0.5 pt-0.5 border-t border-slate-100 dark:border-slate-700/40">
+                    {items.slice(0, 2).map((item, i) => (
+                        <div key={i} className="flex items-start gap-1 min-w-0">
+                            <Package className="w-3 h-3 text-slate-300 dark:text-slate-600 shrink-0 mt-0.5" />
+                            <span className="text-[11px] leading-tight text-slate-500 dark:text-slate-400 line-clamp-1">
+                                <span className="font-medium text-slate-600 dark:text-slate-300">{item.quantity}x</span>{' '}
+                                {item.detail}
+                            </span>
+                        </div>
+                    ))}
+                    {items.length > 2 && (
+                        <span className="text-[10px] text-slate-400 dark:text-slate-500 pl-4">
+                            +{items.length - 2} ítem{items.length - 2 > 1 ? 's' : ''} más
+                        </span>
+                    )}
+                    {items.length === 0 && (
+                        <span className="text-[10px] text-slate-400 italic">Sin ítems</span>
+                    )}
+                </div>
             </div>
 
-            {/* View button */}
+            {/* Footer: View detail */}
             <button
                 onClick={(e) => { e.stopPropagation(); onClick?.(); }}
-                className="mt-2 w-full text-[10px] py-1 rounded-lg bg-gray-50 dark:bg-slate-800/60 text-gray-500 dark:text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors flex items-center justify-center gap-1"
+                className="w-full text-[10px] py-1.5 border-t border-slate-100 dark:border-slate-700/40 text-slate-400 dark:text-slate-500 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-500/5 transition-colors flex items-center justify-center gap-1 rounded-b-lg"
             >
                 <Eye className="w-3 h-3" /> Ver detalle
             </button>
@@ -181,13 +209,14 @@ function KanbanCard({
     );
 }
 
-/* ── Kanban Column ── */
+/* ═══════════ Kanban Column ═══════════ */
 function KanbanColumn({
     config,
     requests,
     onDragStart,
     onDrop,
     isDragOver,
+    canDrop,
     onDragOver,
     onDragLeave,
     onRequestClick,
@@ -198,6 +227,7 @@ function KanbanColumn({
     onDragStart: (e: React.DragEvent, request: KanbanRequest) => void;
     onDrop: (e: React.DragEvent, targetStatus: string) => void;
     isDragOver: boolean;
+    canDrop: boolean;
     onDragOver: (e: React.DragEvent) => void;
     onDragLeave: () => void;
     onRequestClick?: (request: KanbanRequest) => void;
@@ -207,38 +237,62 @@ function KanbanColumn({
 
     return (
         <div
-            className={`flex flex-col rounded-xl border ${config.borderColor} ${config.bgColor} min-h-[400px] max-h-[calc(100vh-220px)] transition-all duration-200
-                ${isDragOver ? `ring-2 ring-${config.color}-400/50 scale-[1.01] shadow-lg shadow-${config.color}-500/10` : ''}
-            `}
+            className="flex flex-col rounded-xl overflow-hidden transition-all duration-200"
+            style={{
+                background: config.bgColumn,
+                border: `1px solid ${isDragOver && canDrop ? config.accent : config.borderCol}`,
+                boxShadow: isDragOver && canDrop ? `0 0 0 2px ${config.accent}40, 0 4px 12px ${config.accent}10` : 'none',
+                transform: isDragOver && canDrop ? 'scale(1.01)' : 'scale(1)',
+                minHeight: '380px',
+                maxHeight: 'calc(100vh - 240px)',
+            }}
             onDragOver={onDragOver}
             onDragLeave={onDragLeave}
             onDrop={(e) => onDrop(e, config.key)}
         >
-            {/* Column header */}
-            <div className={`px-4 py-3 ${config.headerBg} rounded-t-xl border-b ${config.borderColor} flex items-center justify-between`}>
+            {/* Column Header */}
+            <div
+                className="px-3 py-2.5 flex items-center justify-between"
+                style={{ background: config.bgHeader, borderBottom: `1px solid ${config.borderCol}` }}
+            >
                 <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${config.dotColor} animate-pulse`} />
-                    <Icon className={`w-4 h-4 ${config.iconColor}`} />
-                    <span className="text-sm font-semibold text-gray-900 dark:text-white">{config.label}</span>
+                    <div
+                        className="w-6 h-6 rounded-md flex items-center justify-center"
+                        style={{ background: config.badgeBg }}
+                    >
+                        <Icon className="w-3.5 h-3.5" style={{ color: config.accent }} />
+                    </div>
+                    <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                        {config.label}
+                    </span>
                 </div>
-                <span className={`text-xs font-bold font-mono px-2 py-0.5 rounded-full ${config.headerBg} ${config.iconColor}`}>
+                <span
+                    className="text-xs font-bold font-mono w-6 h-6 rounded-full flex items-center justify-center"
+                    style={{ background: config.badgeBg, color: config.badgeText }}
+                >
                     {requests.length}
                 </span>
             </div>
 
-            {/* Cards container */}
-            <div className="flex-1 overflow-y-auto p-3 space-y-2.5 scrollbar-thin">
+            {/* Cards area */}
+            <div className="flex-1 overflow-y-auto p-2.5 space-y-2 scrollbar-thin">
                 {requests.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-12 text-center">
-                        <Icon className={`w-8 h-8 ${config.iconColor} opacity-30 mb-2`} />
-                        <p className="text-xs text-gray-400 dark:text-slate-500">Sin solicitudes</p>
-                        <p className="text-[10px] text-gray-400 dark:text-slate-600 mt-1">Arrastra aquí para mover</p>
+                    <div className="flex flex-col items-center justify-center py-10 text-center">
+                        <div
+                            className="w-10 h-10 rounded-full flex items-center justify-center mb-2"
+                            style={{ background: config.badgeBg }}
+                        >
+                            <Icon className="w-5 h-5 opacity-50" style={{ color: config.accent }} />
+                        </div>
+                        <p className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">Sin solicitudes</p>
+                        <p className="text-[10px] text-slate-300 dark:text-slate-600 mt-0.5">Arrastra aquí</p>
                     </div>
                 ) : (
                     requests.map((req) => (
                         <KanbanCard
                             key={req.id}
                             request={req}
+                            accentColor={config.accent}
                             onDragStart={onDragStart}
                             onClick={() => onRequestClick?.(req)}
                             isPending={pendingIds.has(req.id)}
@@ -248,30 +302,40 @@ function KanbanColumn({
             </div>
 
             {/* Drop zone indicator */}
-            {isDragOver && (
-                <div className={`mx-3 mb-3 py-3 rounded-lg border-2 border-dashed ${config.borderColor} flex items-center justify-center gap-2`}>
-                    <ArrowLeftRight className={`w-4 h-4 ${config.iconColor}`} />
-                    <span className={`text-xs font-medium ${config.iconColor}`}>Soltar aquí</span>
+            {isDragOver && canDrop && (
+                <div
+                    className="mx-2.5 mb-2.5 py-2.5 rounded-lg border-2 border-dashed flex items-center justify-center gap-1.5 animate-pulse"
+                    style={{ borderColor: config.accent, background: `${config.accent}08` }}
+                >
+                    <ArrowRight className="w-3.5 h-3.5" style={{ color: config.accent }} />
+                    <span className="text-[11px] font-medium" style={{ color: config.accent }}>
+                        Mover a {config.label}
+                    </span>
+                </div>
+            )}
+
+            {isDragOver && !canDrop && (
+                <div className="mx-2.5 mb-2.5 py-2.5 rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center gap-1.5 opacity-50">
+                    <XCircle className="w-3.5 h-3.5 text-slate-400" />
+                    <span className="text-[11px] font-medium text-slate-400">No permitido</span>
                 </div>
             )}
         </div>
     );
 }
 
-/* ── Main Kanban Board ── */
+/* ═══════════ Main Kanban Board ═══════════ */
 export function KanbanBoard({ requests, onRequestClick }: KanbanBoardProps) {
     const [localRequests, setLocalRequests] = useState(requests);
     const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
     const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
     const draggedRef = useRef<KanbanRequest | null>(null);
-    const [isPending, startTransition] = useTransition();
+    const [, startTransition] = useTransition();
 
-    // Keep in sync with parent
     useEffect(() => {
         setLocalRequests(requests);
     }, [requests]);
 
-    // Group by status
     const columns = KANBAN_COLUMNS.map((col) => ({
         config: col,
         requests: localRequests.filter((r) => r.status === col.key),
@@ -283,9 +347,7 @@ export function KanbanBoard({ requests, onRequestClick }: KanbanBoardProps) {
 
     const handleDragOver = useCallback((e: React.DragEvent, columnKey: string) => {
         e.preventDefault();
-        if (draggedRef.current && canTransition(draggedRef.current.status, columnKey)) {
-            setDragOverColumn(columnKey);
-        }
+        setDragOverColumn(columnKey);
     }, []);
 
     const handleDragLeave = useCallback(() => {
@@ -313,18 +375,23 @@ export function KanbanBoard({ requests, onRequestClick }: KanbanBoardProps) {
 
         startTransition(async () => {
             try {
-                const result = await updateRequestStatus(request.id, targetStatus, `Movido via Kanban: ${request.status} → ${targetStatus}`);
+                const result = await updateRequestStatus(
+                    request.id,
+                    targetStatus,
+                    `Kanban: ${request.status} → ${targetStatus}`
+                );
                 if (result?.error) {
-                    // Rollback
                     setLocalRequests((prev) =>
                         prev.map((r) => (r.id === request.id ? { ...r, status: request.status } : r))
                     );
                     toast.error(result.error);
                 } else {
-                    toast.success(`#${request.request_code}: ${request.status} → ${targetStatus}`);
+                    toast.success(
+                        `#${request.request_code} → ${targetStatus}`,
+                        { duration: 2000 }
+                    );
                 }
             } catch {
-                // Rollback
                 setLocalRequests((prev) =>
                     prev.map((r) => (r.id === request.id ? { ...r, status: request.status } : r))
                 );
@@ -339,30 +406,42 @@ export function KanbanBoard({ requests, onRequestClick }: KanbanBoardProps) {
         });
     }, []);
 
+    const canDropOnColumn = draggedRef.current
+        ? canTransition(draggedRef.current.status, dragOverColumn ?? '')
+        : false;
+
     return (
-        <div className="space-y-4">
-            {/* Header */}
+        <div className="space-y-3">
+            {/* Header row */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <Columns3 className="w-5 h-5 text-blue-400" />
-                    <h3 className="text-sm font-bold text-gray-900 dark:text-white">Vista Kanban</h3>
-                    <span className="text-xs text-gray-500 dark:text-slate-500">• Arrastra las tarjetas para cambiar estado</span>
+                    <Columns3 className="w-4 h-4 text-blue-500" />
+                    <span className="text-sm font-semibold text-slate-800 dark:text-white">Vista Kanban</span>
                 </div>
+                <span className="text-[11px] text-slate-400 dark:text-slate-500">
+                    Arrastra las tarjetas entre columnas para cambiar el estado
+                </span>
             </div>
 
-            {/* Transition hint */}
-            <div className="flex items-center gap-2 text-[10px] text-gray-400 dark:text-slate-500">
-                <span>Flujo:</span>
+            {/* Flow legend */}
+            <div className="flex items-center gap-1.5 flex-wrap">
                 {KANBAN_COLUMNS.map((col, i) => (
-                    <span key={col.key} className="flex items-center gap-1">
-                        <StatusChip status={col.key} />
-                        {i < KANBAN_COLUMNS.length - 1 && <ChevronRight className="w-3 h-3" />}
-                    </span>
+                    <div key={col.key} className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium"
+                            style={{ background: col.badgeBg, color: col.badgeText }}
+                        >
+                            <col.icon className="w-2.5 h-2.5" />
+                            {col.label}
+                        </div>
+                        {i < KANBAN_COLUMNS.length - 1 && (
+                            <ArrowRight className="w-3 h-3 text-slate-300 dark:text-slate-600" />
+                        )}
+                    </div>
                 ))}
             </div>
 
-            {/* Board */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+            {/* Board Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
                 {columns.map(({ config, requests: colRequests }) => (
                     <KanbanColumn
                         key={config.key}
@@ -371,6 +450,7 @@ export function KanbanBoard({ requests, onRequestClick }: KanbanBoardProps) {
                         onDragStart={handleDragStart}
                         onDrop={handleDrop}
                         isDragOver={dragOverColumn === config.key}
+                        canDrop={dragOverColumn === config.key && canDropOnColumn}
                         onDragOver={(e) => handleDragOver(e, config.key)}
                         onDragLeave={handleDragLeave}
                         onRequestClick={onRequestClick}

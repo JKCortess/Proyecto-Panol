@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.7.1 - 2026-03-02
+
+### ✨ Funcionalidades
+- **Landing page mejorada**: Texto oscuro de alto contraste sobre escena Spline 3D, layout hero rediseñado con sección de estadísticas y CTA prominente
+- **Kanban Board mejorado**: Columnas rediseñadas con badges de conteo, mejor responsive y drag & drop optimizado
+
+### 🐛 Correcciones
+- **Fix contraste landing page**: Texto ahora es oscuro y legible contra fondo claro del Spline 3D
+- **Fix responsividad login/registro**: Página de login adaptada correctamente a todas las resoluciones
+- **Fix tema claro features**: Corregido texto blanco invisible en página `/features`
+
+### 🔧 Mantenimiento
+- Configuración Turbopack: Agregado `turbopack.root` en `next.config.ts` para resolver paths correctamente
+- Ampliados estilos globales CSS con +355 líneas de utilidades para landing y componentes
+
 ## v0.7.0 - 2026-03-01
 
 ### ✨ Funcionalidades
