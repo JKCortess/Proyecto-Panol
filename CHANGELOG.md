@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.7.2 - 2026-03-16
+
+### ✨ Funcionalidades
+- **Despliegue en Netlify**: Configuración de `netlify.toml` con build command, publish directory y plugin `@netlify/plugin-nextjs` para soporte SSR
+
+### 🔧 Mantenimiento
+- Agregada dependencia `@netlify/plugin-nextjs` en `package.json`
+- Actualizado componente `AvatarSelector` con mejoras de UI
+- Agregada documentación técnica actualizada (`Documentacion_Tecnica_Panol_v3.docx`)
+
 ## v0.7.1 - 2026-03-02
 
 ### ✨ Funcionalidades
