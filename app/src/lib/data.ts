@@ -273,7 +273,7 @@ async function getImageLinksMap(): Promise<Map<string, string[]>> {
 
             const sku = nameWithoutExt.substring(0, lastDashIndex);
             const photoNum = nameWithoutExt.substring(lastDashIndex + 1); // e.g. "01", "02"
-            const imageUrl = `/api/image-proxy?id=${fileId}`;
+            const imageUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
 
             if (!tempMap.has(sku)) {
                 tempMap.set(sku, []);
@@ -297,7 +297,9 @@ async function getImageLinksMap(): Promise<Map<string, string[]>> {
 }
 
 /**
- * Converts a Google Drive URL to our image proxy URL.
+ * Converts a Google Drive URL to a direct thumbnail URL.
+ * Uses drive.google.com/thumbnail endpoint which works in <img> tags
+ * without CORS issues and avoids Netlify CDN caching collisions.
  * Supports formats:
  * - https://lh3.googleusercontent.com/d/{ID}=w1000
  * - https://drive.google.com/file/d/{ID}/view
@@ -309,15 +311,15 @@ function convertToProxyUrl(url: string): string {
 
     // Match lh3 URL: https://lh3.googleusercontent.com/d/{ID}
     const lh3Match = url.match(/lh3\.googleusercontent\.com\/d\/([a-zA-Z0-9_-]+)/);
-    if (lh3Match) return `/api/image-proxy?id=${lh3Match[1]}`;
+    if (lh3Match) return `https://drive.google.com/thumbnail?id=${lh3Match[1]}&sz=w800`;
 
     // Match drive.google.com/file/d/{ID}/
     const driveFileMatch = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
-    if (driveFileMatch) return `/api/image-proxy?id=${driveFileMatch[1]}`;
+    if (driveFileMatch) return `https://drive.google.com/thumbnail?id=${driveFileMatch[1]}&sz=w800`;
 
     // Match drive.google.com/uc?id={ID}
     const driveUcMatch = url.match(/drive\.google\.com\/uc\?.*id=([a-zA-Z0-9_-]+)/);
-    if (driveUcMatch) return `/api/image-proxy?id=${driveUcMatch[1]}`;
+    if (driveUcMatch) return `https://drive.google.com/thumbnail?id=${driveUcMatch[1]}&sz=w800`;
 
     // Not a Google Drive URL — return as-is
     return url;

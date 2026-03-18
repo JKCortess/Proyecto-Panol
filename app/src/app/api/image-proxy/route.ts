@@ -29,9 +29,21 @@ function cleanupCache() {
     }
 }
 
-const CACHE_HEADERS = {
-    'Cache-Control': 'public, max-age=86400, stale-while-revalidate=604800', // 1 day cache, 7 day stale
-};
+function getCacheHeaders(fileId: string) {
+    return {
+        // Use 'private' to prevent Netlify CDN from collapsing all ?id=XXX variants
+        // into a single cached response. Browser still caches for 1 day.
+        'Cache-Control': 'private, max-age=86400, stale-while-revalidate=604800',
+        // Explicitly tell Netlify CDN not to cache this route
+        'CDN-Cache-Control': 'no-store',
+        // Netlify-specific: prevent edge caching
+        'Netlify-CDN-Cache-Control': 'no-store',
+        // Vary by full URL to differentiate query params
+        'Vary': 'Accept',
+        // ETag per file ID for proper revalidation
+        'ETag': `"img-${fileId}"`,
+    };
+}
 
 async function fetchImage(url: string): Promise<{ data: ArrayBuffer; contentType: string } | null> {
     try {
@@ -66,7 +78,7 @@ export async function GET(request: NextRequest) {
             status: 200,
             headers: {
                 'Content-Type': cached.contentType,
-                ...CACHE_HEADERS,
+                ...getCacheHeaders(fileId),
                 'X-Image-Cache': 'HIT',
             },
         });
@@ -89,7 +101,7 @@ export async function GET(request: NextRequest) {
                 status: 200,
                 headers: {
                     'Content-Type': result.contentType,
-                    ...CACHE_HEADERS,
+                    ...getCacheHeaders(fileId),
                     'X-Image-Cache': 'MISS',
                 },
             });

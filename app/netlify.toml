@@ -4,3 +4,19 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+# Prevent CDN caching for dynamic pages and API routes
+[[headers]]
+  for = "/inventory*"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    CDN-Cache-Control = "no-store"
+    Netlify-CDN-Cache-Control = "no-store"
+
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    CDN-Cache-Control = "no-store"
+    Netlify-CDN-Cache-Control = "no-store"
+    Netlify-Vary = "query"

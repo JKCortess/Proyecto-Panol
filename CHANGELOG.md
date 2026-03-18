@@ -1,6 +1,17 @@
 # Changelog
 
+## v0.7.3 - 2026-03-18
+
+### 🐛 Correcciones
+- **Fix imágenes repetidas en Netlify**: Reemplazadas URLs de proxy server-side (`/api/image-proxy?id=XXX`) por URLs directas de Google Drive (`drive.google.com/thumbnail?id=XXX&sz=w800`) para evitar que el CDN de Netlify colapse todas las respuestas en una sola imagen cacheada
+- **Headers anti-cache en Netlify**: Agregados headers `CDN-Cache-Control: no-store` y `Netlify-CDN-Cache-Control: no-store` en `image-proxy/route.ts` y `netlify.toml` para rutas dinámicas
+
+### 🔧 Mantenimiento
+- Actualizado `netlify.toml` con reglas de headers para `/inventory*` y `/api/*`
+- Mejorada función `convertToProxyUrl()` en `data.ts` para usar thumbnail endpoint directo
+
 ## v0.7.2 - 2026-03-16
+
 
 ### ✨ Funcionalidades
 - **Despliegue en Netlify**: Configuración de `netlify.toml` con build command, publish directory y plugin `@netlify/plugin-nextjs` para soporte SSR
