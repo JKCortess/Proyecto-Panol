@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { LayoutGrid, List, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, Check, RefreshCw, CheckCircle2, AlertTriangle } from "lucide-react";
+import { ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, Check, RefreshCw, CheckCircle2, AlertTriangle } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
 
@@ -40,7 +40,7 @@ export function InventoryActionToolbar({ totalItems, isAdmin }: InventoryActionT
     const [lastRefresh, setLastRefresh] = useState<number>(0);
     const [cooldownRemaining, setCooldownRemaining] = useState<number>(0);
 
-    const currentView = searchParams.get("view") || "deck";
+
     const currentSort = searchParams.get("sort") || "name_asc";
 
     const updateParam = (key: string, value: string) => {
@@ -230,30 +230,7 @@ export function InventoryActionToolbar({ totalItems, isAdmin }: InventoryActionT
                     )}
                 </div>
 
-                {/* View Toggle */}
-                <div className="flex items-center p-1 bg-white dark:bg-slate-950 rounded-lg border border-slate-300 dark:border-slate-800 shadow-sm">
-                    <button
-                        onClick={() => updateParam("view", "deck")}
-                        className={`p-1.5 rounded-md transition-all ${currentView === 'deck'
-                            ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 shadow-sm ring-1 ring-slate-300 dark:ring-slate-700'
-                            : 'text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900'
-                            }`}
-                        title="Vista Tarjetas"
-                    >
-                        <LayoutGrid className="w-4 h-4" />
-                    </button>
-                    <div className="w-px h-4 bg-slate-200 dark:bg-slate-800 mx-1"></div>
-                    <button
-                        onClick={() => updateParam("view", "list")}
-                        className={`p-1.5 rounded-md transition-all ${currentView === 'list'
-                            ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 shadow-sm ring-1 ring-slate-300 dark:ring-slate-700'
-                            : 'text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900'
-                            }`}
-                        title="Vista Lista"
-                    >
-                        <List className="w-4 h-4" />
-                    </button>
-                </div>
+
             </div>
         </div>
     );

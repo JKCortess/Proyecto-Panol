@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.7.4 - 2026-03-20
+
+### 🔧 Mantenimiento
+- **Eliminados íconos de toggle Grid/List**: Removidos botones de cambio de vista (tarjetas/lista) del toolbar de inventario por ser innecesarios — imports `LayoutGrid` y `List` limpiados
+
 ## v0.7.3 - 2026-03-18
 
 ### 🐛 Correcciones
